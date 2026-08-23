@@ -1,0 +1,6 @@
+# Ignore ML model artifacts
+*.json
+*.model
+*.pkl
+*.joblib
+*.bin
