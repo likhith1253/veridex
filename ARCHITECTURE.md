@@ -371,6 +371,139 @@ graph TB
 - Immutable audit events (append-only)
 - Canonical data stored as JSONB with validation
 
+### Relational Schema (Implemented)
+
+```mermaid
+erDiagram
+    transactions ||--o{ reconciliation_items : "references"
+    transactions ||--o{ match_transactions : "references"
+    transactions ||--o{ exception_transactions : "references"
+    transactions ||--o{ audit_events : "references"
+
+    reconciliation_runs ||--o{ reconciliation_items : "contains"
+    reconciliation_runs ||--o{ matches : "contains"
+    reconciliation_runs ||--o{ decisions : "contains"
+    reconciliation_runs ||--o{ exceptions : "contains"
+    reconciliation_runs ||--o{ audit_events : "logs"
+
+    matches ||--o{ match_transactions : "contains"
+    matches ||--o{ decisions : "references"
+
+    exceptions ||--o{ exception_transactions : "contains"
+
+    transactions {
+        uuid id PK
+        string domain_transaction_id
+        string source
+        string reference_number
+        string order_id
+        decimal amount
+        string currency
+        datetime timestamp
+        string narration
+        decimal fee
+        decimal tax
+        string status
+        jsonb metadata
+        datetime created_at
+    }
+
+    reconciliation_runs {
+        uuid id PK
+        string run_id UK
+        string status
+        datetime started_at
+        datetime completed_at
+        int gateway_count
+        int ledger_count
+        int bank_count
+        int match_count
+        int exception_count
+        string summary
+        datetime created_at
+    }
+
+    reconciliation_items {
+        uuid id PK
+        uuid run_id FK "RESTRICT"
+        uuid transaction_id FK "RESTRICT"
+        string processing_status
+        string resulting_action
+        datetime created_at
+        datetime updated_at
+    }
+
+    matches {
+        uuid id PK
+        uuid run_id FK "RESTRICT"
+        string match_type
+        decimal confidence
+        string reason
+        jsonb evidence
+        datetime created_at
+    }
+
+    match_transactions {
+        uuid match_id FK, PK "RESTRICT"
+        uuid transaction_id FK, PK "RESTRICT"
+    }
+
+    decisions {
+        uuid id PK
+        uuid run_id FK "RESTRICT"
+        uuid match_id FK "RESTRICT"
+        string decision_action
+        decimal deterministic_confidence
+        decimal ml_probability
+        decimal candidate_margin
+        jsonb evidence
+        string reason
+        datetime created_at
+    }
+
+    exceptions {
+        uuid id PK
+        uuid run_id FK "RESTRICT"
+        uuid transaction_id FK "RESTRICT"
+        string exception_category
+        string status
+        decimal confidence
+        decimal financial_exposure
+        decimal expected_cost
+        string explanation
+        jsonb evidence
+        string recommended_action
+        boolean resolved
+        datetime resolved_at
+        datetime created_at
+    }
+
+    exception_transactions {
+        uuid exception_id FK, PK "RESTRICT"
+        uuid transaction_id FK, PK "RESTRICT"
+    }
+
+    audit_events {
+        uuid id PK
+        uuid run_id FK "RESTRICT"
+        uuid transaction_id FK "RESTRICT"
+        string event_type
+        string stage
+        string action
+        datetime timestamp
+        jsonb metadata
+        jsonb decision
+    }
+```
+
+**Key Design Decisions:**
+- Unique constraint on (source, domain_transaction_id) for transactions to prevent duplicates
+- N:M junction tables (match_transactions, exception_transactions) for proper many-to-many relationships
+- RESTRICT for all foreign keys (no cascade delete) to prevent accidental data loss
+- Decimal type for all financial values to ensure precision
+- JSONB for flexible fields (evidence, metadata) that may vary per record
+- Indexes on frequently queried fields (run_id, transaction_id, timestamps, etc.)
+
 ### Qdrant Boundary
 
 **Qdrant is NOT a source of truth for financial data.**
