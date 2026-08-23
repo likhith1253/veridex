@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Optional
 
 from app.matching.candidate import CandidateGenerator
+from app.matching.financial_utils import calculate_expected_bank_amount
 from app.models.match_result import MatchResult, MatchType
 from app.models.transaction import Transaction, TransactionSource
 
@@ -91,7 +92,7 @@ class DeterministicMatcher:
 
                 if gateway_txns and bank_txns:
                     for gateway_txn in gateway_txns:
-                        expected_bank = self._calculate_expected_bank_amount(gateway_txn)
+                        expected_bank = calculate_expected_bank_amount(gateway_txn)
                         for bank_txn in bank_txns:
                             if expected_bank and bank_txn.amount == expected_bank:
                                 txn_ids = [gateway_txn.txn_id, bank_txn.txn_id]
@@ -292,25 +293,6 @@ class DeterministicMatcher:
                     )
 
         return results
-
-    def _calculate_expected_bank_amount(self, gateway_txn: Transaction) -> Optional[Decimal]:
-        """Calculate expected bank amount accounting for fees, tax, and refunds."""
-        expected = gateway_txn.amount
-
-        # Subtract fee
-        if gateway_txn.fee:
-            expected -= gateway_txn.fee
-
-        # Subtract tax
-        if gateway_txn.tax:
-            expected -= gateway_txn.tax
-
-        # Handle refunds from metadata
-        if gateway_txn.metadata and "refund_amount" in gateway_txn.metadata:
-            refund_amount = Decimal(str(gateway_txn.metadata["refund_amount"]))
-            expected -= refund_amount
-
-        return expected if expected > 0 else None
 
     def _detect_ambiguity(self, candidates: list[Transaction]) -> bool:
         """Check for multiple plausible candidates."""
