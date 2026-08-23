@@ -253,11 +253,11 @@ graph TB
 - **Must NOT Do**: LLM calls, database mutations, investigation logic
 
 ### Reconciliation Orchestrator
-- **Responsibility**: Coordinate the end-to-end reconciliation pipeline
-- **Inputs**: Data source paths
-- **Outputs**: Reconciliation results
-- **Dependencies**: All pipeline components
-- **Must NOT Do**: Direct database access (use persistence layer), API logic
+- **Responsibility**: Coordinate the end-to-end reconciliation pipeline with persistence
+- **Inputs**: Normalized transactions grouped by source, run ID
+- **Outputs**: ReconciliationSummary with execution results
+- **Dependencies**: TransactionRepository, ReconciliationRepository, MatchRepository, DecisionRepository, ExceptionRepository, AuditRepository, DeterministicMatcher, MLScorer (optional), DecisionPolicy
+- **Must NOT Do**: CSV parsing, ML training, direct database queries (use repositories), API logic
 
 ### PostgreSQL
 - **Responsibility**: SYSTEM OF RECORD for all structured financial state
@@ -644,12 +644,12 @@ Gateway/Ledger/Bank CSV
 - XGBoost candidate scoring
 - Decision policy
 - Financial consistency utility
+- PostgreSQL persistence layer
+- Reconciliation orchestrator service
 - Tests for the above
 
 ### NOT YET IMPLEMENTED
 
-- PostgreSQL persistence
-- Reconciliation orchestrator
 - Evaluation engine
 - Investigation engine
 - LLM reasoning

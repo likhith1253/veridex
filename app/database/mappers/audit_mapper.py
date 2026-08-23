@@ -15,7 +15,7 @@ def domain_to_orm_audit(domain: AuditDomain, id: str, created_at: datetime) -> A
         stage=domain.stage,
         action=domain.event,
         timestamp=domain.timestamp,
-        metadata=domain.evidence,
+        meta_data=domain.evidence,
         decision=domain.decision,
         created_at=created_at,
     )
@@ -29,6 +29,6 @@ def orm_to_domain_audit(orm: AuditEventORM) -> AuditDomain:
         stage=orm.stage,
         event=orm.event_type,
         timestamp=orm.timestamp,
-        evidence=orm.metadata,
+        evidence=orm.meta_data,
         decision=orm.decision,
     )

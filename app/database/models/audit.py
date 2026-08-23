@@ -22,7 +22,7 @@ class AuditEvent(Base):
     stage: Mapped[str] = mapped_column(String(255), nullable=False)
     action: Mapped[str] = mapped_column(String(255), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(nullable=False)
-    metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    meta_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     decision: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
     __table_args__ = (

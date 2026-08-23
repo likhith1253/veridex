@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -19,7 +19,7 @@ class AuditRepository:
     async def create(self, domain: AuditDomain) -> str:
         """Create a new audit event and return its ID."""
         id = str(uuid.uuid4())
-        created_at = datetime.utcnow()
+        created_at = datetime.now(timezone.utc)
         orm = domain_to_orm_audit(domain, id, created_at)
         self.session.add(orm)
         await self.session.flush()

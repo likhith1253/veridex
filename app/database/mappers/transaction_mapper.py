@@ -21,7 +21,7 @@ def domain_to_orm(domain: TransactionDomain, id: str, created_at: datetime) -> T
         fee=domain.fee,
         tax=domain.tax,
         status=TransactionStatus(domain.status.value),
-        metadata=domain.metadata,
+        meta_data=domain.metadata,
         created_at=created_at,
     )
 
@@ -42,5 +42,5 @@ def orm_to_domain(orm: TransactionORM) -> TransactionDomain:
         tax=Decimal(orm.tax) if orm.tax is not None else None,
         status=DomainStatus(orm.status.value),
         order_id=orm.order_id,
-        metadata=orm.metadata,
+        metadata=orm.meta_data,
     )

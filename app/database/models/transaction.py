@@ -37,7 +37,7 @@ class Transaction(Base):
     fee: Mapped[Optional[Decimal]] = mapped_column(Numeric(19, 4), nullable=True)
     tax: Mapped[Optional[Decimal]] = mapped_column(Numeric(19, 4), nullable=True)
     status: Mapped[TransactionStatus] = mapped_column(String(50), nullable=False)
-    metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    meta_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     __table_args__ = (

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -19,7 +19,7 @@ class MatchRepository:
     async def create(self, domain: MatchDomain, run_id: str) -> str:
         """Create a new match and return its ID."""
         id = str(uuid.uuid4())
-        created_at = datetime.utcnow()
+        created_at = datetime.now(timezone.utc)
         orm = domain_to_orm_match(domain, id, run_id, created_at)
         self.session.add(orm)
         await self.session.flush()
