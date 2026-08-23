@@ -1,0 +1,3 @@
+# Mistakes Log
+This file records actual mistakes, incorrect assumptions, failed commands, or rework.
+It is mandatory historical context for the coding agent.
