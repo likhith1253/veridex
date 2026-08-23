@@ -31,4 +31,33 @@ The system uses:
 
 ## Development Status
 
-Phase 1: Repository foundation setup.
+### Currently Implemented
+- Repository foundation
+- Canonical Pydantic models
+- Synthetic financial data simulator
+- Ground truth generation
+- Normalization
+- Deterministic candidate generation
+- Deterministic matching
+- ML feature engineering
+- Logistic Regression baseline
+- XGBoost candidate scoring
+- Decision policy
+- Financial consistency utility
+- Tests for the above
+
+### Planned Next Components
+- PostgreSQL persistence
+- Reconciliation orchestrator
+- Evaluation engine
+- Investigation engine
+- LLM reasoning
+- Root-cause agent
+- Risk engine
+- Audit service integration
+- FastAPI
+- Streamlit
+
+## Documentation
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system architecture, component responsibilities, and design principles.

@@ -35,6 +35,12 @@ Development is strictly phase-controlled. The agent must:
 Before making ANY change, the agent must read:
 1. AGENTS.md (this file)
 2. mistakes.txt (if it exists)
+3. ARCHITECTURE.md (before modifying architecture-sensitive code)
+
+### Architecture Compliance
+- ARCHITECTURE.md is authoritative for: component boundaries, data flow, persistence responsibilities, LLM boundaries, agent responsibilities, system invariants
+- Before modifying architecture-sensitive code, read ARCHITECTURE.md
+- If proposed change conflicts with ARCHITECTURE.md: DO NOT silently redesign architecture. Update ARCHITECTURE.md first only when change is intentional and justified
 
 ### Mistake Logging
 - mistakes.txt is mandatory historical context
