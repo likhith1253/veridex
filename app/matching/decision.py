@@ -223,15 +223,14 @@ class DecisionPolicy:
         # Find all candidates from the same source as txn2
         candidates = transactions_by_source.get(txn2.source, [])
         
-        # If only one candidate, margin doesn't apply
+        # If only one candidate, margin doesn't apply (max confidence margin 1.0)
         if len(candidates) <= 1:
-            return float("inf"), None
+            return 1.0, None
 
         # In a real implementation, we would compute ML probabilities for all candidates
         # and find the second-best. For now, we assume the provided probability is the best
         # and we don't have access to other probabilities.
-        # This is a placeholder - the actual ML scorer would provide all probabilities.
-        return float("inf"), None
+        return 1.0, None
 
     def _build_reject_result(
         self, transaction_ids: list[str], reason: str, evidence: dict[str, Any]
