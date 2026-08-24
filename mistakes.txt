@@ -1,3 +1,5 @@
 # Mistakes Log
 This file records actual mistakes, incorrect assumptions, failed commands, or rework.
 It is mandatory historical context for the coding agent.
+
+- Invoked `poetry run` when poetry was not in PATH; use `python` or `python -m pytest` directly in this environment.

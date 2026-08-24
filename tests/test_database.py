@@ -20,7 +20,8 @@ async def db_session():
     if not database_url:
         pytest.skip("DATABASE_URL not set")
 
-    engine = create_async_engine(database_url, echo=False)
+    from app.database.session import create_app_engine
+    engine = create_app_engine(database_url, echo=False)
     async_session_maker = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
     async with async_session_maker() as session:
