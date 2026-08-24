@@ -2,7 +2,7 @@
 
 **Dataset**: `benchmark_seed_42_n_500`  
 **Total Transactions Evaluated**: 1500  
-**Execution Time**: 0.103s  
+**Execution Time**: 0.068s  
 
 ---
 
@@ -34,7 +34,7 @@
 | `AMBIGUOUS` | 0 | 0.0% | N/A |
 | `REJECT` | 0 | 0.0% | N/A |
 | `UNRESOLVED` | 0 | 0.0% | N/A |
-| **Total Decisions** | **1000** | **100.0%** | — |
+| **Total Decisions** | **1000** | **100.0%** | - |
 
 ---
 
