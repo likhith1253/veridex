@@ -2,7 +2,7 @@
   "dataset": {
     "name": "benchmark_seed_42_n_500",
     "total_transactions": 1500,
-    "execution_time_seconds": 0.0684
+    "execution_time_seconds": 0.069
   },
   "overall": {
     "total_proposed_matches": 1000,

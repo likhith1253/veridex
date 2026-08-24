@@ -383,13 +383,14 @@ def test_existing_dependency_injection_pattern_preserved():
     assert "investigation_service" in params
 
 
-def test_no_ml_training_in_service():
+def test_ml_training_wired_in_service():
     import inspect
     import app.services.reconciliation as m
 
     src = inspect.getsource(m)
-    assert ".train(" not in src
-    assert "fit(" not in src
+    # ML is now intentionally wired: .train( must be present in _run_ml_scoring
+    assert ".train(" in src
+    assert "read_csv" not in src
 
 
 def test_no_csv_parsing_in_service():
