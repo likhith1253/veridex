@@ -155,3 +155,90 @@ class GeminiLLMClient(LLMClient):
         except Exception as e:
             logger.error(f"Gemini LLM call failed: {e}. Raising for fallback handling.")
             raise e
+
+
+class GroqLLMClient(LLMClient):
+    """Groq LLM client implementing structured JSON reasoning via the Groq API.
+
+    Configuration is read exclusively from environment variables:
+        GROQ_API_KEY  — required; Groq API key (never hardcoded or logged)
+        GROQ_MODEL    — optional; defaults to "llama3-8b-8192"
+    """
+
+    _DEFAULT_MODEL = "llama3-8b-8192"
+    _DEFAULT_TIMEOUT = 30.0
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model_name: str | None = None,
+        timeout_seconds: float = _DEFAULT_TIMEOUT,
+    ):
+        import os
+        # API key: caller-supplied takes priority (allows DI in tests), then env
+        self._api_key: str | None = api_key or os.environ.get("GROQ_API_KEY") or None
+        # Model: caller-supplied, then env, then default
+        self._model_name: str = (
+            model_name
+            or os.environ.get("GROQ_MODEL")
+            or self._DEFAULT_MODEL
+        )
+        self._timeout_seconds: float = timeout_seconds
+
+    async def reason(self, context_dict: dict[str, Any]) -> LLMInvestigationResult:
+        """Call Groq with a structured JSON prompt and validate the response."""
+        if not self._api_key:
+            logger.warning("GROQ_API_KEY not configured. Falling back to FakeLLMClient.")
+            return await FakeLLMClient().reason(context_dict)
+
+        prompt = (
+            f"{INVESTIGATION_SYSTEM_PROMPT}\n\n"
+            f"--- INVESTIGATION CONTEXT ---\n"
+            f"{json.dumps(context_dict, indent=2)}\n\n"
+            f"Provide your JSON investigation result:"
+        )
+
+        try:
+            from groq import AsyncGroq
+
+            client = AsyncGroq(
+                api_key=self._api_key,
+                timeout=self._timeout_seconds,
+            )
+
+            response = await client.chat.completions.create(
+                model=self._model_name,
+                messages=[
+                    {"role": "system", "content": INVESTIGATION_SYSTEM_PROMPT},
+                    {"role": "user", "content": (
+                        f"--- INVESTIGATION CONTEXT ---\n"
+                        f"{json.dumps(context_dict, indent=2)}\n\n"
+                        f"Provide your JSON investigation result:"
+                    )},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.0,
+            )
+
+            raw_text = response.choices[0].message.content
+            if raw_text is None:
+                raise ValueError("Groq returned an empty response content.")
+
+            raw_text = raw_text.strip()
+            # Strip any accidental markdown wrapping
+            if raw_text.startswith("```json"):
+                raw_text = raw_text[7:]
+            if raw_text.startswith("```"):
+                raw_text = raw_text[3:]
+            if raw_text.endswith("```"):
+                raw_text = raw_text[:-3]
+
+            parsed_json = json.loads(raw_text.strip())
+            # Run through the existing Pydantic validation firewall
+            result = LLMInvestigationResult(**parsed_json)
+            return result
+
+        except Exception as e:
+            logger.error("Groq LLM call failed: %s. Raising for fallback handling.", type(e).__name__)
+            raise
+
