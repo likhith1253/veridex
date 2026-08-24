@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -7,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.mappers.audit_mapper import domain_to_orm_audit, orm_to_domain_audit
 from app.database.models import AuditEvent as AuditEventORM
+from app.database.utils import utcnow
 from app.models.audit_event import AuditEvent as AuditDomain
 
 
@@ -19,8 +19,7 @@ class AuditRepository:
     async def create(self, domain: AuditDomain) -> str:
         """Create a new audit event and return its ID."""
         id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc)
-        orm = domain_to_orm_audit(domain, id, created_at)
+        orm = domain_to_orm_audit(domain, id, utcnow())
         self.session.add(orm)
         await self.session.flush()
         return id

@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -7,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.mappers.reconciliation_mapper import domain_to_orm_run, orm_to_domain_run
 from app.database.models import ReconciliationItem as ReconciliationItemORM, ReconciliationRun as ReconciliationRunORM
+from app.database.utils import utcnow
 from app.models.reconciliation_run import ReconciliationRun as ReconciliationRunDomain
 
 
@@ -19,8 +19,7 @@ class ReconciliationRepository:
     async def create_run(self, domain: ReconciliationRunDomain) -> str:
         """Create a new reconciliation run and return its ID."""
         id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc)
-        orm = domain_to_orm_run(domain, id, created_at)
+        orm = domain_to_orm_run(domain, id, utcnow())
         self.session.add(orm)
         await self.session.flush()
         return id
@@ -50,7 +49,7 @@ class ReconciliationRepository:
     async def create_item(self, run_id: str, transaction_id: str, processing_status: str) -> str:
         """Create a reconciliation item and return its ID."""
         id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = utcnow()
         orm = ReconciliationItemORM(
             id=id,
             run_id=run_id,

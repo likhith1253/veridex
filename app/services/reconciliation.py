@@ -86,6 +86,7 @@ class ReconciliationService:
             ReconciliationSummary with execution results
         """
         started_at = datetime.now(timezone.utc)
+        run_orm_id: Optional[str] = None
         
         try:
             # Create ReconciliationRun with RUNNING status
@@ -109,10 +110,10 @@ class ReconciliationService:
             run_orm_id = await self.reconciliation_repo.create_run(run_domain)
             
             # Persist transactions (reuse existing if same source+domain_id)
-            persisted_txns = await self._persist_transactions(transactions_by_source)
+            persisted_txns, txn_orm_ids = await self._persist_transactions(transactions_by_source)
             
-            # Create ReconciliationItems for all transactions
-            await self._create_reconciliation_items(run_orm_id, persisted_txns)
+            # Create ReconciliationItems for all transactions (using ORM UUIDs as FK)
+            await self._create_reconciliation_items(run_orm_id, txn_orm_ids)
             
             # Run DeterministicMatcher
             matcher = DeterministicMatcher(transactions_by_source)
@@ -137,9 +138,13 @@ class ReconciliationService:
             decisions = await self._make_decisions(all_matches, transactions_by_source, decision_policy)
             
             # Persist matches via MatchRepository
+            # match.transaction_ids holds domain txn_ids; FK needs ORM UUIDs
             match_ids = []
             for match in all_matches:
-                match_id = await self.match_repo.create(match, run_orm_id)
+                orm_match = match.model_copy(
+                    update={"transaction_ids": [txn_orm_ids.get(tid, tid) for tid in match.transaction_ids]}
+                )
+                match_id = await self.match_repo.create(orm_match, run_orm_id)
                 match_ids.append(match_id)
             
             # Persist decisions via DecisionRepository
@@ -147,11 +152,11 @@ class ReconciliationService:
                 await self.decision_repo.create(decision, run_orm_id, match_id)
             
             # Create exceptions for MANUAL_REVIEW, AMBIGUOUS, UNRESOLVED, REJECT
-            exception_ids = await self._create_exceptions_with_ids(decisions, run_orm_id)
+            exception_ids = await self._create_exceptions_with_ids(decisions, run_orm_id, txn_orm_ids)
             exception_count = len(exception_ids)
             
             # Write audit events for all stages
-            await self._write_audit_events(run_orm_id, all_matches, decisions)
+            await self._write_audit_events(run_orm_id, all_matches, decisions, txn_orm_ids)
             
             # Trigger investigation for escalated decisions (not AUTO_MATCH)
             if self.investigation_service is not None:
@@ -186,48 +191,57 @@ class ReconciliationService:
             return summary
             
         except Exception as e:
-            # Mark run as FAILED on exception
-            await self.reconciliation_repo.update_run_status(run_orm_id, "failed")
+            # Mark run as FAILED on exception if run was created
+            if run_orm_id:
+                try:
+                    await self.reconciliation_repo.update_run_status(run_orm_id, "failed")
+                except Exception:
+                    pass
             raise
 
     async def _persist_transactions(
         self, transactions_by_source: dict[TransactionSource, list[Transaction]]
-    ) -> dict[str, Transaction]:
+    ) -> tuple[dict[str, Transaction], dict[str, str]]:
         """Persist transactions, reusing existing if same source+domain_id.
         
         Args:
             transactions_by_source: Transactions grouped by source
             
         Returns:
-            Dict mapping txn_id to persisted Transaction
+            Tuple of:
+            - Dict mapping domain txn_id to Transaction domain model
+            - Dict mapping domain txn_id to ORM UUID (for FK use)
         """
-        persisted = {}
+        persisted: dict[str, Transaction] = {}
+        orm_ids: dict[str, str] = {}  # domain_txn_id -> ORM UUID
         
         for source, txns in transactions_by_source.items():
             for txn in txns:
-                # Check if transaction already exists
-                existing = await self.transaction_repo.get_by_source_and_domain_id(
+                # Check if transaction already exists by source + domain_id
+                existing_orm = await self.transaction_repo.get_orm_by_source_and_domain_id(
                     source.value, txn.txn_id
                 )
-                if existing:
-                    persisted[txn.txn_id] = existing
-                else:
-                    txn_id = await self.transaction_repo.create(txn)
+                if existing_orm:
                     persisted[txn.txn_id] = txn
+                    orm_ids[txn.txn_id] = existing_orm
+                else:
+                    orm_uuid = await self.transaction_repo.create(txn)
+                    persisted[txn.txn_id] = txn
+                    orm_ids[txn.txn_id] = orm_uuid
         
-        return persisted
+        return persisted, orm_ids
 
     async def _create_reconciliation_items(
-        self, run_id: str, transactions: dict[str, Transaction]
+        self, run_id: str, txn_orm_ids: dict[str, str]
     ) -> None:
-        """Create ReconciliationItems for all transactions.
+        """Create ReconciliationItems for all transactions using ORM UUIDs as FK.
         
         Args:
-            run_id: Reconciliation run ID
-            transactions: Dict mapping txn_id to Transaction
+            run_id: Reconciliation run ORM ID
+            txn_orm_ids: Dict mapping domain txn_id to ORM UUID
         """
-        for txn_id, txn in transactions.items():
-            await self.reconciliation_repo.create_item(run_id, txn_id, "pending")
+        for _domain_id, orm_uuid in txn_orm_ids.items():
+            await self.reconciliation_repo.create_item(run_id, orm_uuid, "pending")
 
     def _get_unresolved_transactions(
         self, transactions: dict[str, Transaction], matched_txn_ids: set[str]
@@ -316,7 +330,7 @@ class ReconciliationService:
         return len(await self._create_exceptions_with_ids(decisions, run_id))
 
     async def _create_exceptions_with_ids(
-        self, decisions: list, run_id: str
+        self, decisions: list, run_id: str, txn_orm_ids: dict[str, str] | None = None
     ) -> list[tuple[str, list[str]]]:
         """Create exceptions and return (exception_id, transaction_ids, decision) tuples.
 
@@ -330,10 +344,16 @@ class ReconciliationService:
             DecisionAction.REJECT,
         }
 
+        def _to_orm_id(domain_id: str) -> str:
+            """Translate domain txn_id to ORM UUID if mapping is available."""
+            if txn_orm_ids:
+                return txn_orm_ids.get(domain_id, domain_id)
+            return domain_id
+
         results = []
         for decision in decisions:
             if decision.action in exception_actions:
-                first_txn_id = decision.transaction_ids[0] if decision.transaction_ids else None
+                first_txn_id = _to_orm_id(decision.transaction_ids[0]) if decision.transaction_ids else None
                 exception = ExceptionRecord(
                     transaction_id=first_txn_id,
                     category=ExceptionCategory.UNEXPLAINED,
@@ -347,7 +367,7 @@ class ReconciliationService:
                 exception_id = await self.exception_repo.create(exception, run_id, first_txn_id)
                 # Add remaining transaction IDs to the exception
                 for txn_id in decision.transaction_ids[1:]:
-                    await self.exception_repo.add_transaction_to_exception(exception_id, txn_id)
+                    await self.exception_repo.add_transaction_to_exception(exception_id, _to_orm_id(txn_id))
                 results.append((exception_id, decision.transaction_ids, decision))
 
         return results
@@ -391,21 +411,31 @@ class ReconciliationService:
                     exc_info=True,
                 )
 
-    async def _write_audit_events(self, run_id: str, matches: list, decisions: list) -> None:
+    async def _write_audit_events(
+        self, run_id: str, matches: list, decisions: list, txn_orm_ids: dict[str, str] | None = None
+    ) -> None:
         """Write audit events for all stages.
         
         Args:
             run_id: Reconciliation run ID
             matches: List of match results
             decisions: List of decision results
+            txn_orm_ids: Mapping from domain txn_id to ORM UUID for FK translation
         """
         from app.models.audit_event import AuditEvent
+
+        def _to_orm_id(domain_id: str | None) -> str | None:
+            if domain_id is None:
+                return None
+            if txn_orm_ids:
+                return txn_orm_ids.get(domain_id, domain_id)
+            return domain_id
         
         # Log matching stage
         for match in matches:
             event = AuditEvent(
                 run_id=run_id,
-                transaction_id=match.transaction_ids[0] if match.transaction_ids else None,
+                transaction_id=_to_orm_id(match.transaction_ids[0]) if match.transaction_ids else None,
                 stage="matching",
                 event="match_created",
                 evidence=match.evidence,
@@ -416,7 +446,7 @@ class ReconciliationService:
         for decision in decisions:
             event = AuditEvent(
                 run_id=run_id,
-                transaction_id=decision.transaction_ids[0] if decision.transaction_ids else None,
+                transaction_id=_to_orm_id(decision.transaction_ids[0]) if decision.transaction_ids else None,
                 stage="decision",
                 event=decision.action.value,
                 evidence=decision.evidence,
@@ -446,7 +476,7 @@ class ReconciliationService:
         
         if orm:
             orm.status = "completed"
-            orm.completed_at = datetime.now(timezone.utc)
+            orm.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
             orm.match_count = deterministic_matches + ml_proposals
             orm.exception_count = exception_count
             await self.session.flush()

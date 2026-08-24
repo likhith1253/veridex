@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -7,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.mappers.exception_mapper import domain_to_orm_exception, orm_to_domain_exception
 from app.database.models import Exception as ExceptionORM, ExceptionTransaction as ExceptionTransactionORM
+from app.database.utils import utcnow
 from app.models.exception_record import ExceptionRecord as ExceptionDomain
 
 
@@ -21,8 +21,7 @@ class ExceptionRepository:
     ) -> str:
         """Create a new exception and return its ID."""
         id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc)
-        orm = domain_to_orm_exception(domain, id, run_id, transaction_id, created_at)
+        orm = domain_to_orm_exception(domain, id, run_id, transaction_id, utcnow())
         self.session.add(orm)
         await self.session.flush()
 

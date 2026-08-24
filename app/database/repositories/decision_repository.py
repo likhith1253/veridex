@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -7,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.mappers.decision_mapper import domain_to_orm_decision, orm_to_domain_decision
 from app.database.models import Decision as DecisionORM
+from app.database.utils import utcnow
 from app.models.decision_result import DecisionResult as DecisionDomain
 
 
@@ -21,8 +21,7 @@ class DecisionRepository:
     ) -> str:
         """Create a new decision and return its ID."""
         id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc)
-        orm = domain_to_orm_decision(domain, id, run_id, match_id, created_at)
+        orm = domain_to_orm_decision(domain, id, run_id, match_id, utcnow())
         self.session.add(orm)
         await self.session.flush()
         return id

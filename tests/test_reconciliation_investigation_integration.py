@@ -350,7 +350,7 @@ async def test_no_investigation_service_skips_investigation_block():
     svc._write_audit_events = AsyncMock()
     svc._update_run_completion = AsyncMock()
     svc._build_summary = MagicMock(return_value=MagicMock())
-    svc._persist_transactions = AsyncMock(return_value={})
+    svc._persist_transactions = AsyncMock(return_value=({}, {}))
     svc._create_reconciliation_items = AsyncMock()
     svc._make_decisions = AsyncMock(return_value=[])
 

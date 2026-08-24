@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -7,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.mappers.transaction_mapper import domain_to_orm, orm_to_domain
 from app.database.models import Transaction as TransactionORM
+from app.database.utils import utcnow
 from app.models.transaction import Transaction as TransactionDomain
 
 
@@ -19,8 +19,7 @@ class TransactionRepository:
     async def create(self, domain: TransactionDomain) -> str:
         """Create a new transaction and return its ID."""
         id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc)
-        orm = domain_to_orm(domain, id, created_at)
+        orm = domain_to_orm(domain, id, utcnow())
         self.session.add(orm)
         await self.session.flush()
         return id
@@ -43,6 +42,19 @@ class TransactionRepository:
         )
         orm = result.scalar_one_or_none()
         return orm_to_domain(orm) if orm else None
+
+    async def get_orm_by_source_and_domain_id(
+        self, source: str, domain_transaction_id: str
+    ) -> Optional[str]:
+        """Return the ORM UUID for a transaction matching source + domain ID, or None."""
+        result = await self.session.execute(
+            select(TransactionORM).where(
+                TransactionORM.source == source,
+                TransactionORM.domain_transaction_id == domain_transaction_id,
+            )
+        )
+        orm = result.scalar_one_or_none()
+        return orm.id if orm else None
 
     async def get_by_reference_number(self, reference_number: str) -> list[TransactionDomain]:
         """Get transactions by reference number."""

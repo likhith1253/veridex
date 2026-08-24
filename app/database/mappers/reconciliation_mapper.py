@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from app.database.models import (
     ReconciliationItem as ReconciliationItemORM,
@@ -8,21 +9,29 @@ from app.database.models import (
 from app.models.reconciliation_run import ReconciliationRun as ReconciliationRunDomain, RunStatus
 
 
+def _to_naive_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    return dt
+
+
 def domain_to_orm_run(domain: ReconciliationRunDomain, id: str, created_at: datetime) -> ReconciliationRunORM:
     """Convert domain ReconciliationRun to ORM ReconciliationRun."""
     return ReconciliationRunORM(
         id=id,
         run_id=domain.run_id,
         status=ReconciliationRunStatus(domain.status.value),
-        started_at=domain.started_at,
-        completed_at=domain.ended_at,
+        started_at=_to_naive_utc(domain.started_at),
+        completed_at=_to_naive_utc(domain.ended_at),
         gateway_count=domain.gateway_count,
         ledger_count=domain.ledger_count,
         bank_count=domain.bank_count,
         match_count=domain.match_count,
         exception_count=domain.exception_count,
         summary=domain.summary,
-        created_at=created_at,
+        created_at=_to_naive_utc(created_at) or datetime.utcnow(),
     )
 
 
@@ -35,7 +44,7 @@ def orm_to_domain_run(orm: ReconciliationRunORM) -> ReconciliationRunDomain:
         created_at=orm.created_at,
         started_at=orm.started_at,
         ended_at=orm.completed_at,
-        status=DomainStatus(orm.status.value),
+        status=DomainStatus(orm.status.value if hasattr(orm.status, "value") else orm.status),
         gateway_count=orm.gateway_count,
         ledger_count=orm.ledger_count,
         bank_count=orm.bank_count,
