@@ -89,9 +89,12 @@ class FinancialExposureService:
         matched_val = Decimal("0.00")
         ml_val = Decimal("0.00")
         for m in matches:
-            amt = Decimal(str(m.matched_amount or m.confidence or 0))
+            ev = getattr(m, "evidence", {}) or {}
+            amt = Decimal(str(getattr(m, "matched_amount", None) or ev.get("amount") or 0))
             matched_val += amt
-            if m.rule_name == "ml_scored":
+            reason = str(getattr(m, "reason", "") or "")
+            rule = str(getattr(m, "rule_name", "") or "")
+            if "ml" in reason.lower() or "ml" in rule.lower():
                 ml_val += amt
 
         # 3. Exceptions Breakdown

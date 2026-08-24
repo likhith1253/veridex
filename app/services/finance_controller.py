@@ -39,6 +39,9 @@ from app.database.models import (
     Transaction as TransactionORM,
 )
 from app.database.repositories.audit_repository import AuditRepository
+from app.database.repositories.decision_repository import DecisionRepository
+from app.database.repositories.exception_repository import ExceptionRepository
+from app.database.repositories.match_repository import MatchRepository
 from app.database.repositories.reconciliation_repository import ReconciliationRepository
 from app.database.repositories.transaction_repository import TransactionRepository
 from app.investigation.service import InvestigationService
@@ -125,9 +128,24 @@ class FinanceController:
         self.forecast_service = CashForecastService(session)
         self.source_health_service = SourceHealthService(session)
         self.qa_service = FinanceQAService(session, llm_client=getattr(investigation_service, "llm_client", None) if investigation_service else None)
-        self.incremental_service = IncrementalReconciliationService(session, self.ml_scorer, investigation_service)
-        self.reconciliation_service = ReconciliationService(session, self.ml_scorer, investigation_service)
+        self.txn_repo = TransactionRepository(session)
+        self.rec_repo = ReconciliationRepository(session)
+        self.match_repo = MatchRepository(session)
+        self.dec_repo = DecisionRepository(session)
+        self.exc_repo = ExceptionRepository(session)
         self.audit_repo = AuditRepository(session)
+
+        self.reconciliation_service = ReconciliationService(
+            session=session,
+            transaction_repo=self.txn_repo,
+            reconciliation_repo=self.rec_repo,
+            match_repo=self.match_repo,
+            decision_repo=self.dec_repo,
+            exception_repo=self.exc_repo,
+            audit_repo=self.audit_repo,
+            ml_scorer=self.ml_scorer,
+            investigation_service=investigation_service,
+        )
 
     # 1. Batch Ingestion & 3-Way Reconciliation
     async def ingest_and_reconcile_batch(
@@ -142,10 +160,14 @@ class FinanceController:
         bid = batch_id or f"batch_{uuid.uuid4().hex[:8]}"
 
         # Normalization and reconciliation run
+        txns_by_source = {
+            TransactionSource.GATEWAY: gateway_txns,
+            TransactionSource.LEDGER: ledger_txns,
+            TransactionSource.BANK: bank_txns,
+        }
         run_res = await self.reconciliation_service.run_reconciliation(
-            gateway_transactions=gateway_txns,
-            ledger_transactions=ledger_txns,
-            bank_transactions=bank_txns,
+            transactions_by_source=txns_by_source,
+            run_id=bid,
         )
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
 
@@ -156,11 +178,11 @@ class FinanceController:
             "records_normalized": run_res.total_transactions,
             "processing_status": "COMPLETED",
             "processing_duration_ms": round(elapsed_ms, 2),
-            "reconciliation_status": run_res.status.value,
-            "auto_matched_count": run_res.matched_count,
-            "ml_recovered_count": run_res.ml_recovered_count,
-            "manual_review_count": run_res.manual_review_count,
-            "unresolved_count": run_res.unmatched_count,
+            "reconciliation_status": "COMPLETED" if run_res.completed_successfully else "FAILED",
+            "auto_matched_count": run_res.deterministic_matches,
+            "ml_recovered_count": run_res.ml_proposals,
+            "manual_review_count": run_res.manual_reviews,
+            "unresolved_count": run_res.unresolved,
         }
 
     # 2. Executive KPIs
@@ -178,8 +200,8 @@ class FinanceController:
         res = await self.session.execute(match_stmt)
         matches = res.scalars().all()
 
-        det_count = sum(1 for m in matches if m.rule_name != "ml_scored")
-        ml_count = sum(1 for m in matches if m.rule_name == "ml_scored")
+        ml_count = sum(1 for m in matches if "ml" in str(getattr(m, "reason", "") or "").lower() or "ml" in str(getattr(m, "rule_name", "") or "").lower())
+        det_count = len(matches) - ml_count
 
         dec_stmt = select(DecisionORM)
         if run_id:

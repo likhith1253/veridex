@@ -64,7 +64,7 @@ def orm_to_domain(orm: TransactionORM) -> TransactionDomain:
 
     return TransactionDomain(
         txn_id=orm.domain_transaction_id,
-        source=DomainSource(orm.source.value),
+        source=DomainSource(orm.source.value if hasattr(orm.source, "value") else str(orm.source)),
         reference_number=orm.reference_number,
         amount=Decimal(orm.amount),
         currency=orm.currency,

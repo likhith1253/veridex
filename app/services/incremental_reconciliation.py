@@ -105,6 +105,27 @@ class IncrementalReconciliationService:
                 processing_time_ms=(datetime.now(timezone.utc) - t0).total_seconds() * 1000,
             )
 
+        # Ensure run record exists for foreign key integrity
+        from app.database.models import ReconciliationRun as ReconciliationRunORM, ReconciliationRunStatus
+        run_check = await self.session.execute(select(ReconciliationRunORM).where(ReconciliationRunORM.id == run_id))
+        if not run_check.scalars().first():
+            now_dt = datetime.now(timezone.utc).replace(tzinfo=None)
+            new_run = ReconciliationRunORM(
+                id=run_id,
+                run_id=run_id,
+                status=ReconciliationRunStatus.COMPLETED,
+                started_at=now_dt,
+                completed_at=now_dt,
+                gateway_count=0,
+                ledger_count=0,
+                bank_count=0,
+                match_count=0,
+                exception_count=0,
+                created_at=now_dt,
+            )
+            self.session.add(new_run)
+            await self.session.flush()
+
         # 2. Persist new transaction
         orm_txn_id = await self.txn_repo.create(incoming_txn)
 
@@ -225,7 +246,7 @@ class IncrementalReconciliationService:
             expected_cost=risk_out.expected_cost,
             explanation=f"No matching counterpart found in candidate window for {incoming_txn.source.value} {incoming_txn.txn_id}",
         )
-        exc_id = await self.exception_repo.create(exc_domain, run_id, incoming_txn.txn_id)
+        exc_id = await self.exception_repo.create(exc_domain, run_id, orm_txn_id)
 
         # 7. Selective Investigation
         inv_id = None

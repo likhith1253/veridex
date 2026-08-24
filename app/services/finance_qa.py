@@ -63,10 +63,10 @@ class FinanceQAService:
 
             evidence = [
                 {
-                    "exception_id": e.exception_id,
+                    "exception_id": e.id,
                     "transaction_id": e.transaction_id,
-                    "category": e.category,
-                    "amount": float(e.financial_exposure or e.amount_delta or 0),
+                    "category": e.exception_category.value if hasattr(e.exception_category, "value") else str(e.exception_category),
+                    "amount": float(e.financial_exposure or 0),
                     "reason": e.explanation,
                 }
                 for e in excs
@@ -89,7 +89,7 @@ class FinanceQAService:
 
         # 2. ML Recovered Matches
         elif any(w in q_lower for w in ["recovered by ml", "ml matches", "ml recovery", "ml contribution"]):
-            match_stmt = select(MatchORM).where(MatchORM.rule_name == "ml_scored")
+            match_stmt = select(MatchORM).where(MatchORM.reason.ilike("%ml%"))
             res = await self.session.execute(match_stmt)
             ml_matches = res.scalars().all()
 
@@ -98,7 +98,7 @@ class FinanceQAService:
             total_matches = tot_res.scalar_one() or 1
 
             evidence = [
-                {"match_id": m.match_id, "rule": m.rule_name, "confidence": float(m.confidence or 0), "reason": m.reason}
+                {"match_id": m.id, "confidence": float(m.confidence or 0), "reason": m.reason}
                 for m in ml_matches[:10]
             ]
             share = (len(ml_matches) / total_matches) * 100
@@ -115,16 +115,16 @@ class FinanceQAService:
                     "ml_share_percent": round(share, 2),
                 },
                 evidence_records=evidence,
-                sql_facts_used=["Queried matches WHERE rule_name = 'ml_scored'"],
+                sql_facts_used=["Queried matches WHERE reason LIKE '%ml%'"],
             )
 
         # 3. Root Causes / Reconciliation Failures
         elif any(w in q_lower for w in ["root cause", "failure", "causes", "why", "breakdown"]):
-            exc_stmt = select(ExceptionORM.category, func.count(ExceptionORM.id), func.sum(ExceptionORM.financial_exposure)).group_by(ExceptionORM.category)
+            exc_stmt = select(ExceptionORM.exception_category, func.count(ExceptionORM.id), func.sum(ExceptionORM.financial_exposure)).group_by(ExceptionORM.exception_category)
             res = await self.session.execute(exc_stmt)
             cat_counts = res.all()
 
-            cat_dict = {cat: count for cat, count, _ in cat_counts}
+            cat_dict = {(c.value if hasattr(c, "value") else str(c)): count for c, count, _ in cat_counts}
             top_cat = max(cat_dict.items(), key=lambda x: x[1])[0] if cat_dict else "None"
             ans = (
                 f"The primary driver of exceptions is '{top_cat}', accounting for {cat_dict.get(top_cat, 0)} cases. "
@@ -134,19 +134,19 @@ class FinanceQAService:
                 question=question,
                 direct_answer=ans,
                 key_metrics=cat_dict,
-                evidence_records=[{"category": c, "count": n, "exposure_inr": float(exp or 0)} for c, n, exp in cat_counts],
-                sql_facts_used=["Aggregated count and sum from exceptions GROUP BY category"],
+                evidence_records=[{"category": (c.value if hasattr(c, "value") else str(c)), "count": n, "exposure_inr": float(exp or 0)} for c, n, exp in cat_counts],
+                sql_facts_used=["Aggregated count and sum from exceptions GROUP BY exception_category"],
             )
 
         # 4. Delayed Settlements
         elif any(w in q_lower for w in ["delayed", "settlement delay", "sla"]):
-            del_stmt = select(ExceptionORM).where(ExceptionORM.category == ExceptionCategory.DELAYED_SETTLEMENT.value)
+            del_stmt = select(ExceptionORM).where(ExceptionORM.exception_category == ExceptionCategory.DELAYED_SETTLEMENT.value)
             res = await self.session.execute(del_stmt)
             del_excs = res.scalars().all()
-            total_del = sum(Decimal(str(e.financial_exposure or e.amount_delta or 0)) for e in del_excs)
+            total_del = sum(Decimal(str(e.financial_exposure or 0)) for e in del_excs)
 
             evidence = [
-                {"exception_id": e.exception_id, "transaction_id": e.transaction_id, "amount_inr": float(e.amount_delta or 0), "explanation": e.explanation}
+                {"exception_id": e.id, "transaction_id": e.transaction_id, "amount_inr": float(e.financial_exposure or 0), "explanation": e.explanation}
                 for e in del_excs[:10]
             ]
             ans = f"There are {len(del_excs)} delayed settlements totaling INR {total_del:,.2f} awaiting bank credit settlement."
@@ -155,18 +155,18 @@ class FinanceQAService:
                 direct_answer=ans,
                 key_metrics={"delayed_count": len(del_excs), "delayed_amount_inr": float(total_del)},
                 evidence_records=evidence,
-                sql_facts_used=["Queried exceptions WHERE category = 'delayed_settlement'"],
+                sql_facts_used=["Queried exceptions WHERE exception_category = 'delayed_settlement'"],
             )
 
         # 5. Duplicate Settlements
         elif any(w in q_lower for w in ["duplicate", "double"]):
-            dup_stmt = select(ExceptionORM).where(ExceptionORM.category == ExceptionCategory.DUPLICATE_ENTRY.value)
+            dup_stmt = select(ExceptionORM).where(ExceptionORM.exception_category == ExceptionCategory.DUPLICATE_ENTRY.value)
             res = await self.session.execute(dup_stmt)
             dup_excs = res.scalars().all()
-            total_dup = sum(Decimal(str(e.financial_exposure or e.amount_delta or 0)) for e in dup_excs)
+            total_dup = sum(Decimal(str(e.financial_exposure or 0)) for e in dup_excs)
 
             evidence = [
-                {"exception_id": e.exception_id, "transaction_id": e.transaction_id, "amount_inr": float(e.amount_delta or 0), "explanation": e.explanation}
+                {"exception_id": e.id, "transaction_id": e.transaction_id, "amount_inr": float(e.financial_exposure or 0), "explanation": e.explanation}
                 for e in dup_excs[:10]
             ]
             ans = f"There are {len(dup_excs)} duplicate entry exceptions with a combined financial exposure of INR {total_dup:,.2f}."
@@ -175,7 +175,7 @@ class FinanceQAService:
                 direct_answer=ans,
                 key_metrics={"duplicate_count": len(dup_excs), "duplicate_exposure_inr": float(total_dup)},
                 evidence_records=evidence,
-                sql_facts_used=["Queried exceptions WHERE category = 'duplicate_entry'"],
+                sql_facts_used=["Queried exceptions WHERE exception_category = 'duplicate_entry'"],
             )
 
         # 6. Default / General Query: Grounded Cash & Run Overview

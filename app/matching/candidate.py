@@ -24,10 +24,15 @@ class CandidateGenerator:
         self, transaction: Transaction, candidates: list[Transaction]
     ) -> list[Transaction]:
         """Filter candidates within ±3 calendar days."""
+        t_ts = transaction.timestamp.replace(tzinfo=None) if transaction.timestamp and transaction.timestamp.tzinfo else transaction.timestamp
         delta = timedelta(days=self.DATE_WINDOW_DAYS)
-        min_date = transaction.timestamp - delta
-        max_date = transaction.timestamp + delta
-        return [c for c in candidates if min_date <= c.timestamp <= max_date]
+        min_date = t_ts - delta
+        max_date = t_ts + delta
+
+        def _get_naive(dt):
+            return dt.replace(tzinfo=None) if dt and dt.tzinfo else dt
+
+        return [c for c in candidates if min_date <= _get_naive(c.timestamp) <= max_date]
 
     def filter_by_amount_range(
         self, transaction: Transaction, candidates: list[Transaction]
