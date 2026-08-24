@@ -79,16 +79,38 @@ def get_exception_repository(
     return ExceptionRepository(session)
 
 
+from app.graph.investigation_graph import InvestigationGraphRunner
+from app.investigation.llm_client import FakeLLMClient, GroqLLMClient, LLMClient
+import os
+
+
+def get_llm_client() -> LLMClient:
+    """Dependency for LLM client: GroqLLMClient if GROQ_API_KEY is available, else FakeLLMClient."""
+    api_key = os.environ.get("GROQ_API_KEY")
+    if api_key:
+        return GroqLLMClient(api_key=api_key)
+    return FakeLLMClient()
+
+
+def get_investigation_graph_runner(
+    llm_client: LLMClient = Depends(get_llm_client),
+) -> InvestigationGraphRunner:
+    """Dependency for InvestigationGraphRunner."""
+    return InvestigationGraphRunner(llm_client=llm_client)
+
+
 def get_investigation_service(
     session: AsyncSession = Depends(get_db_session),
     investigation_repo: InvestigationRepository = Depends(get_investigation_repository),
     audit_repo: AuditRepository = Depends(get_audit_repository),
+    graph_runner: InvestigationGraphRunner = Depends(get_investigation_graph_runner),
 ) -> InvestigationService:
     """Dependency for InvestigationService."""
     return InvestigationService(
         session=session,
         investigation_repo=investigation_repo,
         audit_repo=audit_repo,
+        graph_runner=graph_runner,
     )
 
 

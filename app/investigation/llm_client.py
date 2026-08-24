@@ -17,7 +17,7 @@ STRICT INVARIANTS:
 2. Do not calculate unsupported financial figures. Use only the amounts and deltas provided in the evidence.
 3. Distinguish directly observed evidence from inferences.
 4. If the evidence is inconclusive, state uncertainty clearly, set requires_human_review=true, and set recommended_action='escalate_manual'.
-5. Your response MUST be a single valid JSON object matching the requested schema. Do NOT enclose in backticks or markdown if possible.
+5. Your response MUST be a single valid JSON object with all required fields. Do NOT enclose in markdown fences.
 
 ALLOWED CLASSIFICATIONS (must be exact string):
 - "duplicate_entry"
@@ -29,13 +29,26 @@ ALLOWED CLASSIFICATIONS (must be exact string):
 - "ambiguous_match"
 - "unexplained"
 
-ALLOWED RECOMMENDED ACTIONS:
+ALLOWED RECOMMENDED ACTIONS (must be exact string):
 - "approve_match"
 - "flag_duplicate"
 - "request_credit_note"
 - "escalate_manual"
 - "write_off"
 - "investigate_further"
+
+MANDATORY JSON FIELDS (all required):
+- "root_cause": string (10 to 500 characters) describing the precise root cause.
+- "classification": string (one of the allowed classifications).
+- "confidence": float between 0.0 and 1.0.
+- "evidence": array of objects, each containing:
+    - "observation": string (factual data point)
+    - "source": string (e.g. "gateway", "ledger", "bank", "historical")
+    - "relevance": string (how it supports the conclusion)
+- "financial_exposure": string or number representing total monetary amount at risk.
+- "recommended_action": string (one of the allowed actions).
+- "requires_human_review": boolean (true if ambiguous, high risk, or unexplained).
+- "reasoning_summary": string (20 to 1500 characters) step-by-step rationale.
 """
 
 
@@ -165,7 +178,7 @@ class GroqLLMClient(LLMClient):
         GROQ_MODEL    — optional; defaults to "llama3-8b-8192"
     """
 
-    _DEFAULT_MODEL = "llama3-8b-8192"
+    _DEFAULT_MODEL = "openai/gpt-oss-20b"
     _DEFAULT_TIMEOUT = 30.0
 
     def __init__(

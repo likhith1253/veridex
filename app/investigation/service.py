@@ -128,6 +128,10 @@ class InvestigationService:
         """Retrieve all investigation conclusions for a specific exception."""
         return await self.investigation_repo.get_by_exception_id(exception_id)
 
+    async def get_by_exceptions(self, exception_ids: list[str]) -> list[InvestigationConclusion]:
+        """Retrieve all investigation conclusions for a list of exceptions in a single query."""
+        return await self.investigation_repo.get_by_exception_ids(exception_ids)
+
     async def get_by_run(self, run_id: str) -> list[InvestigationConclusion]:
         """Retrieve all investigation conclusions for a reconciliation run."""
         return await self.investigation_repo.get_by_run_id(run_id)

@@ -13,6 +13,9 @@ from app.database.models.investigation import Investigation as InvestigationORM
 from app.models.investigation_result import InvestigationConclusion
 
 
+from app.database.utils import utcnow
+
+
 class InvestigationRepository:
     """Repository for Investigation persistence operations."""
 
@@ -31,7 +34,7 @@ class InvestigationRepository:
         if created_at and created_at.tzinfo is not None:
             created_at = created_at.replace(tzinfo=None)
         elif not created_at:
-            created_at = datetime.utcnow()
+            created_at = utcnow()
         orm = domain_to_orm_investigation(domain, db_id, created_at)
         self.session.add(orm)
         await self.session.flush()
@@ -57,6 +60,16 @@ class InvestigationRepository:
         """Get all investigations for a given exception."""
         result = await self.session.execute(
             select(InvestigationORM).where(InvestigationORM.exception_id == exception_id)
+        )
+        orms = result.scalars().all()
+        return [orm_to_domain_investigation(orm) for orm in orms]
+
+    async def get_by_exception_ids(self, exception_ids: list[str]) -> list[InvestigationConclusion]:
+        """Get all investigations for a batch of exception IDs (prevents N+1 queries)."""
+        if not exception_ids:
+            return []
+        result = await self.session.execute(
+            select(InvestigationORM).where(InvestigationORM.exception_id.in_(exception_ids))
         )
         orms = result.scalars().all()
         return [orm_to_domain_investigation(orm) for orm in orms]
