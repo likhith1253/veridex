@@ -10,7 +10,20 @@ FINTECH_CSS = """
         color: #E2E8F0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-    
+
+    .section-card {
+        background: rgba(15, 23, 42, 0.78);
+        border: 1px solid #1E293B;
+        border-radius: 10px;
+        padding: 16px;
+        margin: 8px 0 20px 0;
+    }
+
+    .block-container {
+        padding-top: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
     /* Executive KPI Cards */
     .kpi-container {
         display: grid;

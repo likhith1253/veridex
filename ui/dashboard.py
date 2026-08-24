@@ -44,16 +44,47 @@ st.markdown(FINTECH_CSS, unsafe_allow_html=True)
 api = FinanceControllerAPIClient()
 
 
+def format_money(value, *, fallback="N/A — unavailable from live data"):
+    if value is None:
+        return fallback
+    try:
+        return f"₹{float(value):,.2f}"
+    except (TypeError, ValueError):
+        return fallback
+
+
+def format_number(value, *, decimals=0, fallback="N/A — unavailable from live data"):
+    if value is None:
+        return fallback
+    try:
+        return f"{float(value):,.{decimals}f}"
+    except (TypeError, ValueError):
+        return fallback
+
+
+def format_percent(value, *, decimals=1, fallback="N/A — unavailable from live data"):
+    if value is None:
+        return fallback
+    try:
+        return f"{float(value):.{decimals}f}%"
+    except (TypeError, ValueError):
+        return fallback
+
+
+def render_empty_state(label: str, message: str = "No live data is available for this section right now."):
+    st.info(f"**{label}**\n\n{message}")
+
+
 def render_sidebar():
     st.sidebar.title("🛡️ Project Sentinel")
     st.sidebar.caption("AI Finance Controller | Track 04")
-    
+
     # Backend Health Check
     health = api.check_health()
     if health.get("status") == "healthy":
-        st.sidebar.success("● Backend Connected (Port 8000)")
+        st.sidebar.success("● Live API connected on port 8000")
     else:
-        st.sidebar.error("● Backend Offline / Unreachable")
+        st.sidebar.error("● Backend offline / unreachable")
 
     st.sidebar.divider()
 
@@ -89,25 +120,29 @@ def view_overview():
         st.error(f"Failed to load executive metrics: {e}")
         return
 
+    if not kpis and not funnel and not cash:
+        render_empty_state("Executive overview", "No live data has been loaded yet from the controller APIs.")
+        return
+
     # Top Executive KPI Cards
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     with col1:
-        st.metric("Total Processed", f"{kpis.get('total_records_processed', 0):,} records", delta=f"{kpis.get('total_logical_transactions', 0):,} txns")
+        st.metric("Total Processed", format_number(kpis.get('total_records_processed', 0), fallback="N/A") + " records", delta=f"{kpis.get('total_logical_transactions', 0):,} txns")
     with col2:
         f1_val = kpis.get('f1_score')
-        f1_str = f"F1 {f1_val:.1f}%" if f1_val is not None else None
-        st.metric("Reconciliation Rate", f"{kpis.get('match_rate', 0.0):.1f}%", delta=f1_str)
+        f1_str = f"F1 {float(f1_val):.1f}%" if f1_val is not None else "N/A — unavailable from live data"
+        st.metric("Reconciliation Rate", format_percent(kpis.get('match_rate', 0.0), decimals=1), delta=f1_str)
     with col3:
-        st.metric("ML Recovered", f"{kpis.get('ml_recovered_matches', 0)} matches")
+        st.metric("ML Recovered", f"{kpis.get('ml_recovered_matches', 0):,} matches")
     with col4:
-        st.metric("Expected Settlement", f"₹{cash.get('expected_amount', 0.0):,.0f}")
+        st.metric("Expected Settlement", format_money(cash.get('expected_amount', 0.0)))
     with col5:
-        st.metric("Unreconciled Exposure", f"₹{kpis.get('unresolved_monetary_exposure_inr', 0.0):,.0f}", delta_color="inverse")
+        st.metric("Unreconciled Exposure", format_money(kpis.get('unresolved_monetary_exposure_inr', 0.0)), delta_color="inverse")
     with col6:
         tps = kpis.get('processing_throughput_tps')
         lat = kpis.get('average_processing_latency_ms')
-        tps_str = f"{tps:,.0f} tps" if tps is not None else "N/A"
-        lat_str = f"{lat:.2f} ms lat" if lat is not None else None
+        tps_str = format_number(tps, decimals=0, fallback="N/A — unavailable from live data") + " tps" if tps is not None else "N/A — unavailable from live data"
+        lat_str = f"{float(lat):.2f} ms lat" if lat is not None else None
         st.metric("Throughput", tps_str, delta=lat_str)
 
     st.divider()
@@ -161,6 +196,10 @@ def view_reconciliation():
         funnel = api.get_funnel()
     except Exception as e:
         st.error(f"Failed to load reconciliation data: {e}")
+        return
+
+    if not kpis and not funnel:
+        render_empty_state("Reconciliation operations", "No reconciliation data is available from the controller API yet.")
         return
 
     c1, c2, c3, c4 = st.columns(4)
@@ -234,7 +273,7 @@ def view_exception_queue():
             height=450,
         )
     else:
-        st.info("No exceptions match current filter criteria.")
+        st.info("No exceptions match the current filter criteria. The live exception queue is empty for this view.")
 
 
 def view_exception_workspace():
@@ -248,7 +287,7 @@ def view_exception_workspace():
         return
 
     if not exc_list:
-        st.info("No exceptions available in database.")
+        render_empty_state("Exception workspace", "No exception records are available from the live controller API for investigation.")
         return
 
     exc_options = {f"{e.get('exception_id')[:8]}... | {e.get('category')} | ₹{e.get('financial_exposure_inr', 0):,.0f}": e.get('exception_id') for e in exc_list}
@@ -265,12 +304,12 @@ def view_exception_workspace():
 
     with c1:
         st.subheader("Exception Structured Evidence")
-        st.write(f"**Exception ID:** `{detail.get('exception_id')}`")
-        st.write(f"**Transaction ID:** `{detail.get('transaction_id')}`")
-        st.write(f"**Category:** `{detail.get('category')}`")
-        st.write(f"**Financial Exposure:** ₹{detail.get('financial_exposure_inr', 0.0):,.2f}")
-        st.write(f"**Current Status:** `{detail.get('status')}`")
-        st.write(f"**Recommended Action:** `{detail.get('recommended_action')}`")
+        st.markdown(f"**Exception ID:** `{detail.get('exception_id')}`")
+        st.markdown(f"**Transaction ID:** `{detail.get('transaction_id')}`")
+        st.markdown(f"**Category:** `{detail.get('category')}`")
+        st.markdown(f"**Financial Exposure:** {format_money(detail.get('financial_exposure_inr'))}")
+        st.markdown(f"**Current Status:** `{detail.get('status')}`")
+        st.markdown(f"**Recommended Action:** `{detail.get('recommended_action')}`")
         st.info(f"**Explanation:** {detail.get('explanation')}")
 
         inv = detail.get("investigation_conclusion")
@@ -327,6 +366,10 @@ def view_settlement_accounting():
         st.error(f"Failed to fetch settlement data: {e}")
         return
 
+    if not settlement and not feetax:
+        render_empty_state("Settlement accounting", "No accounting data has been returned by the controller API.")
+        return
+
     st.subheader("Treasury Net Settlement Equation")
 
     st.markdown(f"""
@@ -367,6 +410,10 @@ def view_refunds_and_duplicates():
         st.error(f"Failed to fetch audit records: {e}")
         return
 
+    if not refunds and not duplicates:
+        render_empty_state("Refund and duplicate audits", "No refund or duplicate audit results are available from the live API.")
+        return
+
     c1, c2 = st.columns(2)
 
     with c1:
@@ -404,6 +451,10 @@ def view_cash_position_and_forecast():
         st.error(f"Failed to load cash data: {e}")
         return
 
+    if not cash and not forecast:
+        render_empty_state("Cash position and forecast", "No live cash or forecast data is available from the controller API.")
+        return
+
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Expected Total", f"₹{cash.get('expected_amount', 0.0):,.2f}")
     c2.metric("Received Bank Settlement", f"₹{cash.get('received_amount', 0.0):,.2f}")
@@ -432,6 +483,10 @@ def view_source_health():
         st.error(f"Failed to load health metrics: {e}")
         return
 
+    if not health:
+        render_empty_state("Source health", "No source health data is available from the live controller API.")
+        return
+
     st.subheader(f"Overall System Ingestion Health: {health.get('overall_health', 'HEALTHY')}")
 
     sources = health.get("sources", {})
@@ -448,6 +503,8 @@ def view_source_health():
 def view_finance_ai_qa():
     st.title("💬 Grounded Finance Controller AI Q&A")
     st.caption("Ask natural language treasury and reconciliation questions grounded strictly in PostgreSQL state (zero hallucinations).")
+
+    st.markdown("<div class='section-card'>", unsafe_allow_html=True)
 
     preset = st.selectbox(
         "Suggested Controller Prompts:",
@@ -482,9 +539,13 @@ def view_finance_ai_qa():
                 if ev:
                     st.write("**Verifiable Evidence Records:**")
                     st.dataframe(pd.DataFrame(ev), use_container_width=True)
+                else:
+                    st.info("The controller returned no evidence records for this query.")
 
             except Exception as e:
                 st.error(f"Q&A query failed: {e}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def view_audit_trail_and_ingestion():
