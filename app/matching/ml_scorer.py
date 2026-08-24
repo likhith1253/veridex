@@ -23,17 +23,29 @@ class TrainingExample:
 class MLScorer:
     """ML-based candidate scorer using XGBoost or Logistic Regression."""
 
-    def __init__(self, model_type: str = "xgboost"):
+    def __init__(self, model_type: str = "xgboost", artifact_path: Optional[str] = None):
         """
         Initialize ML scorer.
         
         Args:
             model_type: "xgboost" or "logistic"
+            artifact_path: Optional path to serialized model artifact
         """
         self.model_type = model_type
         self.model = None
         self.feature_extractor = FeatureExtractor()
         self._initialize_model()
+
+        if artifact_path:
+            self.load(str(artifact_path))
+        elif self.model_type == "xgboost":
+            from pathlib import Path
+            default_path = Path("ml/artifacts/model.xgb")
+            if default_path.exists():
+                try:
+                    self.load(str(default_path))
+                except Exception:
+                    pass
 
     def _initialize_model(self):
         """Initialize the model based on model_type."""
@@ -165,16 +177,34 @@ class TrainingDataBuilder:
         
         examples = []
         
-        # Build a mapping of record IDs to transactions
+        # Build a mapping of record IDs to transactions (including settlement_id)
         all_txns = gateway_txns + ledger_txns + bank_txns
-        txn_by_id = {txn.txn_id: txn for txn in all_txns}
+        txn_by_id = {}
+        for txn in all_txns:
+            txn_by_id[txn.txn_id] = txn
+            if txn.metadata and "settlement_id" in txn.metadata:
+                txn_by_id[txn.metadata["settlement_id"]] = txn
+        
+        # Handle ground_truth as dict or GroundTruth container
+        gt_items = ground_truth.records.items() if hasattr(ground_truth, "records") else ground_truth.items()
         
         # Iterate through ground truth records
-        for logical_id, gt_record in ground_truth.items():
-            # Get the true matching transactions
-            gateway_txn = txn_by_id.get(gt_record["gateway_record_id"])
-            ledger_txn = txn_by_id.get(gt_record["ledger_record_id"])
-            bank_txn = txn_by_id.get(gt_record["bank_record_id"])
+        for logical_id, gt_record in gt_items:
+            # Extract record IDs and true_match status
+            if isinstance(gt_record, dict):
+                gw_id = gt_record.get("gateway_record_id")
+                ld_id = gt_record.get("ledger_record_id")
+                bk_id = gt_record.get("bank_record_id")
+                is_true_match = gt_record.get("true_match", True)
+            else:
+                gw_id = getattr(gt_record, "gateway_record_id", None)
+                ld_id = getattr(gt_record, "ledger_record_id", None)
+                bk_id = getattr(gt_record, "bank_record_id", None)
+                is_true_match = getattr(gt_record, "true_match", True)
+
+            gateway_txn = txn_by_id.get(gw_id)
+            ledger_txn = txn_by_id.get(ld_id)
+            bank_txn = txn_by_id.get(bk_id)
             
             if not all([gateway_txn, ledger_txn, bank_txn]):
                 continue
@@ -190,11 +220,11 @@ class TrainingDataBuilder:
                 # Get candidates using CandidateGenerator blocking rules
                 candidates = candidate_gen.get_candidates(txn1)
                 
-                # Add positive example (true match)
+                # Positive example (if true match) or negative (if non-match scenario)
                 examples.append(TrainingExample(
                     txn1=txn1,
                     txn2=txn2,
-                    label=1,
+                    label=1 if is_true_match else 0,
                     logical_transaction_id=logical_id
                 ))
                 

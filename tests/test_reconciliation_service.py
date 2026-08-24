@@ -26,16 +26,16 @@ def test_no_csv_parsing_in_service():
     assert ".csv" not in source.lower()
 
 
-def test_ml_training_wired_in_service():
-    """ML training is intentionally wired into _run_ml_scoring."""
+def test_no_ml_retraining_during_inference():
+    """Verify ReconciliationService does not train ML models during inference."""
     import inspect
     import app.services.reconciliation as service_module
 
     source = inspect.getsource(service_module)
 
-    # ML is now intentionally active: .train( must be present in _run_ml_scoring
-    assert ".train(" in source
-    # No CSV parsing in service (unrelated data loading)
+    # In production inference, models are pre-trained / loaded; no .train( in service
+    assert ".train(" not in source
+    # No CSV parsing in service
     assert "read_csv" not in source
     assert "TrainingData" not in source
 

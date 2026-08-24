@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import time
 import inspect
 from datetime import datetime, timezone, timedelta
@@ -100,21 +100,19 @@ class TestML01DeterministicDoesNotInvokeML:
 
 class TestML02UnresolvedInvokesML:
     @pytest.mark.asyncio
-    async def test_unresolved_pair_triggers_ml_training(self):
-        # G1/L1 are treated as unresolved; G2/L2 supply the positive training label.
-        # We call _run_ml_scoring directly to verify ML training fires for unresolved input.
+    async def test_unresolved_pair_triggers_ml_prediction(self):
+        # G1/L1 are treated as unresolved candidate pair.
+        # We call _run_ml_scoring to verify ML inference executes on unresolved input.
         gw = _gateway("G1", order_id=None, ref=None)
         le = _ledger("L1", order_id=None, ref=None)
-        gw2 = _gateway("G2", order_id="ORD002", ref=None)
-        le2 = _ledger("L2", order_id="ORD002", ref=None)
         real_scorer = MLScorer(model_type="logistic")
-        train_spy = MagicMock(wraps=real_scorer.train)
-        real_scorer.train = train_spy
+        # Ensure model is initialized/trained or mocked for prediction
+        predict_spy = MagicMock(return_value=[0.85])
+        real_scorer.predict = predict_spy
         svc = _make_service(ml_scorer=real_scorer)
-        txns_by_source = {TransactionSource.GATEWAY: [gw, gw2], TransactionSource.LEDGER: [le, le2]}
-        # Pass G1 and L1 directly as unresolved transactions
+        txns_by_source = {TransactionSource.GATEWAY: [gw], TransactionSource.LEDGER: [le]}
         results = await svc._run_ml_scoring([gw, le], txns_by_source)
-        train_spy.assert_called_once()
+        predict_spy.assert_called()
         assert isinstance(results, list)
 
 

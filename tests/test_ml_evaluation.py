@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tests for ML Realistic Evaluation Phase.
 
 1. A deterministic case bypasses ML.
@@ -156,7 +156,7 @@ class TestMLEvaluationScenarios:
             reference_number="REF_CORRUPT_LD",
         )
 
-        real_scorer = MLScorer(model_type="logistic")
+        real_scorer = MLScorer(model_type="xgboost")
         tr, rr, mr, dr, er, ar, session = _make_mock_repos()
         svc = ReconciliationService(
             session=session,

@@ -274,106 +274,26 @@ class ReconciliationService:
     async def _run_ml_scoring(
         self, unresolved_txns: list[Transaction], transactions_by_source: dict[TransactionSource, list[Transaction]]
     ) -> list[MatchResult]:
-        """Run ML scoring on unresolved transactions.
+        """Run ML scoring on unresolved transactions using the trained ML model artifact.
 
-        Strategy:
-        1. Build training data from all transactions using CandidateGenerator blocking.
-           - Candidate pairs that share a strong deterministic signal (same order_id or
-             reference) are used as positive examples (label=1).
-           - All other candidate pairs are negative examples (label=0).
-        2. Train the MLScorer on-the-fly (no persisted artifact).
-        3. For each unresolved transaction, generate candidates via CandidateGenerator,
-           extract features, and score with the trained model.
-        4. Return only the highest-probability candidate per unresolved transaction
-           as a MatchResult (with PROBABLE match type) for downstream DecisionPolicy
-           evaluation.
+        1. For each unresolved transaction, generate candidates via CandidateGenerator.
+        2. Extract features via FeatureExtractor.
+        3. Predict match probability with MLScorer.
+        4. Return MatchResult proposals (with PROBABLE match type) for downstream DecisionPolicy.
 
         Groq / InvestigationService are never touched here.
         """
-        t0 = time.monotonic()
+        if not self.ml_scorer or not unresolved_txns:
+            return []
 
+        t0 = time.monotonic()
         feature_extractor = FeatureExtractor()
         candidate_gen = CandidateGenerator(transactions_by_source)
-
-        # ------------------------------------------------------------------ #
-        # Build training data                                                 #
-        # ------------------------------------------------------------------ #
-        all_txns: list[Transaction] = [
-            t for txns in transactions_by_source.values() for t in txns
-        ]
-        txn_by_id: dict[str, Transaction] = {t.txn_id: t for t in all_txns}
-
-        # Build lookup sets for positive signals: same order_id or same reference_number
-        # across different sources → treat as a true pair.
-        pos_pairs: set[tuple[str, str]] = set()
-
-        # Collect by order_id
-        order_groups: dict[str, list[Transaction]] = {}
-        for txn in all_txns:
-            if txn.order_id:
-                order_groups.setdefault(txn.order_id, []).append(txn)
-        for txns_in_group in order_groups.values():
-            sources_seen = {t.source for t in txns_in_group}
-            if len(sources_seen) >= 2:
-                for i, t1 in enumerate(txns_in_group):
-                    for t2 in txns_in_group[i + 1:]:
-                        if t1.source != t2.source:
-                            key = tuple(sorted([t1.txn_id, t2.txn_id]))
-                            pos_pairs.add(key)
-
-        # Collect by reference_number
-        ref_groups: dict[str, list[Transaction]] = {}
-        for txn in all_txns:
-            if txn.reference_number:
-                ref_groups.setdefault(txn.reference_number, []).append(txn)
-        for txns_in_group in ref_groups.values():
-            sources_seen = {t.source for t in txns_in_group}
-            if len(sources_seen) >= 2:
-                for i, t1 in enumerate(txns_in_group):
-                    for t2 in txns_in_group[i + 1:]:
-                        if t1.source != t2.source:
-                            key = tuple(sorted([t1.txn_id, t2.txn_id]))
-                            pos_pairs.add(key)
-
-        # Generate (features, label) pairs from candidate blocking
-        train_features: list[dict[str, float]] = []
-        train_labels: list[int] = []
-        seen_pairs: set[tuple[str, str]] = set()
-
-        for txn in all_txns:
-            candidates = candidate_gen.get_candidates(txn)
-            for cand in candidates:
-                pair_key = tuple(sorted([txn.txn_id, cand.txn_id]))
-                if pair_key in seen_pairs:
-                    continue
-                seen_pairs.add(pair_key)
-                feat = feature_extractor.extract_features(txn, cand)
-                label = 1 if pair_key in pos_pairs else 0
-                train_features.append(feat)
-                train_labels.append(label)
-
-        # Need at least one example of each class to train
-        if not train_features or len(set(train_labels)) < 2:
-            logger.debug(
-                "ML scoring skipped: insufficient training data "
-                "(examples=%d, classes=%s)",
-                len(train_features),
-                set(train_labels),
-            )
-            return []
-
-        # Train the scorer
-        try:
-            self.ml_scorer.train(train_features, train_labels)
-        except Exception as exc:
-            logger.warning("ML scorer training failed: %s", exc)
-            return []
 
         # ------------------------------------------------------------------ #
         # Score unresolved candidate pairs                                    #
         # ------------------------------------------------------------------ #
         results: list[MatchResult] = []
-        # Track which txns we've already proposed a match for
         already_proposed: set[str] = set()
 
         for txn in unresolved_txns:
@@ -424,8 +344,6 @@ class ReconciliationService:
                     evidence={
                         "ml_probability": best_prob,
                         "model_type": self.ml_scorer.model_type,
-                        "training_examples": len(train_features),
-                        "positive_examples": sum(train_labels),
                     },
                 )
             )
