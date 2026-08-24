@@ -117,6 +117,8 @@ class DataGenerator:
             "duplicate": generate_duplicate,
             "rounding": generate_rounding,
             "wrong_reference": generate_wrong_reference,
+            "corrupted_reference": generate_wrong_reference,
+            "corrupted_order_id": generate_unexplained,
             "ambiguous": generate_ambiguous,
             "unexplained": generate_unexplained,
         }

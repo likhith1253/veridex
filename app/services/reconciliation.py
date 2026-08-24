@@ -122,10 +122,13 @@ class ReconciliationService:
             matcher = DeterministicMatcher(transactions_by_source)
             deterministic_matches = matcher.match_all()
             
-            # Track matched transaction IDs
+            # Track matched transaction IDs from high-confidence deterministic matches
             matched_txn_ids = set()
+            high_conf_deterministic_matches = []
             for match in deterministic_matches:
-                matched_txn_ids.update(match.transaction_ids)
+                if match.confidence >= Decimal("0.95"):
+                    matched_txn_ids.update(match.transaction_ids)
+                    high_conf_deterministic_matches.append(match)
             
             # For unresolved transactions, run CandidateGenerator + MLScorer
             unresolved_txns = self._get_unresolved_transactions(persisted_txns, matched_txn_ids)
@@ -133,8 +136,16 @@ class ReconciliationService:
             if unresolved_txns and self.ml_scorer:
                 ml_matches = await self._run_ml_scoring(unresolved_txns, transactions_by_source)
             
-            # Combine all matches
-            all_matches = deterministic_matches + ml_matches
+            # Combine all matches (high-confidence deterministic + ML matches + remaining fallback)
+            if self.ml_scorer:
+                ml_matched_txn_ids = {tid for m in ml_matches for tid in m.transaction_ids}
+                remaining_det_matches = [
+                    m for m in deterministic_matches
+                    if m.confidence < Decimal("0.95") and not any(tid in ml_matched_txn_ids for tid in m.transaction_ids)
+                ]
+                all_matches = high_conf_deterministic_matches + ml_matches + remaining_det_matches
+            else:
+                all_matches = deterministic_matches
             
             # Run DecisionPolicy for all candidates
             decision_policy = DecisionPolicy()

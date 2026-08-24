@@ -24,15 +24,13 @@ class BenchmarkConfig:
     max_amount: int = 500000
     scenario_distribution: dict[str, float] = field(
         default_factory=lambda: {
-            "normal": 0.70,
-            "delayed_settlement": 0.06,
+            "normal": 0.60,
+            "delayed_settlement": 0.05,
             "fee_mismatch": 0.05,
-            "partial_refund": 0.05,
-            "duplicate": 0.04,
-            "rounding": 0.03,
-            "wrong_reference": 0.03,
-            "ambiguous": 0.02,
-            "unexplained": 0.02,
+            "wrong_reference": 0.05,
+            "unexplained": 0.05,
+            "ambiguous": 0.10,
+            "duplicate": 0.10,
         }
     )
     output_dir: Optional[Path] = None
@@ -43,6 +41,6 @@ class EvaluationConfig:
     """Overall evaluation run configuration."""
     benchmark_config: BenchmarkConfig = field(default_factory=BenchmarkConfig)
     risk_config: RiskBucketConfig = field(default_factory=RiskBucketConfig)
-    enable_ml_scoring: bool = False
+    enable_ml_scoring: bool = True
     save_reports: bool = True
     report_output_dir: Path = field(default_factory=lambda: Path("data/eval_reports"))

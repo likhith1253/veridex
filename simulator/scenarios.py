@@ -430,13 +430,16 @@ def generate_wrong_reference(
     date: datetime,
     currency: str,
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
+    """Corrupted references across sources (e.g. typos, altered characters)."""
     utr = f"UTR{logical_id[-12:]}"
-    wrong_ref = logical_id[:-2] + "XX"
+    corrupted_order_id = ledger_id[:-2] + "XX" if len(ledger_id) > 2 else f"{ledger_id}_X"
+    corrupted_utr = utr[:-2] + "99" if len(utr) > 2 else f"{utr}_9"
+    wrong_ref = logical_id[:-2] + "YY"
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
         transaction_id=logical_id,
-        order_id=ledger_id,
+        order_id=corrupted_order_id,
         utr=utr,
         gross_amount=amount,
         fee=amount * Decimal("0.02"),
@@ -460,11 +463,11 @@ def generate_wrong_reference(
     
     bank = BankRecord(
         bank_transaction_id=bank_id,
-        utr=utr,
+        utr=corrupted_utr,
         credit_amount=amount,
         debit_amount=Decimal("0"),
-        value_date=date,
-        narration=f"SETTLEMENT {utr}",
+        value_date=date + timedelta(days=1),
+        narration=f"SETTLEMENT {ledger_id}",
         currency=currency,
     )
     
@@ -493,13 +496,15 @@ def generate_ambiguous(
     date: datetime,
     currency: str,
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
-    utr = f"UTR{logical_id[-12:]}"
+    """Ambiguous candidate matching with altered keys and close amounts/dates."""
+    amb_order_id = f"AMB_{ledger_id[-6:]}"
+    amb_utr = f"AMB_{logical_id[-8:]}"
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
         transaction_id=logical_id,
-        order_id=ledger_id,
-        utr=utr,
+        order_id=amb_order_id,
+        utr=amb_utr,
         gross_amount=amount,
         fee=amount * Decimal("0.02"),
         tax=amount * Decimal("0.18"),
@@ -517,16 +522,16 @@ def generate_ambiguous(
         order_date=date,
         payment_status="PAID",
         currency=currency,
-        internal_reference=logical_id,
+        internal_reference=f"REF_{amb_order_id}",
     )
     
     bank = BankRecord(
         bank_transaction_id=bank_id,
-        utr=utr,
+        utr=f"BK_{amb_utr}",
         credit_amount=amount,
         debit_amount=Decimal("0"),
         value_date=date,
-        narration=f"SETTLEMENT {utr}",
+        narration=f"SETTLEMENT BATCH {amount}",
         currency=currency,
     )
     
@@ -555,18 +560,20 @@ def generate_unexplained(
     date: datetime,
     currency: str,
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
-    utr = f"UTR{logical_id[-12:]}"
+    """Corrupted order ID and cross-source mismatch requiring ML resolution."""
+    alt_order_id = f"GW_{ledger_id[-6:]}"
+    alt_utr = f"GW_UTR_{logical_id[-6:]}"
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
         transaction_id=logical_id,
-        order_id=ledger_id,
-        utr=utr,
+        order_id=alt_order_id,
+        utr=alt_utr,
         gross_amount=amount,
         fee=amount * Decimal("0.02"),
         tax=amount * Decimal("0.18"),
-        net_amount=amount + Decimal("10"),
-        settlement_date=date,
+        net_amount=amount,
+        settlement_date=date + timedelta(days=1),
         currency=currency,
         status="SETTLED",
     )
@@ -579,16 +586,16 @@ def generate_unexplained(
         order_date=date,
         payment_status="PAID",
         currency=currency,
-        internal_reference=logical_id,
+        internal_reference=f"REF_{logical_id[-6:]}",
     )
     
     bank = BankRecord(
         bank_transaction_id=bank_id,
-        utr=utr,
-        credit_amount=amount + Decimal("10"),
+        utr=f"BK_UTR_{logical_id[-6:]}",
+        credit_amount=amount,
         debit_amount=Decimal("0"),
-        value_date=date,
-        narration=f"SETTLEMENT {utr}",
+        value_date=date + timedelta(days=1),
+        narration=f"PAYMENT FOR {ledger_id}",
         currency=currency,
     )
     
@@ -602,7 +609,7 @@ def generate_unexplained(
         true_amount=amount,
         true_refund=None,
         true_settlement_date=date,
-        financial_exposure=Decimal("10"),
+        financial_exposure=Decimal("0"),
     )
     
     return gateway, ledger, bank, ground_truth

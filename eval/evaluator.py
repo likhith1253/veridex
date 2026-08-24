@@ -25,6 +25,11 @@ from eval.metrics import (
 from simulator.ground_truth import GroundTruth
 
 
+import asyncio
+from unittest.mock import MagicMock
+from app.services.reconciliation import ReconciliationService
+
+
 class ReconciliationEvaluator:
     """Evaluates reconciliation engine performance against ground truth."""
 
@@ -77,7 +82,7 @@ class ReconciliationEvaluator:
         dataset_name: str = "reconciliation_evaluation",
         ml_scorer: Optional[MLScorer] = None,
     ) -> EvaluationResult:
-        """Execute matching and decision policy on transactions and evaluate against ground truth.
+        """Execute the production ReconciliationService pipeline and evaluate against ground truth.
 
         Args:
             transactions_by_source: Normalized transactions grouped by source.
@@ -90,67 +95,88 @@ class ReconciliationEvaluator:
         """
         start_time = time.perf_counter()
 
-        # Step 1: Run Deterministic Matching
-        matcher = DeterministicMatcher(transactions_by_source)
-        deterministic_matches = matcher.match_all()
+        # Step 1: Instantiate MLScorer if enabled or provided
+        effective_ml_scorer = ml_scorer or (
+            MLScorer(model_type="xgboost") if self.config.enable_ml_scoring else None
+        )
 
-        # Step 2: Track matched transaction IDs
-        matched_txn_ids: set[str] = set()
-        for match in deterministic_matches:
-            matched_txn_ids.update(match.transaction_ids)
+        # In-memory repository implementations capturing real ReconciliationService outputs
+        class InMemMatchRepo:
+            def __init__(self):
+                self.matches: list[MatchResult] = []
 
-        # Step 3: Run Candidate Generation + ML scoring if scorer provided
-        ml_matches: list[MatchResult] = []
-        if ml_scorer:
-            all_txns = []
-            for txns in transactions_by_source.values():
-                all_txns.extend(txns)
-            unmatched_txns = [t for t in all_txns if t.txn_id not in matched_txn_ids]
-            candidate_gen = CandidateGenerator(transactions_by_source)
-            # Generate ML match proposals
-            for txn in unmatched_txns:
-                candidates = candidate_gen.get_candidates(txn)
-                for cand in candidates:
-                    prob = ml_scorer.score_pair(txn, cand, transactions_by_source)
-                    if prob >= 0.90:
-                        ml_matches.append(
-                            MatchResult(
-                                match_type=MatchType.PROBABLE,
-                                transaction_ids=[txn.txn_id, cand.txn_id],
-                                confidence=Decimal(str(round(prob, 4))),
-                                reason=f"ML match proposal (prob={prob:.3f})",
-                                evidence={"ml_probability": prob},
-                            )
-                        )
+            async def create(self, match: MatchResult, run_id: str) -> str:
+                self.matches.append(match)
+                return f"match_{len(self.matches)}"
 
-        all_matches = deterministic_matches + ml_matches
+        class InMemDecisionRepo:
+            def __init__(self):
+                self.decisions: list[DecisionResult] = []
 
-        # Step 4: Run Decision Policy
-        decision_policy = DecisionPolicy()
-        decisions: list[DecisionResult] = []
-        txn_by_id: dict[str, Transaction] = {}
-        for txns in transactions_by_source.values():
-            for txn in txns:
-                txn_by_id[txn.txn_id] = txn
+            async def create(self, decision: DecisionResult, run_id: str, match_id: str) -> str:
+                self.decisions.append(decision)
+                return f"dec_{len(self.decisions)}"
 
-        for match in all_matches:
-            if len(match.transaction_ids) >= 2:
-                if match.confidence >= Decimal("0.95"):
-                    dec = decision_policy.evaluate_deterministic(match)
-                else:
-                    txn1 = txn_by_id.get(match.transaction_ids[0])
-                    txn2 = txn_by_id.get(match.transaction_ids[1])
-                    if txn1 and txn2:
-                        dec = decision_policy.evaluate_ml(
-                            txn1, txn2, float(match.confidence), transactions_by_source
-                        )
-                    else:
-                        dec = decision_policy.evaluate_deterministic(match)
-                decisions.append(dec)
+        class InMemTxnRepo:
+            async def get_orm_by_source_and_domain_id(self, source: str, txn_id: str):
+                return None
 
+            async def create(self, txn: Transaction) -> str:
+                return txn.txn_id
+
+        class InMemReconRepo:
+            async def create_run(self, run_domain) -> str:
+                return run_domain.run_id
+
+            async def create_item(self, run_id: str, txn_id: str, status: str) -> None:
+                pass
+
+            async def update_run_status(self, run_id: str, status: str) -> None:
+                pass
+
+        class InMemExceptionRepo:
+            async def create(self, exception, run_id: str, first_txn_id: str) -> str:
+                return f"exc_{first_txn_id}"
+
+            async def add_transaction_to_exception(self, exception_id: str, txn_id: str) -> None:
+                pass
+
+        class InMemAuditRepo:
+            async def create(self, event) -> None:
+                pass
+
+        class InMemSession:
+            async def execute(self, query):
+                mock_res = MagicMock()
+                mock_res.scalar_one_or_none.return_value = None
+                return mock_res
+
+            async def flush(self) -> None:
+                pass
+
+        match_repo = InMemMatchRepo()
+        decision_repo = InMemDecisionRepo()
+
+        service = ReconciliationService(
+            session=InMemSession(),
+            transaction_repo=InMemTxnRepo(),
+            reconciliation_repo=InMemReconRepo(),
+            match_repo=match_repo,
+            decision_repo=decision_repo,
+            exception_repo=InMemExceptionRepo(),
+            audit_repo=InMemAuditRepo(),
+            ml_scorer=effective_ml_scorer,
+            investigation_service=None,
+        )
+
+        # Execute the real ReconciliationService production path
+        asyncio.run(service.run_reconciliation(transactions_by_source, run_id=f"eval_{dataset_name}"))
+
+        all_matches = match_repo.matches
+        decisions = decision_repo.decisions
         exec_time = time.perf_counter() - start_time
 
-        # Step 5: Evaluate all metrics against Ground Truth
+        # Step 2: Evaluate all metrics against Ground Truth
         return self._compute_metrics(
             transactions_by_source=transactions_by_source,
             ground_truth=ground_truth,

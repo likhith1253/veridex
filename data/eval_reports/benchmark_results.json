@@ -2,31 +2,31 @@
   "dataset": {
     "name": "benchmark_seed_42_n_500",
     "total_transactions": 1500,
-    "execution_time_seconds": 0.069
+    "execution_time_seconds": 1.6133
   },
   "overall": {
-    "total_proposed_matches": 1000,
-    "true_positives": 960,
-    "false_positives": 40,
-    "false_negatives": 0,
-    "true_negatives": 20,
-    "precision": 0.96,
-    "recall": 1.0,
-    "f1_score": 0.9796,
-    "false_match_rate": 0.04,
-    "unresolved_rate": 0.04,
-    "accuracy": 0.9608
+    "total_proposed_matches": 840,
+    "true_positives": 712,
+    "false_positives": 128,
+    "false_negatives": 88,
+    "true_negatives": 50,
+    "precision": 0.8476,
+    "recall": 0.89,
+    "f1_score": 0.8683,
+    "false_match_rate": 0.1524,
+    "unresolved_rate": 0.276,
+    "accuracy": 0.7791
   },
   "decision_distribution": {
-    "total_decisions": 1000,
+    "total_decisions": 840,
     "auto_match": {
-      "count": 1000,
-      "rate": 1.0,
-      "precision": 0.96
+      "count": 800,
+      "rate": 0.9524,
+      "precision": 0.875
     },
     "manual_review": {
-      "count": 0,
-      "rate": 0.0
+      "count": 4,
+      "rate": 0.0048
     },
     "ambiguous": {
       "count": 0,
@@ -37,32 +37,70 @@
       "rate": 0.0
     },
     "unresolved": {
-      "count": 0,
-      "rate": 0.0
+      "count": 36,
+      "rate": 0.0429
     }
   },
   "deterministic_rules": {
     "exact_utr": {
       "rule_name": "exact_utr",
-      "matches_count": 500,
-      "true_positives": 480,
-      "false_positives": 20,
-      "precision": 0.96
+      "matches_count": 397,
+      "true_positives": 347,
+      "false_positives": 50,
+      "precision": 0.8741
     },
     "exact_order_id": {
       "rule_name": "exact_order_id",
-      "matches_count": 500,
-      "true_positives": 480,
-      "false_positives": 20,
-      "precision": 0.96
+      "matches_count": 400,
+      "true_positives": 350,
+      "false_positives": 50,
+      "precision": 0.875
+    },
+    "ml_scored": {
+      "rule_name": "ml_scored",
+      "matches_count": 39,
+      "true_positives": 13,
+      "false_positives": 26,
+      "precision": 0.3333
+    },
+    "amount_date": {
+      "rule_name": "amount_date",
+      "matches_count": 4,
+      "true_positives": 2,
+      "false_positives": 2,
+      "precision": 0.5
     }
   },
   "scenarios": {
     "normal": {
       "scenario": "normal",
-      "total_records": 350,
-      "matched_records": 700,
-      "correct_matches": 700,
+      "total_records": 300,
+      "matched_records": 600,
+      "correct_matches": 600,
+      "false_matches": 0,
+      "false_negatives": 0,
+      "unresolved_records": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0
+    },
+    "unexplained": {
+      "scenario": "unexplained",
+      "total_records": 25,
+      "matched_records": 4,
+      "correct_matches": 4,
+      "false_matches": 6,
+      "false_negatives": 21,
+      "unresolved_records": 21,
+      "precision": 0.4,
+      "recall": 0.16,
+      "f1_score": 0.2286
+    },
+    "delayed_settlement": {
+      "scenario": "delayed_settlement",
+      "total_records": 25,
+      "matched_records": 50,
+      "correct_matches": 50,
       "false_matches": 0,
       "false_negatives": 0,
       "unresolved_records": 0,
@@ -82,89 +120,41 @@
       "recall": 1.0,
       "f1_score": 1.0
     },
-    "partial_refund": {
-      "scenario": "partial_refund",
-      "total_records": 25,
-      "matched_records": 50,
-      "correct_matches": 50,
-      "false_matches": 0,
-      "false_negatives": 0,
-      "unresolved_records": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
-    },
-    "wrong_reference": {
-      "scenario": "wrong_reference",
-      "total_records": 15,
-      "matched_records": 30,
-      "correct_matches": 30,
-      "false_matches": 0,
-      "false_negatives": 0,
-      "unresolved_records": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
-    },
-    "delayed_settlement": {
-      "scenario": "delayed_settlement",
-      "total_records": 30,
-      "matched_records": 60,
-      "correct_matches": 60,
-      "false_matches": 0,
-      "false_negatives": 0,
-      "unresolved_records": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+    "ambiguous": {
+      "scenario": "ambiguous",
+      "total_records": 50,
+      "matched_records": 5,
+      "correct_matches": 5,
+      "false_matches": 14,
+      "false_negatives": 45,
+      "unresolved_records": 45,
+      "precision": 0.2632,
+      "recall": 0.1,
+      "f1_score": 0.1449
     },
     "duplicate": {
       "scenario": "duplicate",
-      "total_records": 20,
+      "total_records": 50,
       "matched_records": 0,
       "correct_matches": 0,
-      "false_matches": 40,
+      "false_matches": 100,
       "false_negatives": 0,
-      "unresolved_records": 20,
+      "unresolved_records": 50,
       "precision": 0.0,
       "recall": 0.0,
       "f1_score": 0.0
     },
-    "rounding": {
-      "scenario": "rounding",
-      "total_records": 15,
-      "matched_records": 30,
-      "correct_matches": 30,
-      "false_matches": 0,
-      "false_negatives": 0,
-      "unresolved_records": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
-    },
-    "ambiguous": {
-      "scenario": "ambiguous",
-      "total_records": 10,
-      "matched_records": 20,
-      "correct_matches": 20,
-      "false_matches": 0,
-      "false_negatives": 0,
-      "unresolved_records": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
-    },
-    "unexplained": {
-      "scenario": "unexplained",
-      "total_records": 10,
-      "matched_records": 20,
-      "correct_matches": 20,
-      "false_matches": 0,
-      "false_negatives": 0,
-      "unresolved_records": 0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0
+    "wrong_reference": {
+      "scenario": "wrong_reference",
+      "total_records": 25,
+      "matched_records": 3,
+      "correct_matches": 3,
+      "false_matches": 8,
+      "false_negatives": 22,
+      "unresolved_records": 22,
+      "precision": 0.2727,
+      "recall": 0.12,
+      "f1_score": 0.1667
     }
   },
   "risk_buckets": {
@@ -174,12 +164,12 @@
       "max_amount": "10000",
       "transaction_count": 9,
       "total_exposure_amount": "41491",
-      "matches_count": 18,
-      "true_positives": 16,
+      "matches_count": 15,
+      "true_positives": 13,
       "false_positives": 2,
-      "precision": 0.8889,
+      "precision": 0.8667,
       "recall": 1.0,
-      "false_positive_exposure": "1424"
+      "false_positive_exposure": "7182"
     },
     "Medium (10k-50k)": {
       "bucket_name": "Medium (10k-50k)",
@@ -187,12 +177,12 @@
       "max_amount": "50000",
       "transaction_count": 33,
       "total_exposure_amount": "1012126",
-      "matches_count": 66,
-      "true_positives": 62,
-      "false_positives": 4,
-      "precision": 0.9394,
-      "recall": 1.0,
-      "false_positive_exposure": "50600"
+      "matches_count": 59,
+      "true_positives": 59,
+      "false_positives": 0,
+      "precision": 1.0,
+      "recall": 0.9833,
+      "false_positive_exposure": "0"
     },
     "High (50k-200k)": {
       "bucket_name": "High (50k-200k)",
@@ -200,12 +190,12 @@
       "max_amount": "200000",
       "transaction_count": 145,
       "total_exposure_amount": "19155535",
-      "matches_count": 290,
-      "true_positives": 280,
-      "false_positives": 10,
-      "precision": 0.9655,
-      "recall": 1.0,
-      "false_positive_exposure": "1465164"
+      "matches_count": 252,
+      "true_positives": 217,
+      "false_positives": 35,
+      "precision": 0.8611,
+      "recall": 0.9042,
+      "false_positive_exposure": "5222824"
     },
     "Critical (>200k)": {
       "bucket_name": "Critical (>200k)",
@@ -213,12 +203,12 @@
       "max_amount": "inf",
       "transaction_count": 313,
       "total_exposure_amount": "109537091",
-      "matches_count": 626,
-      "true_positives": 602,
-      "false_positives": 24,
-      "precision": 0.9617,
-      "recall": 1.0,
-      "false_positive_exposure": "8249908"
+      "matches_count": 514,
+      "true_positives": 423,
+      "false_positives": 91,
+      "precision": 0.823,
+      "recall": 0.8686,
+      "false_positive_exposure": "32594008"
     }
   }
 }
