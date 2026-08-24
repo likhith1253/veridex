@@ -75,6 +75,7 @@ class DataGenerator:
             gateway, ledger, bank, gt_record = self._generate_scenario(
                 scenario, logical_id, gateway_id, ledger_id, bank_id, amount, date
             )
+            gt_record.scenario = scenario
 
             self.gateway_records.append(gateway)
             self.ledger_records.append(ledger)

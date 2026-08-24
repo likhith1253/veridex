@@ -18,6 +18,7 @@ class GroundTruthRecord:
     true_refund: Optional[Decimal]
     true_settlement_date: datetime
     financial_exposure: Decimal
+    scenario: str = "normal"
 
 
 @dataclass
@@ -43,6 +44,7 @@ class GroundTruth:
                 "true_refund": str(rec.true_refund) if rec.true_refund else None,
                 "true_settlement_date": rec.true_settlement_date.isoformat(),
                 "financial_exposure": str(rec.financial_exposure),
+                "scenario": rec.scenario,
             }
             for logical_id, rec in self.records.items()
         }
