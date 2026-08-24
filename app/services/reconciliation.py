@@ -1,6 +1,7 @@
+import logging
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from app.database.repositories import (
     AuditRepository,
@@ -19,6 +20,18 @@ from app.models.exception_record import ExceptionCategory, ExceptionRecord
 from app.models.reconciliation_summary import ReconciliationSummary
 from app.models.transaction import Transaction, TransactionSource
 
+if TYPE_CHECKING:
+    from app.investigation.service import InvestigationService
+
+logger = logging.getLogger(__name__)
+
+# Actions that require investigation escalation.
+_INVESTIGATION_ACTIONS = {
+    DecisionAction.MANUAL_REVIEW,
+    DecisionAction.AMBIGUOUS,
+    DecisionAction.UNRESOLVED,
+}
+
 
 class ReconciliationService:
     """Async orchestrator for the end-to-end reconciliation pipeline."""
@@ -33,6 +46,7 @@ class ReconciliationService:
         exception_repo: ExceptionRepository,
         audit_repo: AuditRepository,
         ml_scorer: Optional[MLScorer] = None,
+        investigation_service: Optional["InvestigationService"] = None,
     ):
         """Initialize reconciliation service with dependencies.
         
@@ -45,6 +59,9 @@ class ReconciliationService:
             exception_repo: Exception repository
             audit_repo: Audit repository
             ml_scorer: Optional ML scorer for candidate scoring
+            investigation_service: Optional investigation service; when provided,
+                MANUAL_REVIEW / AMBIGUOUS / UNRESOLVED decisions are automatically
+                investigated.  AUTO_MATCH decisions are never passed to it.
         """
         self.session = session
         self.transaction_repo = transaction_repo
@@ -54,6 +71,7 @@ class ReconciliationService:
         self.exception_repo = exception_repo
         self.audit_repo = audit_repo
         self.ml_scorer = ml_scorer
+        self.investigation_service = investigation_service
 
     async def run_reconciliation(
         self, transactions_by_source: dict[TransactionSource, list[Transaction]], run_id: str
@@ -129,10 +147,20 @@ class ReconciliationService:
                 await self.decision_repo.create(decision, run_orm_id, match_id)
             
             # Create exceptions for MANUAL_REVIEW, AMBIGUOUS, UNRESOLVED, REJECT
-            exception_count = await self._create_exceptions(decisions, run_orm_id)
+            exception_ids = await self._create_exceptions_with_ids(decisions, run_orm_id)
+            exception_count = len(exception_ids)
             
             # Write audit events for all stages
             await self._write_audit_events(run_orm_id, all_matches, decisions)
+            
+            # Trigger investigation for escalated decisions (not AUTO_MATCH)
+            if self.investigation_service is not None:
+                await self._run_investigations(
+                    run_id=run_orm_id,
+                    decisions=decisions,
+                    exception_ids=exception_ids,
+                    txn_by_id={txn_id: txn for txns in transactions_by_source.values() for txn_id, txn in [(t.txn_id, t) for t in txns]},
+                )
             
             # Update ReconciliationRun with COMPLETED status and counts
             await self._update_run_completion(
@@ -285,31 +313,83 @@ class ReconciliationService:
         Returns:
             Number of exceptions created
         """
+        return len(await self._create_exceptions_with_ids(decisions, run_id))
+
+    async def _create_exceptions_with_ids(
+        self, decisions: list, run_id: str
+    ) -> list[tuple[str, list[str]]]:
+        """Create exceptions and return (exception_id, transaction_ids, decision) tuples.
+
+        Returns:
+            List of (exception_id, transaction_ids, decision) tuples for created exceptions.
+        """
         exception_actions = {
             DecisionAction.MANUAL_REVIEW,
             DecisionAction.AMBIGUOUS,
             DecisionAction.UNRESOLVED,
             DecisionAction.REJECT,
         }
-        
-        count = 0
+
+        results = []
         for decision in decisions:
             if decision.action in exception_actions:
-                for txn_id in decision.transaction_ids:
-                    exception = ExceptionRecord(
-                        transaction_id=txn_id,
-                        category=ExceptionCategory.UNEXPLAINED,
-                        confidence=decision.confidence,
-                        financial_exposure=Decimal("0"),  # Would be calculated from transaction amount
-                        expected_cost=Decimal("0"),  # Would be calculated based on risk
-                        explanation=decision.reason,
-                        evidence=decision.evidence,
-                        recommended_action=None,
-                    )
-                    await self.exception_repo.create(exception, run_id, txn_id)
-                    count += 1
-        
-        return count
+                first_txn_id = decision.transaction_ids[0] if decision.transaction_ids else None
+                exception = ExceptionRecord(
+                    transaction_id=first_txn_id,
+                    category=ExceptionCategory.UNEXPLAINED,
+                    confidence=decision.confidence,
+                    financial_exposure=Decimal("0"),
+                    expected_cost=Decimal("0"),
+                    explanation=decision.reason,
+                    evidence=decision.evidence,
+                    recommended_action=None,
+                )
+                exception_id = await self.exception_repo.create(exception, run_id, first_txn_id)
+                # Add remaining transaction IDs to the exception
+                for txn_id in decision.transaction_ids[1:]:
+                    await self.exception_repo.add_transaction_to_exception(exception_id, txn_id)
+                results.append((exception_id, decision.transaction_ids, decision))
+
+        return results
+
+    async def _run_investigations(
+        self,
+        run_id: str,
+        decisions: list,
+        exception_ids: list[tuple[str, list[str], object]],
+        txn_by_id: dict,
+    ) -> None:
+        """Invoke InvestigationService for each escalated exception.
+
+        Only called when self.investigation_service is not None.
+        Failures are logged and do not abort the reconciliation run.
+
+        Args:
+            run_id: Reconciliation run ID.
+            decisions: All decision results (used for lookup; exception_ids already filtered).
+            exception_ids: List of (exception_id, transaction_ids, decision) from _create_exceptions_with_ids.
+            txn_by_id: Map of txn_id -> Transaction domain object.
+        """
+        for exception_id, txn_ids, decision in exception_ids:
+            if decision.action not in _INVESTIGATION_ACTIONS:
+                # REJECT is created as an exception but is not investigated.
+                continue
+            transactions = [txn_by_id[tid] for tid in txn_ids if tid in txn_by_id]
+            try:
+                await self.investigation_service.investigate(
+                    exception_id=exception_id,
+                    run_id=run_id,
+                    transactions=transactions,
+                    decision=decision,
+                )
+            except Exception as exc:
+                logger.error(
+                    "Investigation failed for exception %s (run %s): %s",
+                    exception_id,
+                    run_id,
+                    exc,
+                    exc_info=True,
+                )
 
     async def _write_audit_events(self, run_id: str, matches: list, decisions: list) -> None:
         """Write audit events for all stages.

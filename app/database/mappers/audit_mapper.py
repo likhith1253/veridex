@@ -7,6 +7,11 @@ from app.models.audit_event import AuditEvent as AuditDomain
 
 def domain_to_orm_audit(domain: AuditDomain, id: str, created_at: datetime) -> AuditEventORM:
     """Convert domain AuditEvent to ORM AuditEvent."""
+    ts = domain.timestamp
+    if ts and ts.tzinfo is not None:
+        ts = ts.replace(tzinfo=None)
+    elif not ts:
+        ts = datetime.utcnow()
     return AuditEventORM(
         id=id,
         run_id=domain.run_id,
@@ -14,10 +19,9 @@ def domain_to_orm_audit(domain: AuditDomain, id: str, created_at: datetime) -> A
         event_type=domain.event,
         stage=domain.stage,
         action=domain.event,
-        timestamp=domain.timestamp,
+        timestamp=ts,
         meta_data=domain.evidence,
         decision=domain.decision,
-        created_at=created_at,
     )
 
 

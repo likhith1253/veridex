@@ -13,6 +13,7 @@ from .exception import (
     ExceptionTransaction,
 )
 from .audit import AuditEvent
+from .investigation import Investigation
 
 __all__ = [
     "Base",
@@ -30,5 +31,6 @@ __all__ = [
     "Exception",
     "ExceptionCategory",
     "ExceptionTransaction",
+    "Investigation",
     "AuditEvent",
 ]
