@@ -4,3 +4,7 @@ It is mandatory historical context for the coding agent.
 
 - Invoked `poetry run` when poetry was not in PATH; use `python` or `python -m pytest` directly in this environment.
 - Used `&&` operator in PowerShell command line; use `;` or separate commands on Windows PowerShell.
+- Domain TransactionStatus (pending/completed/failed/refunded/partially_refunded) is different from ORM TransactionStatus (pending/processed/exception). The mapper must explicitly translate between them; blind `.value` reuse fails.
+- All repositories used `datetime.now(timezone.utc)` producing timezone-aware datetimes, but asyncpg requires TIMESTAMP WITHOUT TIME ZONE columns to receive naive datetimes. Added `app/database/utils.py::utcnow()` helper to centralize this.
+- MatchResult.transaction_ids, exception FK, and audit_events FK all stored domain txn_ids (e.g. "GW_001") instead of ORM UUIDs. The service must translate domain txn_ids → ORM UUIDs before any FK persistence call.
+- reconciliation_mapper.py: `orm.status` is stored as a raw string in PostgreSQL (String(50) column), not a Python enum object; `orm.status.value` raises AttributeError on readback. Fixed with `hasattr(orm.status, "value")` guard.
