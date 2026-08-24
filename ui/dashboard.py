@@ -99,6 +99,7 @@ def render_sidebar():
         "8. Source Health",
         "9. Finance AI Q&A",
         "10. Audit Trail & Ingestion",
+        "11. Benchmark & Model Evaluation",
     ]
 
     selected_view = st.sidebar.radio("Navigation", navigation_options)
@@ -500,6 +501,58 @@ def view_source_health():
             st.write(f"**Status:** `{s_data.get('health_status', 'HEALTHY')}`")
 
 
+def view_benchmark_evaluation():
+    st.title("📊 Benchmark & Model Evaluation")
+    st.caption("Evaluation-only benchmark run. This view is intentionally isolated from live PostgreSQL state and does not mutate the production controller data.")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        num_transactions = st.number_input("Logical transactions", min_value=10, max_value=5000, value=100, step=10)
+    with col2:
+        seed = st.number_input("Seed", min_value=0, max_value=999999, value=42, step=1)
+    with col3:
+        st.write("")
+        st.write("")
+        if st.button("Run benchmark", type="primary"):
+            try:
+                benchmark = api.get_benchmark(num_transactions=int(num_transactions), seed=int(seed))
+                st.session_state["benchmark_result"] = benchmark
+            except Exception as e:
+                st.error(f"Benchmark evaluation failed: {e}")
+
+    benchmark = st.session_state.get("benchmark_result")
+    if not benchmark:
+        st.info("No benchmark has been run yet. Use the controls above to execute a deterministic evaluation snapshot.")
+        return
+
+    b = benchmark.get("benchmark", {})
+    r = benchmark.get("result", {})
+    st.success(f"Scope: {benchmark.get('scope')} | Dataset: {b.get('dataset_name')}")
+    st.json({
+        "num_transactions": b.get("num_transactions"),
+        "seed": b.get("seed"),
+        "currency": b.get("currency"),
+        "dataset_name": b.get("dataset_name"),
+    })
+
+    overall = r.get("overall", {})
+    if overall:
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Precision", f"{overall.get('precision', 0):.4f}")
+        c2.metric("Recall", f"{overall.get('recall', 0):.4f}")
+        c3.metric("F1", f"{overall.get('f1_score', 0):.4f}")
+        c4.metric("False match rate", f"{overall.get('false_match_rate', 0):.4f}")
+
+    scenario_summary = r.get("scenarios", {})
+    if scenario_summary:
+        st.subheader("Scenario Breakdown")
+        sc_df = pd.DataFrame(list(scenario_summary.values()))
+        st.dataframe(sc_df[["scenario", "total_records", "precision", "recall", "f1_score", "unresolved_records"]], use_container_width=True)
+
+    st.subheader("Full Evaluation JSON")
+    st.json(r)
+
+
 def view_finance_ai_qa():
     st.title("💬 Grounded Finance Controller AI Q&A")
     st.caption("Ask natural language treasury and reconciliation questions grounded strictly in PostgreSQL state (zero hallucinations).")
@@ -602,6 +655,8 @@ def main():
         view_finance_ai_qa()
     elif selected_view == "10. Audit Trail & Ingestion":
         view_audit_trail_and_ingestion()
+    elif selected_view == "11. Benchmark & Model Evaluation":
+        view_benchmark_evaluation()
 
 
 if __name__ == "__main__":

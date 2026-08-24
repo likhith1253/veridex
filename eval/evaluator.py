@@ -1,5 +1,6 @@
 import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -169,8 +170,19 @@ class ReconciliationEvaluator:
             investigation_service=None,
         )
 
-        # Execute the real ReconciliationService production path
-        asyncio.run(service.run_reconciliation(transactions_by_source, run_id=f"eval_{dataset_name}"))
+        # Execute the real ReconciliationService production path without crashing when called from an
+        # already-running async context (e.g. FastAPI route handlers).
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(service.run_reconciliation(transactions_by_source, run_id=f"eval_{dataset_name}"))
+        else:
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    asyncio.run,
+                    service.run_reconciliation(transactions_by_source, run_id=f"eval_{dataset_name}"),
+                )
+                future.result()
 
         all_matches = match_repo.matches
         decisions = decision_repo.decisions

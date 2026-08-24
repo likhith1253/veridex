@@ -218,3 +218,27 @@ def test_evaluator_reports_generation():
         assert md_path.exists()
         assert json_path.stat().st_size > 0
         assert md_path.stat().st_size > 0
+
+
+def test_benchmark_api_contract_and_isolation():
+    from httpx import ASGITransport, AsyncClient
+
+    from app.api.main import create_app
+
+    app = create_app()
+    transport = ASGITransport(app=app)
+
+    async def _run() -> None:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            res = await client.get("/api/v1/controller/benchmark", params={"num_transactions": 100, "seed": 42})
+            assert res.status_code == 200, res.text
+            payload = res.json()
+            assert payload["benchmark"]["num_transactions"] == 100
+            assert payload["benchmark"]["seed"] == 42
+            assert payload["benchmark"]["dataset_name"].startswith("benchmark_seed_42_n_100")
+            assert payload["result"]["dataset"]["total_transactions"] == 300
+            assert "scenarios" in payload["result"]
+            assert payload["scope"] == "evaluation_only"
+
+    import asyncio
+    asyncio.run(_run())

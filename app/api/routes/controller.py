@@ -377,7 +377,18 @@ async def get_7day_cash_forecast(
     return fc.to_dict()
 
 
-# 16. Source Health
+# 16. Benchmark / Model Evaluation (evaluation-only)
+@router.get("/benchmark")
+async def get_benchmark_results(
+    num_transactions: int = Query(100, ge=1, le=5000),
+    seed: int = Query(42, ge=0, le=999999),
+) -> dict[str, Any]:
+    """Run an evaluation-only benchmark in memory without touching live PostgreSQL state."""
+    controller = FinanceController.__new__(FinanceController)
+    return await controller.get_benchmark_evaluation(num_transactions=num_transactions, seed=seed)
+
+
+# 17. Source Health
 @router.get("/source-health")
 async def get_source_health(
     session: AsyncSession = Depends(get_db_session),

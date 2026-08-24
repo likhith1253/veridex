@@ -166,6 +166,12 @@ class FinanceControllerAPIClient:
             res.raise_for_status()
             return res.json()
 
+    def get_benchmark(self, num_transactions: int = 100, seed: int = 42) -> dict[str, Any]:
+        with httpx.Client(timeout=self.timeout) as client:
+            res = client.get(self._url("/api/v1/controller/benchmark"), params={"num_transactions": num_transactions, "seed": seed})
+            res.raise_for_status()
+            return res.json()
+
     # --- Intelligence & Audit ---
     def ask_qa(self, question: str, run_id: Optional[str] = None) -> dict[str, Any]:
         payload = {"question": question, "run_id": run_id}

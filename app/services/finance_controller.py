@@ -71,6 +71,8 @@ from app.services.incremental_reconciliation import (
 )
 from app.services.reconciliation import ReconciliationService, ReconciliationSummary
 from app.services.source_health_service import SourceHealthReport, SourceHealthService
+from eval.config import BenchmarkConfig
+from eval.evaluator import ReconciliationEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -280,6 +282,29 @@ class FinanceController:
             ],
         }
 
+    async def get_benchmark_evaluation(
+        self,
+        num_transactions: int = 100,
+        seed: int = 42,
+        output_dir: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Run benchmark evaluation in a deterministic, evaluation-only scope that never touches live DB state."""
+        cfg = BenchmarkConfig(num_transactions=num_transactions, seed=seed)
+        if output_dir:
+            cfg.output_dir = output_dir
+
+        result = ReconciliationEvaluator().evaluate_benchmark(cfg)
+        return {
+            "scope": "evaluation_only",
+            "benchmark": {
+                "num_transactions": cfg.num_transactions,
+                "seed": cfg.seed,
+                "currency": cfg.currency,
+                "dataset_name": f"benchmark_seed_{cfg.seed}_n_{cfg.num_transactions}",
+            },
+            "result": result.to_dict(),
+        }
+
     # 4. Audit Timeline
     async def get_audit_timeline(
         self,
@@ -303,7 +328,7 @@ class FinanceController:
                 "event_type": e.event_type,
                 "run_id": e.run_id,
                 "transaction_id": e.transaction_id,
-                "details": e.details or {},
+                "details": e.meta_data or {},
             }
             for e in events
         ]
