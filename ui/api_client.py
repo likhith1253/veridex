@@ -98,6 +98,21 @@ class FinanceControllerAPIClient:
             res.raise_for_status()
             return res.json()
 
+    def get_exception_intelligence(self, exception_id: str) -> dict[str, Any]:
+        with httpx.Client(timeout=self.timeout) as client:
+            res = client.get(self._url(f"/api/v1/controller/exceptions/{exception_id}/intelligence"))
+            res.raise_for_status()
+            return res.json()
+
+    def list_exception_intelligence(self, run_id: Optional[str] = None, limit: int = 50) -> list[dict[str, Any]]:
+        params = {"limit": limit}
+        if run_id:
+            params["run_id"] = run_id
+        with httpx.Client(timeout=self.timeout) as client:
+            res = client.get(self._url("/api/v1/controller/exceptions/intelligence"), params=params)
+            res.raise_for_status()
+            return res.json()
+
     # --- Human Decisions & Actions ---
     def apply_decision(
         self, exception_id: str, action: str, actor: str = "finance_controller_user", reason: Optional[str] = None

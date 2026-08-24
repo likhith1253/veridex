@@ -317,6 +317,20 @@ def view_exception_workspace():
         if inv:
             st.success(f"🤖 **AI Investigation Conclusion ({inv.get('method')}):**\n\n**Root Cause:** {inv.get('root_cause')}\n\n**Confidence:** {inv.get('confidence', 0)*100:.1f}%\n\n{inv.get('explanation')}")
 
+        try:
+            intel = api.get_exception_intelligence(selected_id)
+            st.subheader("🧠 Exception Intelligence")
+            st.markdown(f"**Why it happened:** {intel.get('why_it_happened')}")
+            st.markdown(f"**Risk:** {intel.get('risk_bucket', 'unknown').upper()} | risk score {intel.get('risk_score', 0):.2f}")
+            st.markdown(f"**Expected cost:** {format_money(intel.get('how_serious', {}).get('expected_cost_inr'))}")
+            for fact in intel.get('what_evidence_supports_this', []):
+                st.caption(f"{fact.get('label')}: {fact.get('value')}")
+            st.markdown("**What the operator should do next:**")
+            for step in intel.get('what_should_the_operator_do_next', []):
+                st.write(f"- {step}")
+        except Exception as e:
+            st.caption(f"Exception intelligence unavailable: {e}")
+
     with c2:
         st.subheader("Human Controller Actions")
         

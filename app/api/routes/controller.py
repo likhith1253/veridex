@@ -245,6 +245,32 @@ async def get_exception_detail(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.get("/exceptions/intelligence")
+async def list_exception_intelligence(
+    run_id: Optional[str] = Query(None, description="Optional run scope for intelligence listing"),
+    limit: int = Query(50, ge=1, le=200),
+    session: AsyncSession = Depends(get_db_session),
+    investigation_service: InvestigationService = Depends(get_investigation_service),
+) -> list[dict[str, Any]]:
+    """Return risk-ordered structured intelligence for open exceptions in a scope."""
+    controller = FinanceController(session, investigation_service=investigation_service)
+    return await controller.list_exception_intelligence(run_id=run_id, limit=limit)
+
+
+@router.get("/exceptions/{exception_id}/intelligence")
+async def get_exception_intelligence(
+    exception_id: str,
+    session: AsyncSession = Depends(get_db_session),
+    investigation_service: InvestigationService = Depends(get_investigation_service),
+) -> dict[str, Any]:
+    """Return a structured explanation of why an exception happened, how serious it is, and what to do next."""
+    controller = FinanceController(session, investigation_service=investigation_service)
+    try:
+        return await controller.get_exception_intelligence(exception_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 # 8. Human Decision API
 @router.post("/exceptions/{exception_id}/decision")
 async def apply_human_decision(

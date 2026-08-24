@@ -38,6 +38,7 @@ from app.services.exception_management_service import (
     ExceptionManagementService,
 )
 from app.services.explainability_service import DecisionExplanation, ExplainabilityService
+from app.services.exception_intelligence_service import ExceptionIntelligenceService
 from app.services.exposure_service import FinancialExposureBreakdown, FinancialExposureService
 from app.services.fee_tax_service import FeeTaxReconciliationReport, FeeTaxService
 from app.services.finance_controller import ControllerKPIs, FinanceController
@@ -132,6 +133,101 @@ class TestHumanDecisionService:
                 exception_id="exc-102",
                 action=HumanAction.REJECT,
             )
+
+
+class TestExceptionIntelligenceService:
+    """Test structured exception intelligence and risk explanations."""
+
+    @pytest.mark.asyncio
+    async def test_exception_intelligence_assembles_risk_and_next_steps(self):
+        session = AsyncMock()
+
+        mock_exc = MagicMock(
+            id="exc-201",
+            run_id="run-88",
+            transaction_id="txn-55",
+            exception_category=ExceptionCategory.DELAYED_SETTLEMENT,
+            status="open",
+            confidence=Decimal("0.90"),
+            financial_exposure=Decimal("85000.00"),
+            expected_cost=Decimal("20000.00"),
+            explanation="Settlement is delayed by several days.",
+            evidence={"amount_delta": "5000.00", "time_span_days": 5.0},
+            recommended_action="approve_match",
+            resolved=False,
+            created_at=datetime.now(timezone.utc),
+        )
+        mock_inv = MagicMock(
+            method="deterministic",
+            root_cause="Delayed settlement timing across gateway and bank.",
+            classification=ExceptionCategory.DELAYED_SETTLEMENT,
+            confidence=Decimal("0.92"),
+            financial_exposure=Decimal("85000.00"),
+            expected_cost=Decimal("18000.00"),
+            recommended_action="approve_match",
+            requires_human_review=False,
+            evidence={"rule": "delayed_settlement_timing", "time_span_days": 5.0},
+        )
+
+        res_exc = MagicMock(); res_exc.scalar_one_or_none.return_value = mock_exc
+        res_inv = MagicMock(); res_inv.scalar_one_or_none.return_value = mock_inv
+        session.execute = AsyncMock(side_effect=[res_exc, res_inv])
+
+        service = ExceptionIntelligenceService(session)
+        intelligence = await service.get_exception_intelligence("exc-201")
+
+        assert intelligence.exception_id == "exc-201"
+        assert intelligence.risk_bucket in {"medium", "high", "critical"}
+        assert intelligence.root_cause == "Delayed settlement timing across gateway and bank."
+        assert intelligence.recommended_action == "approve_match"
+        assert "next_steps" in intelligence.to_dict()
+        assert "supporting_facts" in intelligence.to_dict()
+
+    @pytest.mark.asyncio
+    async def test_exception_intelligence_list_is_risk_ordered(self):
+        session = AsyncMock()
+
+        exc_a = MagicMock(
+            id="a",
+            run_id="run-1",
+            transaction_id="t1",
+            exception_category=ExceptionCategory.UNEXPLAINED,
+            status="open",
+            confidence=Decimal("0.30"),
+            financial_exposure=Decimal("150000.00"),
+            expected_cost=Decimal("90000.00"),
+            explanation="Unexplained exception",
+            evidence={"rule": "unexplained_fallback"},
+            recommended_action="escalate_manual",
+            resolved=False,
+            created_at=datetime.now(timezone.utc),
+        )
+        exc_b = MagicMock(
+            id="b",
+            run_id="run-1",
+            transaction_id="t2",
+            exception_category=ExceptionCategory.CURRENCY_ROUNDING,
+            status="open",
+            confidence=Decimal("0.98"),
+            financial_exposure=Decimal("250.00"),
+            expected_cost=Decimal("5.00"),
+            explanation="Minor rounding variance",
+            evidence={"rule": "rounding_tolerance"},
+            recommended_action="write_off",
+            resolved=False,
+            created_at=datetime.now(timezone.utc),
+        )
+
+        stmt1 = MagicMock(); stmt1.scalars.return_value.all.return_value = [exc_a, exc_b]
+        session.execute = AsyncMock(return_value=stmt1)
+
+        service = ExceptionIntelligenceService(session)
+        items = await service.list_exception_intelligence(run_id="run-1")
+
+        assert items[0]["exception_id"] == "a"
+        assert items[0]["risk_bucket"] in {"high", "critical"}
+        assert items[1]["exception_id"] == "b"
+        assert items[0]["risk_score"] >= items[1]["risk_score"]
 
 
 class TestFeeTaxService:

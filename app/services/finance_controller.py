@@ -305,6 +305,24 @@ class FinanceController:
             "result": result.to_dict(),
         }
 
+    async def get_exception_intelligence(self, exception_id: str) -> dict[str, Any]:
+        """Return explainable intelligence for a single exception."""
+        from app.services.exception_intelligence_service import ExceptionIntelligenceService
+
+        service = ExceptionIntelligenceService(self.session)
+        return (await service.get_exception_intelligence(exception_id)).to_dict()
+
+    async def list_exception_intelligence(
+        self,
+        run_id: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Return risk-ordered intelligence for a scope of exceptions."""
+        from app.services.exception_intelligence_service import ExceptionIntelligenceService
+
+        service = ExceptionIntelligenceService(self.session)
+        return await service.list_exception_intelligence(run_id=run_id, limit=limit)
+
     # 4. Audit Timeline
     async def get_audit_timeline(
         self,
