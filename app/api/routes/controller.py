@@ -31,6 +31,9 @@ from app.api.dependencies import get_db_session, get_investigation_service
 from app.api.schemas.controller import (
     BatchIngestRequest,
     BatchIngestResponse,
+    CopilotBriefResponse,
+    CopilotQueryRequest,
+    CopilotQueryResponse,
     FailureSimulationRequest,
     HumanDecisionRequest,
 )
@@ -389,6 +392,33 @@ async def answer_finance_query(
         "sql_facts_used": qa_resp.sql_facts_used,
         "confidence": qa_resp.confidence,
     }
+
+
+@router.post("/copilot/query", response_model=CopilotQueryResponse)
+async def ask_copilot_query(
+    request: CopilotQueryRequest,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Answer grounded finance-control questions with integrated controller context and deterministic recommendations."""
+    from app.services.copilot_service import FinanceCopilotService
+
+    service = FinanceCopilotService(session)
+    return await service.answer_question(request.question, request.run_id)
+
+
+@router.post("/copilot/brief", response_model=CopilotBriefResponse)
+async def get_finance_monthly_brief(
+    request: dict[str, Any] | None = None,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Render a live executive brief from the current controller state and exception intelligence."""
+    from app.services.copilot_service import FinanceCopilotService
+
+    service = FinanceCopilotService(session)
+    run_id = None
+    if isinstance(request, dict):
+        run_id = request.get("run_id")
+    return await service.generate_daily_brief(run_id)
 
 
 # 15. 7-Day Cash Forecast

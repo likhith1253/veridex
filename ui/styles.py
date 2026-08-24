@@ -93,6 +93,44 @@ FINTECH_CSS = """
         font-weight: 600;
         display: inline-block;
     }
+
+    .brief-header {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #94A3B8;
+        margin-bottom: 8px;
+    }
+    .brief-status {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+    .brief-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin: 12px 0 18px;
+    }
+    .brief-grid > div {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid #1E293B;
+        border-radius: 8px;
+        padding: 12px 14px;
+    }
+    .brief-grid strong {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #94A3B8;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+    }
+    .brief-body {
+        color: #E2E8F0;
+        font-size: 14px;
+        line-height: 1.6;
+    }
     
     /* Accounting Equation Grid */
     .accounting-box {

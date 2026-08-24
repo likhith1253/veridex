@@ -195,6 +195,20 @@ class FinanceControllerAPIClient:
             res.raise_for_status()
             return res.json()
 
+    def ask_copilot(self, question: str, run_id: Optional[str] = None) -> dict[str, Any]:
+        payload = {"question": question, "run_id": run_id}
+        with httpx.Client(timeout=self.timeout) as client:
+            res = client.post(self._url("/api/v1/controller/copilot/query"), json=payload)
+            res.raise_for_status()
+            return res.json()
+
+    def get_daily_brief(self, run_id: Optional[str] = None) -> dict[str, Any]:
+        payload = {"run_id": run_id} if run_id else {}
+        with httpx.Client(timeout=self.timeout) as client:
+            res = client.post(self._url("/api/v1/controller/copilot/brief"), json=payload)
+            res.raise_for_status()
+            return res.json()
+
     def get_audit_timeline(self, run_id: Optional[str] = None, transaction_id: Optional[str] = None) -> list[dict[str, Any]]:
         params = {}
         if run_id:

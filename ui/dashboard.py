@@ -98,8 +98,9 @@ def render_sidebar():
         "7. Cash Position & Forecast",
         "8. Source Health",
         "9. Finance AI Q&A",
-        "10. Audit Trail & Ingestion",
-        "11. Benchmark & Model Evaluation",
+        "10. AI Finance Copilot",
+        "11. Audit Trail & Ingestion",
+        "12. Benchmark & Model Evaluation",
     ]
 
     selected_view = st.sidebar.radio("Navigation", navigation_options)
@@ -615,6 +616,97 @@ def view_finance_ai_qa():
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+def view_ai_finance_copilot():
+    st.title("🧠 AI Finance Brief & Copilot")
+    st.caption("Grounded finance-control assistant for risk triage, exception explanation, and evidence-first operator guidance.")
+
+    try:
+        brief = api.get_daily_brief()
+    except Exception as exc:
+        st.error(f"Failed to load finance brief: {exc}")
+        return
+
+    status = brief.get("status", "Stable")
+    status_color = "#34D399" if status == "Stable" else "#FBBF24" if status == "Attention Required" else "#F87171"
+    st.markdown(
+        f"<div class='section-card'><div class='brief-header'>TODAY'S FINANCE BRIEF</div>"
+        f"<div class='brief-status' style='color:{status_color};'>{status}</div>"
+        f"<div class='brief-grid'>"
+        f"<div><strong>Money at Risk</strong><div>{format_money(brief.get('money_at_risk_inr'))}</div></div>"
+        f"<div><strong>Reconciliation</strong><div>{format_percent(brief.get('reconciliation_match_rate_percent'), decimals=1)}</div></div>"
+        f"<div><strong>Top Risk</strong><div>{brief.get('highest_risk_exception') or 'No material exception'}</div></div>"
+        f"</div>"
+        f"<div class='brief-body'><p><strong>Why:</strong> {brief.get('why', 'No material issue flagged.')}</p>"
+        f"<p><strong>Recommended Action:</strong> {brief.get('recommended_action', 'Monitor the controller queue')}</p>"
+        f"<p><strong>Human Review:</strong> {'Required' if brief.get('human_review_required') else 'Not required'}</p></div></div>",
+        unsafe_allow_html=True,
+    )
+
+    with st.expander("Evidence", expanded=True):
+        st.json(brief.get("evidence", []))
+
+    st.divider()
+    st.subheader("Finance Copilot Decision Assistant")
+
+    default_prompts = [
+        "What needs my attention right now?",
+        "Where is the highest monetary exposure?",
+        "Why are these transactions unresolved?",
+        "Show me the highest-risk exception.",
+        "Which source is unhealthy?",
+        "What can I safely auto-resolve?",
+        "What requires human review?",
+        "Explain today's reconciliation performance.",
+    ]
+
+    if "copilot_question" not in st.session_state:
+        st.session_state["copilot_question"] = default_prompts[0]
+
+    for prompt in default_prompts:
+        if st.button(prompt, key=f"copilot_prompt_{prompt}"):
+            st.session_state["copilot_question"] = prompt
+
+    question = st.text_area("Ask the controller", value=st.session_state["copilot_question"])
+
+    if st.button("Run grounded assessment", type="primary") and question.strip():
+        try:
+            result = api.ask_copilot(question.strip())
+            st.success(f"**Answer:** {result.get('answer')}")
+            st.markdown(f"**Interpretation:** {result.get('interpretation')}")
+            st.markdown(f"**Recommendation:** {result.get('recommendation')}")
+
+            decision_state = "HUMAN REVIEW" if result.get("needs_human_review") else ("AUTO-SAFE" if result.get("source") == "deterministic" else "AI-SUGGESTED")
+            st.caption(f"Decision boundary: **{decision_state}**")
+
+            with st.expander("Fact summary", expanded=True):
+                st.json(result.get("fact_summary", {}))
+
+            with st.expander("Evidence", expanded=False):
+                st.json(result.get("evidence", []))
+        except Exception as exc:
+            st.error(f"Copilot query failed: {exc}")
+
+    st.divider()
+    try:
+        exception_payload = api.list_exceptions(page_size=10)
+        exception_rows = exception_payload.get("exceptions", [])
+    except Exception:
+        exception_rows = []
+
+    if exception_rows:
+        selected_exception = st.selectbox("Why this exception was flagged", [exc.get("exception_id") for exc in exception_rows])
+        try:
+            intel = api.get_exception_intelligence(selected_exception)
+            st.markdown("**WHY WAS THIS FLAGGED?**")
+            reasons = intel.get("why_it_happened") or intel.get("root_cause") or "No structured root cause recorded."
+            st.write(reasons)
+            if intel.get("what_evidence_supports_this"):
+                for fact in intel.get("what_evidence_supports_this", []):
+                    st.caption(f"{fact.get('label')}: {fact.get('value')}")
+        except Exception as exc:
+            st.caption(f"Exception explanation unavailable: {exc}")
+
+
 def view_audit_trail_and_ingestion():
     st.title("📜 Audit Timeline & Operational Controls")
     st.caption("Immutable append-only audit trail of all reconciliation decisions, state transitions, and simulation tools.")
@@ -667,9 +759,11 @@ def main():
         view_source_health()
     elif selected_view == "9. Finance AI Q&A":
         view_finance_ai_qa()
-    elif selected_view == "10. Audit Trail & Ingestion":
+    elif selected_view == "10. AI Finance Copilot":
+        view_ai_finance_copilot()
+    elif selected_view == "11. Audit Trail & Ingestion":
         view_audit_trail_and_ingestion()
-    elif selected_view == "11. Benchmark & Model Evaluation":
+    elif selected_view == "12. Benchmark & Model Evaluation":
         view_benchmark_evaluation()
 
 

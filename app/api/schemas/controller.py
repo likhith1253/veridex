@@ -48,3 +48,32 @@ class HumanDecisionRequest(BaseModel):
 class FailureSimulationRequest(BaseModel):
     scenario: str = Field(..., description="Failure scenario: 'corrupted_utr', 'delayed_settlement', 'duplicate', 'ambiguous', 'groq_unavailable'")
     amount: float = Field(50000.0, description="Transaction amount for test scenario")
+
+
+class CopilotQueryRequest(BaseModel):
+    question: str = Field(..., min_length=1, description="Finance question to resolve using grounded controller data")
+    run_id: Optional[str] = Field(None, description="Optional run scope for the query")
+
+
+class CopilotQueryResponse(BaseModel):
+    question: str
+    answer: str
+    interpretation: str
+    recommendation: str
+    fact_summary: dict[str, Any] = Field(default_factory=dict)
+    evidence: list[dict[str, Any]] = Field(default_factory=list)
+    source: str = "deterministic"
+    needs_human_review: bool = False
+
+
+class CopilotBriefResponse(BaseModel):
+    status: str
+    money_at_risk_inr: float
+    reconciliation_match_rate_percent: float
+    highest_risk_exception: Optional[str]
+    why: str
+    recommended_action: str
+    human_review_required: bool
+    evidence: list[dict[str, Any]] = Field(default_factory=list)
+    source_health: str = "HEALTHY"
+    summary: dict[str, Any] = Field(default_factory=dict)
