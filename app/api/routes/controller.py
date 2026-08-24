@@ -392,3 +392,87 @@ async def simulate_failure(
     """Simulate backend operational failure scenarios (corrupted UTR, duplicate, delayed, etc.)."""
     controller = FinanceController(session)
     return await controller.simulate_failure_scenario(request.scenario, request.amount)
+
+
+# 18. Refund & Partial-Refund Reconciliation
+@router.get("/refunds/audit")
+async def get_refund_audit(
+    limit: int = Query(100, ge=1, le=500),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Retrieve refund reconciliation report including over-refund anomalies."""
+    from app.services.refund_service import RefundAccountingService
+    service = RefundAccountingService(session)
+    report = await service.audit_refunds(limit)
+    return report.to_dict()
+
+
+# 19. Unified Settlement Accounting
+@router.get("/settlement/accounting")
+async def get_settlement_accounting(
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Compute Gross - Fees - Taxes - Refunds = Expected Settlement vs Bank Credits."""
+    from app.services.settlement_accounting_service import SettlementAccountingService
+    service = SettlementAccountingService(session)
+    summary = await service.calculate_settlement_accounting()
+    return summary.to_dict()
+
+
+# 20. Duplicate Payment Audit
+@router.get("/duplicates/audit")
+async def get_duplicate_audit(
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Isolate duplicate charges, duplicate bank settlements, and duplicate webhooks."""
+    from app.services.duplicate_detection_service import DuplicateDetectionService
+    service = DuplicateDetectionService(session)
+    report = await service.audit_duplicates()
+    return report.to_dict()
+
+
+class AssignExceptionRequest(BaseModel):
+    assigned_to: str = Field(..., description="Controller analyst username or email")
+    actor: str = Field("finance_controller_admin", description="Assigner username")
+
+
+class AddNoteRequest(BaseModel):
+    note: str = Field(..., description="Review note content")
+    actor: str = Field("finance_controller_user", description="Note author")
+
+
+# 21. Assign Exception & Add Review Note
+@router.post("/exceptions/{exception_id}/assign")
+async def assign_exception(
+    exception_id: str,
+    request: AssignExceptionRequest,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Assign an open exception to a controller analyst with immutable audit log."""
+    from app.services.human_decision_service import HumanAction, HumanDecisionService
+    service = HumanDecisionService(session)
+    res = await service.apply_decision(
+        exception_id=exception_id,
+        action=HumanAction.ASSIGN,
+        actor=request.actor,
+        assigned_to=request.assigned_to,
+    )
+    return res.to_dict()
+
+
+@router.post("/exceptions/{exception_id}/note")
+async def add_exception_note(
+    exception_id: str,
+    request: AddNoteRequest,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Add a review note to an exception with immutable audit log."""
+    from app.services.human_decision_service import HumanAction, HumanDecisionService
+    service = HumanDecisionService(session)
+    res = await service.apply_decision(
+        exception_id=exception_id,
+        action=HumanAction.ADD_NOTE,
+        actor=request.actor,
+        note=request.note,
+    )
+    return res.to_dict()

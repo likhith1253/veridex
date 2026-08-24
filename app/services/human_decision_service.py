@@ -1,11 +1,14 @@
-"""
-Human-in-the-Loop Decision Service for Project Sentinel.
+﻿"""
+Human-in-the-Loop Decision & Exception Workflow Service for Project Sentinel.
 
 Handles human controller actions on reconciliation exceptions:
 - approve (confirms tentative proposal or manual match)
 - reject (rejects proposed association)
 - escalate (escalates to senior treasury/investigation team)
 - resolve (marks discrepancy as resolved with credit note / write-off)
+- assign (assigns exception to a controller analyst)
+- add_note (adds an auditable controller review note)
+- investigate (transitions exception to INVESTIGATING status)
 
 Guarantees:
 - Strict state transition validation
@@ -13,7 +16,7 @@ Guarantees:
 - Records actor, timestamp, previous state, new state, and reason
 """
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
@@ -32,15 +35,20 @@ class HumanAction(str, Enum):
     REJECT = "reject"
     ESCALATE = "escalate"
     RESOLVE = "resolve"
+    ASSIGN = "assign"
+    ADD_NOTE = "add_note"
+    INVESTIGATE = "investigate"
 
 
 # Allowed state transitions mapping: current_status -> set of allowed actions
 ALLOWED_TRANSITIONS = {
-    "open": {HumanAction.APPROVE, HumanAction.REJECT, HumanAction.ESCALATE, HumanAction.RESOLVE},
-    "pending_review": {HumanAction.APPROVE, HumanAction.REJECT, HumanAction.ESCALATE, HumanAction.RESOLVE},
-    "escalated": {HumanAction.APPROVE, HumanAction.REJECT, HumanAction.RESOLVE},
-    "resolved": set(),  # Terminal state
-    "rejected": set(),  # Terminal state
+    "open": {HumanAction.APPROVE, HumanAction.REJECT, HumanAction.ESCALATE, HumanAction.RESOLVE, HumanAction.ASSIGN, HumanAction.ADD_NOTE, HumanAction.INVESTIGATE},
+    "investigating": {HumanAction.APPROVE, HumanAction.REJECT, HumanAction.ESCALATE, HumanAction.RESOLVE, HumanAction.ASSIGN, HumanAction.ADD_NOTE},
+    "pending_review": {HumanAction.APPROVE, HumanAction.REJECT, HumanAction.ESCALATE, HumanAction.RESOLVE, HumanAction.ASSIGN, HumanAction.ADD_NOTE, HumanAction.INVESTIGATE},
+    "escalated": {HumanAction.APPROVE, HumanAction.REJECT, HumanAction.RESOLVE, HumanAction.ASSIGN, HumanAction.ADD_NOTE},
+    "approved": {HumanAction.ADD_NOTE},
+    "resolved": {HumanAction.ADD_NOTE},  # Notes allowed on closed items for audit
+    "rejected": {HumanAction.ADD_NOTE},
 }
 
 
@@ -55,6 +63,9 @@ class HumanDecisionResult:
     reason: Optional[str]
     audit_event_id: str
     timestamp: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 class HumanDecisionService:
@@ -71,6 +82,8 @@ class HumanDecisionService:
         action: HumanAction,
         actor: str = "finance_controller_user",
         reason: Optional[str] = None,
+        assigned_to: Optional[str] = None,
+        note: Optional[str] = None,
     ) -> HumanDecisionResult:
         """Validate and apply a human action on an exception record."""
         # 1. Fetch ORM Exception
@@ -84,28 +97,47 @@ class HumanDecisionService:
         prev_status = getattr(exc, "status", "open")
         prev_resolved = getattr(exc, "resolved", False)
 
-        if prev_resolved:
+        if prev_resolved and action not in (HumanAction.ADD_NOTE,):
             raise ValueError(f"Cannot perform action '{action.value}' on already resolved exception '{exception_id}'")
 
-        allowed_actions = ALLOWED_TRANSITIONS.get(prev_status, {HumanAction.RESOLVE, HumanAction.ESCALATE})
+        allowed_actions = ALLOWED_TRANSITIONS.get(prev_status, {HumanAction.RESOLVE, HumanAction.ESCALATE, HumanAction.ADD_NOTE})
         if action not in allowed_actions:
             raise ValueError(
                 f"Invalid transition: Action '{action.value}' is not permitted from current status '{prev_status}'"
             )
 
-        # 2. Determine new status
+        # 2. Determine new status & update meta
+        evidence_dict = exc.evidence or {}
+        now_dt = datetime.now(timezone.utc)
+
         if action == HumanAction.APPROVE:
             new_status = "approved"
             exc.resolved = True
+            exc.resolved_at = now_dt
         elif action == HumanAction.REJECT:
             new_status = "rejected"
             exc.resolved = True
+            exc.resolved_at = now_dt
         elif action == HumanAction.ESCALATE:
             new_status = "escalated"
             exc.resolved = False
         elif action == HumanAction.RESOLVE:
             new_status = "resolved"
             exc.resolved = True
+            exc.resolved_at = now_dt
+        elif action == HumanAction.INVESTIGATE:
+            new_status = "investigating"
+            exc.resolved = False
+        elif action == HumanAction.ASSIGN:
+            new_status = prev_status
+            evidence_dict["assigned_to"] = assigned_to or actor
+            exc.evidence = evidence_dict
+        elif action == HumanAction.ADD_NOTE:
+            new_status = prev_status
+            notes = evidence_dict.get("controller_notes", [])
+            notes.append({"actor": actor, "note": note or reason, "timestamp": now_dt.isoformat()})
+            evidence_dict["controller_notes"] = notes
+            exc.evidence = evidence_dict
         else:
             new_status = action.value
 
@@ -114,8 +146,6 @@ class HumanDecisionService:
 
         # 3. Emit immutable AuditEvent
         txn_id = getattr(exc, "transaction_id", "unknown_txn")
-        now_dt = datetime.now(timezone.utc)
-
         audit_domain = AuditEvent(
             run_id=getattr(exc, "run_id", "manual_run"),
             stage="human_decision",
@@ -127,7 +157,8 @@ class HumanDecisionService:
                 "action": action.value,
                 "previous_status": prev_status,
                 "new_status": new_status,
-                "reason": reason or "Applied by Finance Controller",
+                "reason": reason or note or "Applied by Finance Controller",
+                "assigned_to": assigned_to,
             },
             timestamp=now_dt,
         )
@@ -140,7 +171,7 @@ class HumanDecisionService:
             actor=actor,
             previous_status=prev_status,
             new_status=new_status,
-            reason=reason,
+            reason=reason or note,
             audit_event_id=audit_id,
             timestamp=now_dt.isoformat(),
         )

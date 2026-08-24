@@ -1,4 +1,4 @@
-﻿"""
+"""
 Comprehensive Backend Test Suite for Project Sentinel AI Finance Controller (Razorpay Track 4).
 
 Tests:
@@ -319,3 +319,136 @@ class TestControllerAPIRoutesEndToEnd:
                 r_sim = await client.post("/api/v1/controller/simulate-failure", json={"scenario": "corrupted_utr", "amount": 25000.0})
                 assert r_sim.status_code == 200
                 assert r_sim.json()["scenario"] == "corrupted_utr"
+
+
+class TestRefundAndSettlementAccounting:
+    """Test Refund Reconciliation and Unified Settlement Accounting Equations."""
+
+    @pytest.mark.asyncio
+    async def test_refund_audit_and_over_refund_detection(self):
+        from app.services.refund_service import RefundAccountingService
+        session = AsyncMock()
+        # Normal payment: 10,000 with 3,000 partial refund
+        mock_t1 = MagicMock(
+            domain_transaction_id="GW_PAY_01",
+            id="1",
+            amount=Decimal("10000.00"),
+            order_id="ORD_01",
+            meta_data={"refunds": [{"refund_id": "rf_1", "amount": "3000.00"}]},
+        )
+        # Over-refund anomaly: 5,000 payment with 6,000 refund
+        mock_t2 = MagicMock(
+            domain_transaction_id="GW_PAY_02",
+            id="2",
+            amount=Decimal("5000.00"),
+            order_id="ORD_02",
+            meta_data={"refunds": [{"refund_id": "rf_2", "amount": "6000.00"}]},
+        )
+        res_mock = MagicMock()
+        res_mock.scalars.return_value.all.return_value = [mock_t1, mock_t2]
+        session.execute = AsyncMock(return_value=res_mock)
+
+        service = RefundAccountingService(session)
+        report = await service.audit_refunds()
+
+        assert report.total_payments_audited == 2
+        assert report.partially_refunded_count == 1
+        assert report.over_refund_anomalies_count == 1
+        assert report.total_over_refund_exposure == "1000.00"
+
+    @pytest.mark.asyncio
+    async def test_duplicate_incident_detection(self):
+        from app.services.duplicate_detection_service import DuplicateDetectionService
+        session = AsyncMock()
+        mock_t1 = MagicMock(source="gateway", order_id="ORD_DUP_1", domain_transaction_id="GW_1", amount=Decimal("1000.00"), reference_number=None)
+        mock_t2 = MagicMock(source="gateway", order_id="ORD_DUP_1", domain_transaction_id="GW_2", amount=Decimal("1000.00"), reference_number=None)
+        res_mock = MagicMock()
+        res_mock.scalars.return_value.all.return_value = [mock_t1, mock_t2]
+        session.execute = AsyncMock(return_value=res_mock)
+
+        service = DuplicateDetectionService(session)
+        report = await service.audit_duplicates()
+
+        assert report.total_incidents_detected == 1
+        assert report.duplicate_charges_count == 1
+        assert report.duplicate_charges_exposure == "1000.00"
+
+    @pytest.mark.asyncio
+    async def test_settlement_accounting_equation(self):
+        from app.services.settlement_accounting_service import SettlementAccountingService
+        session = AsyncMock()
+        # Gross = 100,000, Fee = 2,000, Tax = 360 -> Expected Net = 97,640
+        res_gw = MagicMock()
+        res_gw.first.return_value = (Decimal("100000.00"), Decimal("2000.00"), Decimal("360.00"))
+        # Bank credit = 97,640 -> Fully Reconciled
+        res_bk = MagicMock()
+        res_bk.scalar_one.return_value = Decimal("97640.00")
+        session.execute = AsyncMock(side_effect=[res_gw, res_bk])
+
+        service = SettlementAccountingService(session)
+        summary = await service.calculate_settlement_accounting()
+
+        assert summary.gross_gateway_volume == "100000.00"
+        assert summary.expected_net_settlement == "97640.00"
+        assert summary.actual_bank_settled_credits == "97640.00"
+        assert summary.net_settlement_variance == "0.00"
+        assert summary.settlement_reconciliation_status == "RECONCILED"
+
+
+class TestWebhookIntegration:
+    """Test Razorpay Webhook Ingestion & Signature Verification."""
+
+    @pytest.mark.asyncio
+    async def test_razorpay_webhook_endpoint(self, app):
+        import hashlib
+        import hmac
+        import json
+        from app.api.dependencies import get_db_session, get_investigation_service
+
+        mock_db = AsyncMock()
+        app.dependency_overrides[get_db_session] = lambda: mock_db
+        app.dependency_overrides[get_investigation_service] = lambda: MagicMock()
+
+        secret = "rzp_test_secret_sentinel"
+        payload = {
+            "event": "payment.captured",
+            "payload": {
+                "payment": {
+                    "entity": {
+                        "id": "pay_webhook_test_101",
+                        "order_id": "order_test_101",
+                        "amount": 2500000,  # 25,000 INR
+                        "currency": "INR",
+                        "status": "captured",
+                        "created_at": 1700000000,
+                    }
+                }
+            }
+        }
+        body_bytes = json.dumps(payload).encode("utf-8")
+        signature = hmac.new(secret.encode("utf-8"), body_bytes, hashlib.sha256).hexdigest()
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            with patch("app.api.routes.integrations.IncrementalReconciliationService") as MockInc:
+                from app.services.incremental_reconciliation import IncrementalReconciliationResult
+                mock_inc_inst = MagicMock()
+                mock_inc_inst.ingest_and_reconcile = AsyncMock(return_value=IncrementalReconciliationResult(
+                    transaction_id="pay_webhook_test_101",
+                    status="MATCHED_DETERMINISTIC",
+                    action="auto_match",
+                    match_id="m-wh-101",
+                    matched_transaction_id="LD_101",
+                    confidence=0.98,
+                    processing_time_ms=0.65,
+                ))
+                MockInc.return_value = mock_inc_inst
+
+                resp = await client.post(
+                    "/api/v1/integrations/razorpay/webhook",
+                    content=body_bytes,
+                    headers={"X-Razorpay-Signature": signature, "Content-Type": "application/json"},
+                )
+                assert resp.status_code == 200
+                assert resp.json()["transaction_id"] == "pay_webhook_test_101"
+                assert resp.json()["status"] == "MATCHED_DETERMINISTIC"
