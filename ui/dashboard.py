@@ -1,4 +1,4 @@
-﻿"""
+"""
 Project Sentinel — AI Finance Controller Dashboard (Razorpay Track 04).
 
 Complete Enterprise Financial Operations & Reconciliation Control Center:
@@ -15,7 +15,14 @@ Complete Enterprise Financial Operations & Reconciliation Control Center:
 """
 
 import json
+import sys
 from decimal import Decimal
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import pandas as pd
 import streamlit as st
 
@@ -87,15 +94,21 @@ def view_overview():
     with col1:
         st.metric("Total Processed", f"{kpis.get('total_records_processed', 0):,} records", delta=f"{kpis.get('total_logical_transactions', 0):,} txns")
     with col2:
-        st.metric("Reconciliation Rate", f"{kpis.get('match_rate', 0.0):.1f}%", delta=f"F1 {kpis.get('f1_score', 0.0):.1f}%")
+        f1_val = kpis.get('f1_score')
+        f1_str = f"F1 {f1_val:.1f}%" if f1_val is not None else None
+        st.metric("Reconciliation Rate", f"{kpis.get('match_rate', 0.0):.1f}%", delta=f1_str)
     with col3:
-        st.metric("ML Recovered", f"{kpis.get('ml_recovered_matches', 0)} matches", delta="+11.6% recall gain")
+        st.metric("ML Recovered", f"{kpis.get('ml_recovered_matches', 0)} matches")
     with col4:
         st.metric("Expected Settlement", f"₹{cash.get('expected_amount', 0.0):,.0f}")
     with col5:
         st.metric("Unreconciled Exposure", f"₹{kpis.get('unresolved_monetary_exposure_inr', 0.0):,.0f}", delta_color="inverse")
     with col6:
-        st.metric("Throughput", f"{kpis.get('processing_throughput_tps', 1800.0):,.0f} tps", delta=f"{kpis.get('average_processing_latency_ms', 0.55):.2f} ms lat")
+        tps = kpis.get('processing_throughput_tps')
+        lat = kpis.get('average_processing_latency_ms')
+        tps_str = f"{tps:,.0f} tps" if tps is not None else "N/A"
+        lat_str = f"{lat:.2f} ms lat" if lat is not None else None
+        st.metric("Throughput", tps_str, delta=lat_str)
 
     st.divider()
 
@@ -111,13 +124,19 @@ def view_overview():
         f4.metric("4. Manual Review", f"{funnel.get('manual_reviews', 0):,}")
         f5.metric("5. Unresolved", f"{funnel.get('unresolved', 0):,}")
 
-        st.write("**Accuracy Baseline Comparison:**")
-        df_acc = pd.DataFrame({
-            "Metric": ["Precision", "Recall", "F1 Score", "ML-Specific Precision"],
-            "Sentinel (Det + ML)": ["90.00%", "100.00%", "94.74%", "99.27%"],
-            "Deterministic Only": ["85.01%", "88.37%", "86.66%", "N/A"],
-        })
-        st.table(df_acc)
+        st.write("**Reconciliation Pipeline Drop-off:**")
+        funnel_data = {
+            "Stage": ["Ingested", "Deterministic Matches", "ML Recovered", "Manual Review", "Unresolved"],
+            "Records": [
+                funnel.get('incoming_records', 0),
+                funnel.get('deterministic_matches', 0),
+                funnel.get('ml_recovered', 0),
+                funnel.get('manual_reviews', 0),
+                funnel.get('unresolved', 0)
+            ]
+        }
+        df_funnel = pd.DataFrame(funnel_data)
+        st.bar_chart(df_funnel.set_index("Stage"), use_container_width=True)
 
     with c2:
         st.subheader("💰 Treasury Cash & Risk Exposure")
@@ -191,10 +210,15 @@ def view_exception_queue():
 
     # Aging Summary Bar
     st.write("**Exception Aging Distribution:**")
-    ag_cols = st.columns(len(aging.get("buckets", [])))
-    for idx, b in enumerate(aging.get("buckets", [])):
+    buckets = aging.get("buckets", [])
+    ag_cols = st.columns(len(buckets) if buckets else 1)
+    for idx, b in enumerate(buckets):
         with ag_cols[idx]:
             st.metric(b.get("bucket"), f"{b.get('count', 0)} open", delta=f"₹{b.get('financial_exposure_inr', 0.0):,.0f}")
+            
+    if buckets:
+        df_aging = pd.DataFrame(buckets)
+        st.bar_chart(df_aging.set_index("bucket")[["financial_exposure_inr"]], use_container_width=True)
 
     st.divider()
 

@@ -271,6 +271,12 @@ async def apply_human_decision(
         return asdict(res)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        print("====== EXCEPTION IN APPLY HUMAN DECISION ======")
+        print(traceback.format_exc())
+        print("===============================================")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # 9. Explainability API

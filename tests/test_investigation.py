@@ -52,9 +52,9 @@ from sqlalchemy import text
 
 @pytest_asyncio.fixture
 async def db_session():
-    database_url = os.getenv("DATABASE_URL")
+    database_url = os.getenv("TEST_DATABASE_URL", "postgresql://sentinel:test123@localhost:5432/sentinel_test")
     if not database_url:
-        pytest.skip("DATABASE_URL not set")
+        pytest.skip("TEST_DATABASE_URL not set")
 
     engine = create_app_engine(database_url, echo=False)
     session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

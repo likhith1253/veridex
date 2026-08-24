@@ -1,4 +1,4 @@
-﻿"""
+"""
 Human-in-the-Loop Decision & Exception Workflow Service for Project Sentinel.
 
 Handles human controller actions on reconciliation exceptions:
@@ -108,7 +108,7 @@ class HumanDecisionService:
 
         # 2. Determine new status & update meta
         evidence_dict = exc.evidence or {}
-        now_dt = datetime.now(timezone.utc)
+        now_dt = datetime.now(timezone.utc).replace(tzinfo=None)
 
         if action == HumanAction.APPROVE:
             new_status = "approved"

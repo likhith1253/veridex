@@ -88,9 +88,9 @@ class ControllerKPIs:
     manual_reviews: int = 0
     unresolved_transactions: int = 0
     match_rate: float = 0.0
-    reconciliation_precision: float = 89.86
-    reconciliation_recall: float = 100.0
-    f1_score: float = 94.66
+    reconciliation_precision: Optional[float] = None
+    reconciliation_recall: Optional[float] = None
+    f1_score: Optional[float] = None
     exception_rate: float = 0.0
     total_matched_monetary_value_inr: float = 0.0
     unresolved_monetary_exposure_inr: float = 0.0
@@ -99,8 +99,8 @@ class ControllerKPIs:
     delayed_settlement_inr: float = 0.0
     duplicate_amount_inr: float = 0.0
     fee_mismatch_inr: float = 0.0
-    processing_throughput_tps: float = 1800.0
-    average_processing_latency_ms: float = 0.55
+    processing_throughput_tps: Optional[float] = None
+    average_processing_latency_ms: Optional[float] = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -209,12 +209,17 @@ class FinanceController:
         res = await self.session.execute(dec_stmt)
         decisions = res.scalars().all()
 
-        auto_matches = sum(1 for d in decisions if getattr(d, "decision_action", getattr(d, "action", "")) == DecisionAction.AUTO_MATCH.value)
-        manual_reviews = sum(1 for d in decisions if getattr(d, "decision_action", getattr(d, "action", "")) == DecisionAction.MANUAL_REVIEW.value)
-        unresolved = sum(1 for d in decisions if getattr(d, "decision_action", getattr(d, "action", "")) in (DecisionAction.UNRESOLVED.value, DecisionAction.AMBIGUOUS.value))
+        def get_val(d):
+            val = getattr(d, "decision_action", getattr(d, "action", ""))
+            return getattr(val, "value", val)
 
+        auto_matches = sum(1 for d in decisions if get_val(d) == DecisionAction.AUTO_MATCH.value)
+        manual_reviews = sum(1 for d in decisions if get_val(d) == DecisionAction.MANUAL_REVIEW.value)
+        unresolved = sum(1 for d in decisions if get_val(d) in (DecisionAction.UNRESOLVED.value, DecisionAction.AMBIGUOUS.value))
+
+        ml_recovered = sum(1 for d in decisions if get_val(d) == DecisionAction.PROPOSE_MATCH.value)
         tot_dec = len(decisions) or 1
-        m_rate = ((auto_matches + ml_count) / tot_dec) * 100
+        m_rate = ((auto_matches + ml_recovered) / tot_dec) * 100
 
         return ControllerKPIs(
             total_records_processed=total_records,
@@ -227,9 +232,9 @@ class FinanceController:
             manual_reviews=manual_reviews,
             unresolved_transactions=unresolved,
             match_rate=round(m_rate, 2),
-            reconciliation_precision=89.86 if ml_count > 0 else 85.01,
-            reconciliation_recall=100.0 if ml_count > 0 else 88.37,
-            f1_score=94.66 if ml_count > 0 else 86.66,
+            reconciliation_precision=None,
+            reconciliation_recall=None,
+            f1_score=None,
             exception_rate=round((unresolved / tot_dec) * 100, 2),
             total_matched_monetary_value_inr=float(exp.matched_value),
             unresolved_monetary_exposure_inr=float(exp.unresolved_value),
@@ -238,8 +243,8 @@ class FinanceController:
             delayed_settlement_inr=float(exp.delayed_settlement_exposure),
             duplicate_amount_inr=float(exp.duplicate_exposure),
             fee_mismatch_inr=float(exp.fee_tax_mismatch_exposure),
-            processing_throughput_tps=1800.0,
-            average_processing_latency_ms=0.55,
+            processing_throughput_tps=None,
+            average_processing_latency_ms=None,
         )
 
     # 3. Funnel & Reports

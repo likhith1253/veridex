@@ -23,7 +23,11 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
         try:
             yield session
             await session.commit()
-        except Exception:
+        except Exception as e:
+            import traceback
+            print("==== EXCEPTION IN DB DEPENDENCY ====")
+            print(traceback.format_exc())
+            print("====================================")
             await session.rollback()
             raise
         finally:

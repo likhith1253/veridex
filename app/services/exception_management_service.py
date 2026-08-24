@@ -1,4 +1,4 @@
-﻿"""
+"""
 Exception Management & Aging Service for Project Sentinel.
 
 Provides:
@@ -157,7 +157,7 @@ class ExceptionManagementService:
                 "method": inv.method,
                 "root_cause": inv.root_cause,
                 "confidence": float(inv.confidence or 0.0),
-                "explanation": inv.explanation,
+                "explanation": (inv.evidence or {}).get("explanation", inv.root_cause),
                 "recommended_action": inv.recommended_action,
                 "requires_human_review": inv.requires_human_review,
                 "created_at": inv.created_at.isoformat() if inv.created_at else None,

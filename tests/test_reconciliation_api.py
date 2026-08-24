@@ -258,9 +258,9 @@ def test_endpoint_uses_dependency_injection():
 @pytest.mark.asyncio
 async def test_post_reconciliation_runs_end_to_end_with_database():
     """End-to-end integration test with real database session and FakeLLMClient."""
-    database_url = os.getenv("DATABASE_URL")
+    database_url = os.getenv("TEST_DATABASE_URL", "postgresql://sentinel:test123@localhost:5432/sentinel_test")
     if not database_url:
-        pytest.skip("PostgreSQL DATABASE_URL not set")
+        pytest.skip("PostgreSQL TEST_DATABASE_URL not set")
 
     from app.database.session import create_app_engine
     engine = create_app_engine(database_url, echo=False)

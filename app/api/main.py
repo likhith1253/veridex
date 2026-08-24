@@ -24,6 +24,18 @@ def create_app() -> FastAPI:
     app.include_router(runs_router)
     app.include_router(reconciliation_router)
 
+    from fastapi import Request
+    from fastapi.responses import JSONResponse
+    import traceback
+
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Internal Server Error: {str(exc)}", "traceback": traceback.format_exc()}
+        )
+
     return app
 
 

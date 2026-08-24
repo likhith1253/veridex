@@ -11,19 +11,21 @@ load_dotenv()
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-# Skip tests if PostgreSQL is not available
+# Skip tests if test DB is not available
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql://sentinel:test123@localhost:5432/sentinel_test")
+
 pytestmark = pytest.mark.skipif(
-    not os.getenv("DATABASE_URL"),
-    reason="PostgreSQL DATABASE_URL not set"
+    not TEST_DATABASE_URL,
+    reason="PostgreSQL TEST_DATABASE_URL not set"
 )
 
 
 @pytest_asyncio.fixture(autouse=True)
 async def clean_db():
-    """Clean tables before each test."""
-    database_url = os.getenv("DATABASE_URL")
+    """Clean tables in isolated test database before each test."""
+    database_url = TEST_DATABASE_URL
     if not database_url:
-        pytest.skip("DATABASE_URL not set")
+        pytest.skip("TEST_DATABASE_URL not set")
     from app.database.session import create_app_engine
     from sqlalchemy import text
     engine = create_app_engine(database_url, echo=False)
@@ -37,10 +39,10 @@ async def clean_db():
 
 @pytest_asyncio.fixture
 async def db_session():
-    """Create a test database session."""
-    database_url = os.getenv("DATABASE_URL")
+    """Create a test database session in isolated test DB."""
+    database_url = TEST_DATABASE_URL
     if not database_url:
-        pytest.skip("DATABASE_URL not set")
+        pytest.skip("TEST_DATABASE_URL not set")
 
     from app.database.session import create_app_engine
     engine = create_app_engine(database_url, echo=False)
