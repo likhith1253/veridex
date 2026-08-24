@@ -2,9 +2,12 @@ import os
 from contextlib import asynccontextmanager
 from typing import Any, Dict, Tuple
 
+from dotenv import load_dotenv
 from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+
+load_dotenv()
 
 from app.database.models import Base
 

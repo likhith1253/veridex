@@ -593,9 +593,14 @@ class TestIntegration:
              "settlement_window_7d": 1.0, "ref_similarity": 1.0, "narration_similarity": 0.0,
              "currency_equal": 1.0, "order_id_equal": 0.0, "reference_equal": 0.0,
              "fee_tax_consistent": 0.0, "fee_tax_amount_diff": 0.0,
+             "source_pair_gw_ledger": 1.0, "source_pair_gw_bank": 0.0, "source_pair_ledger_bank": 0.0},
+            {"abs_amount_diff": 50.0, "rel_amount_diff": 0.5, "date_diff_days": 10.0,
+             "settlement_window_7d": 0.0, "ref_similarity": 0.0, "narration_similarity": 0.0,
+             "currency_equal": 1.0, "order_id_equal": 0.0, "reference_equal": 0.0,
+             "fee_tax_consistent": 0.0, "fee_tax_amount_diff": 0.0,
              "source_pair_gw_ledger": 1.0, "source_pair_gw_bank": 0.0, "source_pair_ledger_bank": 0.0}
         ]
-        labels = [1]
+        labels = [1, 0]
         
         scorer.train(features, labels)
         prob = scorer.predict(features)[0]
@@ -627,11 +632,15 @@ class TestIntegration:
             status=TransactionStatus.COMPLETED
         )
         
-        matcher = DeterministicMatcher()
-        result = matcher.match_by_exact_reference(gateway_txn, ledger_txn)
+        matcher = DeterministicMatcher({
+            TransactionSource.GATEWAY: [gateway_txn],
+            TransactionSource.LEDGER: [ledger_txn],
+        })
+        results = matcher.match_all()
         
         # Deterministic matching should work without ML
-        assert result is not None
+        assert len(results) > 0
+        assert results[0].confidence >= Decimal("0.95")
 
     def test_no_embeddings_llm_unnecessary_dependencies(self):
         """No embeddings/LLM/unnecessary dependencies."""

@@ -1,10 +1,15 @@
 import os
-import pytest
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 
+from dotenv import load_dotenv
+import pytest
+import pytest_asyncio
+
+load_dotenv()
+
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 # Skip tests if PostgreSQL is not available
 pytestmark = pytest.mark.skipif(
@@ -13,7 +18,24 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(autouse=True)
+async def clean_db():
+    """Clean tables before each test."""
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        pytest.skip("DATABASE_URL not set")
+    from app.database.session import create_app_engine
+    from sqlalchemy import text
+    engine = create_app_engine(database_url, echo=False)
+    async with engine.begin() as conn:
+        await conn.execute(text(
+            "TRUNCATE TABLE audit_events, exception_transactions, match_transactions, "
+            "decisions, exceptions, matches, reconciliation_items, reconciliation_runs, transactions CASCADE;"
+        ))
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
 async def db_session():
     """Create a test database session."""
     database_url = os.getenv("DATABASE_URL")
@@ -43,13 +65,13 @@ async def test_transaction_create_and_retrieve(db_session: AsyncSession):
         order_id="ORD123",
         amount=Decimal("100.50"),
         currency="USD",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
         narration="Test transaction",
         fee=Decimal("2.50"),
         tax=Decimal("8.50"),
         status=TransactionStatus.PROCESSED,
-        metadata={"key": "value"},
-        created_at=datetime.now(timezone.utc),
+        meta_data={"key": "value"},
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(txn)
     await db_session.commit()
@@ -62,7 +84,7 @@ async def test_transaction_create_and_retrieve(db_session: AsyncSession):
     assert retrieved.source == TransactionSource.GATEWAY
     assert retrieved.amount == Decimal("100.50")
     assert retrieved.currency == "USD"
-    assert retrieved.metadata == {"key": "value"}
+    assert retrieved.meta_data == {"key": "value"}
 
 
 @pytest.mark.asyncio
@@ -77,9 +99,9 @@ async def test_transaction_unique_constraint(db_session: AsyncSession):
         source=TransactionSource.GATEWAY,
         amount=Decimal("50.00"),
         currency="USD",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
         status=TransactionStatus.PROCESSED,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(txn1)
     await db_session.commit()
@@ -90,9 +112,9 @@ async def test_transaction_unique_constraint(db_session: AsyncSession):
         source=TransactionSource.GATEWAY,  # Same source
         amount=Decimal("75.00"),
         currency="USD",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
         status=TransactionStatus.PROCESSED,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(txn2)
 
@@ -103,71 +125,137 @@ async def test_transaction_unique_constraint(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_reconciliation_run_and_items_relationship(db_session: AsyncSession):
     """Test relationship between reconciliation_run and reconciliation_items."""
-    from app.database.models import ReconciliationRun, ReconciliationItem, ReconciliationRunStatus
+    from app.database.models import (
+        ReconciliationRun,
+        ReconciliationItem,
+        ReconciliationRunStatus,
+        Transaction,
+        TransactionSource,
+        TransactionStatus,
+    )
 
     run = ReconciliationRun(
-        id="run-1",
-        run_id="RUN-001",
+        id="run-rel-1",
+        run_id="RUN-REL-001",
         status=ReconciliationRunStatus.COMPLETED,
-        started_at=datetime.now(timezone.utc),
-        completed_at=datetime.now(timezone.utc),
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
         gateway_count=10,
         ledger_count=10,
         bank_count=10,
         match_count=8,
         exception_count=2,
         summary="Test run",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
-    db_session.add(run)
+    txn = Transaction(
+        id="txn-rel-1",
+        domain_transaction_id="TXN-REL-001",
+        source=TransactionSource.GATEWAY,
+        amount=Decimal("100.00"),
+        currency="USD",
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
+        status=TransactionStatus.PROCESSED,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    db_session.add_all([run, txn])
     await db_session.flush()
 
     item = ReconciliationItem(
-        id="item-1",
+        id="item-rel-1",
         run_id=run.id,
-        transaction_id="txn-1",
+        transaction_id=txn.id,
         processing_status="matched",
         resulting_action="auto_match",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+        updated_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(item)
     await db_session.commit()
 
     # Verify relationship
+    from sqlalchemy.orm import selectinload
+
     result = await db_session.execute(
-        select(ReconciliationRun).where(ReconciliationRun.id == "run-1")
+        select(ReconciliationRun)
+        .options(selectinload(ReconciliationRun.reconciliation_items))
+        .where(ReconciliationRun.id == "run-rel-1")
     )
     retrieved_run = result.scalar_one()
     assert len(retrieved_run.reconciliation_items) == 1
-    assert retrieved_run.reconciliation_items[0].transaction_id == "txn-1"
+    assert retrieved_run.reconciliation_items[0].transaction_id == "txn-rel-1"
 
 
 @pytest.mark.asyncio
 async def test_match_and_transactions_relationship(db_session: AsyncSession):
     """Test N:M relationship between matches and transactions via junction table."""
-    from app.database.models import Match, MatchTransaction, MatchType
+    from app.database.models import (
+        Match,
+        MatchTransaction,
+        MatchType,
+        ReconciliationRun,
+        ReconciliationRunStatus,
+        Transaction,
+        TransactionSource,
+        TransactionStatus,
+    )
+
+    run = ReconciliationRun(
+        id="run-match-1",
+        run_id="RUN-MATCH-001",
+        status=ReconciliationRunStatus.COMPLETED,
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
+        gateway_count=1,
+        ledger_count=1,
+        bank_count=0,
+        match_count=1,
+        exception_count=0,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    txn1 = Transaction(
+        id="txn-match-1",
+        domain_transaction_id="TXN-MATCH-001",
+        source=TransactionSource.GATEWAY,
+        amount=Decimal("100.00"),
+        currency="USD",
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
+        status=TransactionStatus.PROCESSED,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    txn2 = Transaction(
+        id="txn-match-2",
+        domain_transaction_id="TXN-MATCH-002",
+        source=TransactionSource.LEDGER,
+        amount=Decimal("100.00"),
+        currency="USD",
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
+        status=TransactionStatus.PROCESSED,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    db_session.add_all([run, txn1, txn2])
+    await db_session.flush()
 
     match = Match(
-        id="match-1",
-        run_id="run-1",
+        id="match-nm-1",
+        run_id=run.id,
         match_type=MatchType.EXACT,
         confidence=Decimal("1.0"),
         reason="Exact match",
         evidence={"amount_match": True},
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(match)
     await db_session.flush()
 
-    mt1 = MatchTransaction(match_id=match.id, transaction_id="txn-1")
-    mt2 = MatchTransaction(match_id=match.id, transaction_id="txn-2")
+    mt1 = MatchTransaction(match_id=match.id, transaction_id=txn1.id)
+    mt2 = MatchTransaction(match_id=match.id, transaction_id=txn2.id)
     db_session.add_all([mt1, mt2])
     await db_session.commit()
 
     # Verify junction table
     result = await db_session.execute(
-        select(MatchTransaction).where(MatchTransaction.match_id == "match-1")
+        select(MatchTransaction).where(MatchTransaction.match_id == "match-nm-1")
     )
     transactions = result.scalars().all()
     assert len(transactions) == 2
@@ -176,12 +264,57 @@ async def test_match_and_transactions_relationship(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_exception_and_transactions_relationship(db_session: AsyncSession):
     """Test N:M relationship between exceptions and transactions via junction table."""
-    from app.database.models import Exception, ExceptionTransaction, ExceptionCategory
+    from app.database.models import (
+        Exception,
+        ExceptionTransaction,
+        ExceptionCategory,
+        ReconciliationRun,
+        ReconciliationRunStatus,
+        Transaction,
+        TransactionSource,
+        TransactionStatus,
+    )
+
+    run = ReconciliationRun(
+        id="run-exc-1",
+        run_id="RUN-EXC-001",
+        status=ReconciliationRunStatus.COMPLETED,
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
+        gateway_count=1,
+        ledger_count=1,
+        bank_count=0,
+        match_count=0,
+        exception_count=1,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    txn1 = Transaction(
+        id="txn-exc-1",
+        domain_transaction_id="TXN-EXC-001",
+        source=TransactionSource.GATEWAY,
+        amount=Decimal("100.00"),
+        currency="USD",
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
+        status=TransactionStatus.PROCESSED,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    txn2 = Transaction(
+        id="txn-exc-2",
+        domain_transaction_id="TXN-EXC-002",
+        source=TransactionSource.LEDGER,
+        amount=Decimal("105.00"),
+        currency="USD",
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
+        status=TransactionStatus.PROCESSED,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    db_session.add_all([run, txn1, txn2])
+    await db_session.flush()
 
     exc = Exception(
-        id="exc-1",
-        run_id="run-1",
-        transaction_id="txn-1",
+        id="exc-nm-1",
+        run_id=run.id,
+        transaction_id=txn1.id,
         exception_category=ExceptionCategory.AMOUNT_MISMATCH,
         status="open",
         confidence=Decimal("0.9"),
@@ -190,19 +323,19 @@ async def test_exception_and_transactions_relationship(db_session: AsyncSession)
         explanation="Amount mismatch",
         evidence={},
         resolved=False,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(exc)
     await db_session.flush()
 
-    et1 = ExceptionTransaction(exception_id=exc.id, transaction_id="txn-1")
-    et2 = ExceptionTransaction(exception_id=exc.id, transaction_id="txn-2")
+    et1 = ExceptionTransaction(exception_id=exc.id, transaction_id=txn1.id)
+    et2 = ExceptionTransaction(exception_id=exc.id, transaction_id=txn2.id)
     db_session.add_all([et1, et2])
     await db_session.commit()
 
     # Verify junction table
     result = await db_session.execute(
-        select(ExceptionTransaction).where(ExceptionTransaction.exception_id == "exc-1")
+        select(ExceptionTransaction).where(ExceptionTransaction.exception_id == "exc-nm-1")
     )
     transactions = result.scalars().all()
     assert len(transactions) == 2
@@ -211,52 +344,119 @@ async def test_exception_and_transactions_relationship(db_session: AsyncSession)
 @pytest.mark.asyncio
 async def test_decision_foreign_key(db_session: AsyncSession):
     """Test foreign key relationship between decision and match."""
-    from app.database.models import Decision, DecisionAction
+    from app.database.models import (
+        Decision,
+        DecisionAction,
+        Match,
+        MatchType,
+        ReconciliationRun,
+        ReconciliationRunStatus,
+    )
+
+    run = ReconciliationRun(
+        id="run-dec-1",
+        run_id="RUN-DEC-001",
+        status=ReconciliationRunStatus.COMPLETED,
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
+        gateway_count=1,
+        ledger_count=1,
+        bank_count=0,
+        match_count=1,
+        exception_count=0,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    db_session.add(run)
+    await db_session.flush()
+
+    match = Match(
+        id="match-dec-1",
+        run_id=run.id,
+        match_type=MatchType.EXACT,
+        confidence=Decimal("0.95"),
+        reason="Exact match",
+        evidence={"score": 0.95},
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    db_session.add(match)
+    await db_session.flush()
 
     decision = Decision(
         id="decision-1",
-        run_id="run-1",
-        match_id="match-1",
+        run_id=run.id,
+        match_id=match.id,
         decision_action=DecisionAction.AUTO_MATCH,
         deterministic_confidence=Decimal("0.95"),
         ml_probability=None,
         candidate_margin=None,
         evidence={"score": 0.95},
         reason="High confidence",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(decision)
     await db_session.commit()
 
     result = await db_session.execute(select(Decision).where(Decision.id == "decision-1"))
     retrieved = result.scalar_one()
-    assert retrieved.match_id == "match-1"
+    assert retrieved.match_id == "match-dec-1"
 
 
 @pytest.mark.asyncio
 async def test_audit_event_foreign_keys(db_session: AsyncSession):
     """Test foreign key relationships in audit events."""
-    from app.database.models import AuditEvent
+    from app.database.models import (
+        AuditEvent,
+        ReconciliationRun,
+        ReconciliationRunStatus,
+        Transaction,
+        TransactionSource,
+        TransactionStatus,
+    )
+
+    run = ReconciliationRun(
+        id="run-audit-1",
+        run_id="RUN-AUDIT-001",
+        status=ReconciliationRunStatus.COMPLETED,
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
+        gateway_count=1,
+        ledger_count=1,
+        bank_count=0,
+        match_count=1,
+        exception_count=0,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    txn = Transaction(
+        id="txn-audit-1",
+        domain_transaction_id="TXN-AUDIT-001",
+        source=TransactionSource.GATEWAY,
+        amount=Decimal("100.00"),
+        currency="USD",
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
+        status=TransactionStatus.PROCESSED,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
+    db_session.add_all([run, txn])
+    await db_session.flush()
 
     audit = AuditEvent(
         id="audit-1",
-        run_id="run-1",
-        transaction_id="txn-1",
+        run_id=run.id,
+        transaction_id=txn.id,
         event_type="match",
         stage="matching",
         action="auto_match",
-        timestamp=datetime.now(timezone.utc),
-        metadata={"key": "value"},
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
+        meta_data={"key": "value"},
         decision={"action": "auto_match"},
-        created_at=datetime.now(timezone.utc),
     )
     db_session.add(audit)
     await db_session.commit()
 
     result = await db_session.execute(select(AuditEvent).where(AuditEvent.id == "audit-1"))
     retrieved = result.scalar_one()
-    assert retrieved.run_id == "run-1"
-    assert retrieved.transaction_id == "txn-1"
+    assert retrieved.run_id == "run-audit-1"
+    assert retrieved.transaction_id == "txn-audit-1"
 
 
 @pytest.mark.asyncio
@@ -270,9 +470,9 @@ async def test_decimal_persistence(db_session: AsyncSession):
         source=TransactionSource.GATEWAY,
         amount=Decimal("123.4567"),
         currency="USD",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
         status=TransactionStatus.PROCESSED,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(txn)
     await db_session.commit()
@@ -294,18 +494,18 @@ async def test_jsonb_storage(db_session: AsyncSession):
         source=TransactionSource.GATEWAY,
         amount=Decimal("100.00"),
         currency="USD",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
         status=TransactionStatus.PROCESSED,
-        metadata=metadata,
-        created_at=datetime.now(timezone.utc),
+        meta_data=metadata,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(txn)
     await db_session.commit()
 
     result = await db_session.execute(select(Transaction).where(Transaction.id == "test-jsonb"))
     retrieved = result.scalar_one()
-    assert retrieved.metadata == metadata
-    assert retrieved.metadata["nested"]["number"] == 42
+    assert retrieved.meta_data == metadata
+    assert retrieved.meta_data["nested"]["number"] == 42
 
 
 @pytest.mark.asyncio
@@ -327,59 +527,59 @@ async def test_same_transaction_multiple_runs(db_session: AsyncSession):
         source=TransactionSource.GATEWAY,
         amount=Decimal("100.00"),
         currency="USD",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
         status=TransactionStatus.PROCESSED,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(txn)
     await db_session.flush()
 
     # Create two runs
     run1 = ReconciliationRun(
-        id="run-1",
-        run_id="RUN-001",
+        id="run-shared-1",
+        run_id="RUN-SH-001",
         status=ReconciliationRunStatus.COMPLETED,
-        started_at=datetime.now(timezone.utc),
-        completed_at=datetime.now(timezone.utc),
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
         gateway_count=1,
         ledger_count=1,
         bank_count=1,
         match_count=1,
         exception_count=0,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     run2 = ReconciliationRun(
-        id="run-2",
-        run_id="RUN-002",
+        id="run-shared-2",
+        run_id="RUN-SH-002",
         status=ReconciliationRunStatus.COMPLETED,
-        started_at=datetime.now(timezone.utc),
-        completed_at=datetime.now(timezone.utc),
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
         gateway_count=1,
         ledger_count=1,
         bank_count=1,
         match_count=1,
         exception_count=0,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add_all([run1, run2])
     await db_session.flush()
 
     # Add the same transaction to both runs
     item1 = ReconciliationItem(
-        id="item-1",
+        id="item-sh-1",
         run_id=run1.id,
         transaction_id=txn.id,
         processing_status="matched",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+        updated_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     item2 = ReconciliationItem(
-        id="item-2",
+        id="item-sh-2",
         run_id=run2.id,
         transaction_id=txn.id,
         processing_status="matched",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+        updated_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add_all([item1, item2])
     await db_session.commit()
@@ -395,39 +595,58 @@ async def test_same_transaction_multiple_runs(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_foreign_key_restrict(db_session: AsyncSession):
     """Test that RESTRICT foreign key constraint prevents deletion of referenced records."""
-    from app.database.models import Transaction, ReconciliationItem, TransactionSource, TransactionStatus
+    from app.database.models import (
+        Transaction,
+        ReconciliationItem,
+        ReconciliationRun,
+        ReconciliationRunStatus,
+        TransactionSource,
+        TransactionStatus,
+    )
     from sqlalchemy.exc import IntegrityError
 
-    # Create transaction
+    # Create run and transaction
+    run = ReconciliationRun(
+        id="run-fk-1",
+        run_id="RUN-FK-001",
+        status=ReconciliationRunStatus.COMPLETED,
+        started_at=datetime(2026, 8, 24, 10, 0, 0),
+        completed_at=datetime(2026, 8, 24, 10, 5, 0),
+        gateway_count=1,
+        ledger_count=0,
+        bank_count=0,
+        match_count=0,
+        exception_count=0,
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+    )
     txn = Transaction(
         id="fk-test-txn",
         domain_transaction_id="FK001",
         source=TransactionSource.GATEWAY,
         amount=Decimal("100.00"),
         currency="USD",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime(2026, 8, 24, 10, 0, 0),
         status=TransactionStatus.PROCESSED,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
     )
-    db_session.add(txn)
+    db_session.add_all([run, txn])
     await db_session.flush()
 
     # Create item referencing transaction
     item = ReconciliationItem(
         id="fk-test-item",
-        run_id="run-1",
+        run_id=run.id,
         transaction_id=txn.id,
         processing_status="matched",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime(2026, 8, 24, 10, 0, 0),
+        updated_at=datetime(2026, 8, 24, 10, 0, 0),
     )
     db_session.add(item)
     await db_session.commit()
 
     # Try to delete the transaction (should fail due to RESTRICT)
-    await db_session.execute(select(Transaction).where(Transaction.id == "fk-test-txn"))
     txn_to_delete = await db_session.get(Transaction, "fk-test-txn")
-    db_session.delete(txn_to_delete)
+    await db_session.delete(txn_to_delete)
 
     with pytest.raises(IntegrityError):
         await db_session.commit()
