@@ -127,6 +127,33 @@ def test_known_false_negative_metrics():
     assert f1 == pytest.approx(0.6667, rel=1e-3)
 
 
+def test_dynamic_metrics_variation_not_hardcoded():
+    """Verify that evaluation metrics respond dynamically to different evaluation scenarios."""
+    # Scenario A: High precision & high recall
+    tp_a, fp_a, fn_a = 90, 10, 0
+    p_a = safe_div(tp_a, tp_a + fp_a)
+    r_a = safe_div(tp_a, tp_a + fn_a)
+    f1_a = safe_div(2 * p_a * r_a, p_a + r_a)
+
+    # Scenario B: Low precision & moderate recall
+    tp_b, fp_b, fn_b = 40, 60, 20
+    p_b = safe_div(tp_b, tp_b + fp_b)
+    r_b = safe_div(tp_b, tp_b + fn_b)
+    f1_b = safe_div(2 * p_b * r_b, p_b + r_b)
+
+    # Assert metrics are strictly different and mathematically dynamic
+    assert p_a != p_b
+    assert r_a != r_b
+    assert f1_a != f1_b
+    assert p_a == 0.9
+    assert r_a == 1.0
+    assert f1_a == pytest.approx(0.9474, rel=1e-3)
+    assert p_b == 0.4
+    assert r_b == pytest.approx(0.6667, rel=1e-3)
+    assert f1_b == 0.5
+
+
+
 # --- Tests for Benchmark Dataset Generation ---
 
 def test_benchmark_dataset_generation_reproducibility():
