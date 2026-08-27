@@ -183,7 +183,7 @@ Calculate metrics from explicit ground truth/evaluation data only where ground t
 
 ## ISSUE-005 — Throughput is hardcoded while Executive Overview displays N/A
 
-**Status:** OPEN  
+**Status:** RESOLVED  
 **Severity:** P0  
 **Area:** Executive Overview
 

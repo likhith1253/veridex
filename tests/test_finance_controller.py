@@ -161,16 +161,52 @@ class TestReconciliationRateDenominator:
     @pytest.mark.asyncio
     async def test_reconciliation_rate_uses_total_records_not_classified(self):
         """Verify reconciliation rate denominator is total incoming transactions, not total classified."""
-        # This test documents the expected behavior for ISSUE-002
-        # The reconciliation rate should use total_records_processed as denominator
-        # not total_classified (det + ml + manual + unresolved)
-        # Example: if total_records=40, det=8, ml=10, manual=6, unresolved=6
-        # Expected rate = (8+10)/40*100 = 45.0% (not (8+10)/30*100 = 60.0%)
         pass
 
     @pytest.mark.asyncio
     async def test_manual_review_not_counted_in_reconciliation_rate(self):
         """Verify manual review transactions are not counted as successfully reconciled."""
-        # Manual review requires human intervention
-        # Numerator should only include: deterministic + ML recovered
         pass
+
+
+class TestThroughputCalculation:
+    """Test ISSUE-005: Throughput and latency derived from measured run timing."""
+
+    @pytest.mark.asyncio
+    async def test_summary_kpis_throughput_calculation(self):
+        from unittest.mock import MagicMock
+        from datetime import datetime, timedelta
+        from app.database.models import ReconciliationRun as ReconciliationRunORM
+        from app.services.exposure_service import FinancialExposureBreakdown
+
+        session = AsyncMock()
+        ctrl = FinanceController(session)
+        ctrl.exposure_service.calculate_exposure = AsyncMock(return_value=FinancialExposureBreakdown())
+
+        start = datetime(2026, 8, 24, 10, 0, 0)
+        end = start + timedelta(seconds=2.0)
+        mock_run = MagicMock(spec=ReconciliationRunORM)
+        mock_run.started_at = start
+        mock_run.completed_at = end
+        mock_run.gateway_count = 10
+        mock_run.ledger_count = 10
+        mock_run.bank_count = 10
+
+        # Mock execute responses for transactions count, matches, decisions, and run lookup
+        res_count = MagicMock()
+        res_count.scalar_one.return_value = 30
+
+        res_matches = MagicMock()
+        res_matches.scalars.return_value.all.return_value = []
+
+        res_decisions = MagicMock()
+        res_decisions.scalars.return_value.all.return_value = []
+
+        res_run = MagicMock()
+        res_run.scalar_one_or_none.return_value = mock_run
+
+        session.execute = AsyncMock(side_effect=[res_count, res_matches, res_decisions, res_run])
+
+        kpis = await ctrl.get_summary_kpis()
+        assert kpis.processing_throughput_tps == 15.0  # 30 records / 2.0 sec
+        assert kpis.average_processing_latency_ms == pytest.approx(66.67, rel=1e-2)  # 2000 ms / 30 records

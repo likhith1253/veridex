@@ -312,6 +312,34 @@ class FinanceController:
         ml_match_count = sum(1 for m in matches if "ml" in str(getattr(m, "reason", "") or "").lower())
         det_match_count = total_match_count - ml_match_count
 
+        # Compute throughput and latency dynamically from actual measured run timing in PostgreSQL
+        tps: Optional[float] = None
+        lat_ms: Optional[float] = None
+
+        run_stmt = select(ReconciliationRunORM)
+        if run_id:
+            run_stmt = run_stmt.where(
+                (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+            )
+        else:
+            run_stmt = run_stmt.where(ReconciliationRunORM.status == "completed").order_by(
+                ReconciliationRunORM.completed_at.desc()
+            ).limit(1)
+
+        run_res = await self.session.execute(run_stmt)
+        recon_run = run_res.scalar_one_or_none()
+
+        if recon_run and recon_run.started_at and recon_run.completed_at:
+            t_start = recon_run.started_at.replace(tzinfo=None) if recon_run.started_at.tzinfo else recon_run.started_at
+            t_end = recon_run.completed_at.replace(tzinfo=None) if recon_run.completed_at.tzinfo else recon_run.completed_at
+            duration_sec = (t_end - t_start).total_seconds()
+            run_records = recon_run.gateway_count + recon_run.ledger_count + recon_run.bank_count
+            if run_records == 0:
+                run_records = total_records
+            if duration_sec > 0 and run_records > 0:
+                tps = round(run_records / duration_sec, 2)
+                lat_ms = round((duration_sec * 1000.0) / run_records, 2)
+
         return ControllerKPIs(
             total_records_processed=total_records,
             total_logical_transactions=total_records // 3 if total_records >= 3 else total_records,
@@ -334,8 +362,8 @@ class FinanceController:
             delayed_settlement_inr=float(exp.delayed_settlement_exposure),
             duplicate_amount_inr=float(exp.duplicate_exposure),
             fee_mismatch_inr=float(exp.fee_tax_mismatch_exposure),
-            processing_throughput_tps=None,
-            average_processing_latency_ms=None,
+            processing_throughput_tps=tps,
+            average_processing_latency_ms=lat_ms,
         )
 
     # 3. Funnel & Reports
