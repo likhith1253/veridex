@@ -20,6 +20,7 @@ Coordinates:
 import logging
 import time
 import uuid
+from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -34,6 +35,7 @@ from app.database.models import (
     Decision as DecisionORM,
     Exception as ExceptionORM,
     Match as MatchORM,
+    MatchTransaction as MatchTransactionORM,
     ReconciliationItem as ReconciliationItemORM,
     ReconciliationRun as ReconciliationRunORM,
     Transaction as TransactionORM,
@@ -196,48 +198,132 @@ class FinanceController:
         res = await self.session.execute(txn_stmt)
         total_records = res.scalar_one() or 0
 
+        # Get matches and their decisions for the run
         match_stmt = select(MatchORM)
         if run_id:
             match_stmt = match_stmt.where(MatchORM.run_id == run_id)
         res = await self.session.execute(match_stmt)
         matches = res.scalars().all()
 
-        ml_count = sum(1 for m in matches if "ml" in str(getattr(m, "reason", "") or "").lower() or "ml" in str(getattr(m, "rule_name", "") or "").lower())
-        det_count = len(matches) - ml_count
-
-        dec_stmt = select(DecisionORM)
-        if run_id:
-            dec_stmt = dec_stmt.where(DecisionORM.run_id == run_id)
+        # Get decisions for these matches
+        match_ids = [m.id for m in matches]
+        dec_stmt = select(DecisionORM).where(DecisionORM.match_id.in_(match_ids))
         res = await self.session.execute(dec_stmt)
         decisions = res.scalars().all()
 
+        # Build a map of match_id -> decision
+        match_to_decision = {d.match_id: d for d in decisions if d.match_id}
+
+        # Count unique transactions per decision category using match_transactions junction
+        # Build a map of transaction_id -> list of (match, decision) tuples
+        txn_to_matches = defaultdict(list)
+        
+        for match in matches:
+            # Get transactions for this match
+            mt_stmt = select(MatchTransactionORM.transaction_id).where(MatchTransactionORM.match_id == match.id)
+            res = await self.session.execute(mt_stmt)
+            txn_ids = res.scalars().all()
+            
+            # Get decision for this match
+            decision = match_to_decision.get(match.id)
+            
+            for txn_id in txn_ids:
+                txn_to_matches[txn_id].append((match, decision))
+        
+        # Classify each transaction based on its best match
+        det_txn_ids = set()
+        ml_txn_ids = set()
+        manual_txn_ids = set()
+        unresolved_txn_ids = set()
+        
         def get_val(d):
+            if d is None:
+                return None
             val = getattr(d, "decision_action", getattr(d, "action", ""))
             return getattr(val, "value", val)
+        
+        for txn_id, match_decisions in txn_to_matches.items():
+            # Prioritize deterministic matches over ML matches
+            # Find the best match for this transaction
+            best_match = None
+            best_decision = None
+            best_priority = -1  # Higher is better
+            
+            for match, decision in match_decisions:
+                if decision is None:
+                    continue
+                    
+                dec_action = get_val(decision)
+                is_ml = "ml" in str(getattr(match, "reason", "") or "").lower()
+                is_exact = match.match_type == "exact"
+                
+                # Priority: exact auto-match > ML auto-match > propose_match > manual_review > unresolved
+                priority = 0
+                if dec_action == DecisionAction.AUTO_MATCH.value:
+                    if is_exact:
+                        priority = 5  # Highest priority: exact deterministic
+                    elif is_ml:
+                        priority = 4  # ML auto-match
+                elif dec_action == DecisionAction.PROPOSE_MATCH.value:
+                    priority = 3  # ML propose match
+                elif dec_action == DecisionAction.MANUAL_REVIEW.value:
+                    priority = 2  # Manual review
+                elif dec_action in (DecisionAction.UNRESOLVED.value, DecisionAction.AMBIGUOUS.value):
+                    priority = 1  # Unresolved
+                
+                if priority > best_priority:
+                    best_priority = priority
+                    best_match = match
+                    best_decision = decision
+            
+            # Classify based on best match
+            if best_decision:
+                dec_action = get_val(best_decision)
+                is_ml = "ml" in str(getattr(best_match, "reason", "") or "").lower()
+                
+                if dec_action == DecisionAction.AUTO_MATCH.value:
+                    if is_ml:
+                        ml_txn_ids.add(txn_id)
+                    else:
+                        det_txn_ids.add(txn_id)
+                elif dec_action == DecisionAction.PROPOSE_MATCH.value:
+                    ml_txn_ids.add(txn_id)
+                elif dec_action == DecisionAction.MANUAL_REVIEW.value:
+                    manual_txn_ids.add(txn_id)
+                elif dec_action in (DecisionAction.UNRESOLVED.value, DecisionAction.AMBIGUOUS.value):
+                    unresolved_txn_ids.add(txn_id)
 
-        auto_matches = sum(1 for d in decisions if get_val(d) == DecisionAction.AUTO_MATCH.value)
-        manual_reviews = sum(1 for d in decisions if get_val(d) == DecisionAction.MANUAL_REVIEW.value)
-        unresolved = sum(1 for d in decisions if get_val(d) in (DecisionAction.UNRESOLVED.value, DecisionAction.AMBIGUOUS.value))
+        # Calculate counts based on unique transactions
+        det_count = len(det_txn_ids)
+        ml_count = len(ml_txn_ids)
+        manual_count = len(manual_txn_ids)
+        unresolved_count = len(unresolved_txn_ids)
 
-        ml_recovered = sum(1 for d in decisions if get_val(d) == DecisionAction.PROPOSE_MATCH.value)
-        tot_dec = len(decisions) or 1
-        m_rate = ((auto_matches + ml_recovered) / tot_dec) * 100
+        # Calculate match rate based on transactions
+        total_classified = det_count + ml_count + manual_count + unresolved_count
+        m_rate = ((det_count + ml_count) / total_classified * 100) if total_classified > 0 else 0.0
+
+        # For backward compatibility, keep match-level counts in some fields
+        # but use transaction-level counts for the funnel
+        total_match_count = len(matches)
+        ml_match_count = sum(1 for m in matches if "ml" in str(getattr(m, "reason", "") or "").lower())
+        det_match_count = total_match_count - ml_match_count
 
         return ControllerKPIs(
             total_records_processed=total_records,
             total_logical_transactions=total_records // 3 if total_records >= 3 else total_records,
             total_transaction_value_inr=float(exp.total_processed_value),
-            deterministic_matches=det_count,
-            ml_recovered_matches=ml_count,
-            total_matched_records=(det_count + ml_count) * 2,
-            automatic_matches=auto_matches,
-            manual_reviews=manual_reviews,
-            unresolved_transactions=unresolved,
+            deterministic_matches=det_count,  # Now transaction-level count
+            ml_recovered_matches=ml_count,     # Now transaction-level count
+            total_matched_records=det_count + ml_count + manual_count,  # Transaction-level
+            automatic_matches=det_match_count,   # Keep match-level for compatibility
+            manual_reviews=manual_count,        # Now transaction-level count
+            unresolved_transactions=unresolved_count,  # Now transaction-level count
             match_rate=round(m_rate, 2),
             reconciliation_precision=None,
             reconciliation_recall=None,
             f1_score=None,
-            exception_rate=round((unresolved / tot_dec) * 100, 2),
+            exception_rate=round((unresolved_count / total_classified * 100) if total_classified > 0 else 0.0, 2),
             total_matched_monetary_value_inr=float(exp.matched_value),
             unresolved_monetary_exposure_inr=float(exp.unresolved_value),
             manual_review_exposure_inr=float(exp.manual_review_value),
