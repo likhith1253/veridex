@@ -128,7 +128,7 @@ class FinanceCopilotService:
             "why": explanation,
             "recommended_action": recommended_action,
             "human_review_required": human_review,
-            "evidence": evidence,
+            "evidence": evidence if isinstance(evidence, list) else [evidence] if evidence else [],
             "source_health": health.get("overall_health", "HEALTHY"),
             "summary": summary,
         }
@@ -191,7 +191,7 @@ class FinanceCopilotService:
                     "match_rate_percent": summary.get("match_rate", 0.0),
                     "overall_health": context["source_health"].get("overall_health", "HEALTHY"),
                 },
-                "evidence": [priority_exception],
+                "evidence": [priority_exception] if isinstance(priority_exception, dict) else [priority_exception] if priority_exception else [],
                 "source": "deterministic",
                 "needs_human_review": priority_exception.get("risk_bucket") in {"high", "critical"},
             }
@@ -232,7 +232,7 @@ class FinanceCopilotService:
                 "interpretation": "This is a confidence and policy boundary assessment, not a database mutation action.",
                 "recommendation": f"Treat {action} as the safe next operational action while leaving high-value or ambiguous exceptions for a human reviewer.",
                 "fact_summary": {"safe_action": action, "requires_human_review": self._human_review_required(summary, top_exception, context["source_health"])},
-                "evidence": top_exception or [{"scope": "controller_policy", "safe_action": action}],
+                "evidence": [top_exception] if top_exception else [{"scope": "controller_policy", "safe_action": action}],
                 "source": "deterministic",
                 "needs_human_review": self._human_review_required(summary, top_exception, context["source_health"]),
             }
@@ -250,7 +250,7 @@ class FinanceCopilotService:
                     "overall_health": context["source_health"].get("overall_health", "HEALTHY"),
                     "unresolved_exposure_inr": summary.get("unresolved_monetary_exposure_inr", 0.0),
                 },
-                "evidence": context["top_exception"] or [{"source_health": context["source_health"].get("overall_health", "HEALTHY")}],
+                "evidence": [context["top_exception"]] if context["top_exception"] else [{"source_health": context["source_health"].get("overall_health", "HEALTHY")}],
                 "source": "deterministic",
                 "needs_human_review": needs_review,
             }
@@ -281,7 +281,7 @@ class FinanceCopilotService:
                     "risk_bucket": top_exception.get("risk_bucket"),
                     "financial_exposure_inr": top_exception.get("financial_exposure_inr"),
                 },
-                "evidence": [top_exception],
+                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
                 "source": "deterministic",
                 "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
             }
@@ -346,7 +346,7 @@ class FinanceCopilotService:
                     "expected_cost_inr": expected_cost,
                     "risk_bucket": top_exception.get("risk_bucket"),
                 },
-                "evidence": [top_exception],
+                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
                 "source": "deterministic",
                 "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"} or exposure > 100000,
             }
@@ -384,7 +384,7 @@ class FinanceCopilotService:
                     "risk_bucket": top_exception.get("risk_bucket"),
                     "requires_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
                 },
-                "evidence": [top_exception],
+                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
                 "source": "deterministic",
                 "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
             }
@@ -423,7 +423,7 @@ class FinanceCopilotService:
                     "financial_exposure_inr": exposure,
                     "requires_human_review": requires_review or exposure > 100000,
                 },
-                "evidence": [top_exception],
+                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
                 "source": "deterministic",
                 "needs_human_review": requires_review or exposure > 100000,
             }
@@ -455,7 +455,7 @@ class FinanceCopilotService:
                     "category": category,
                     "confidence": top_exception.get("confidence", 0),
                 },
-                "evidence": [top_exception],
+                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
                 "source": "deterministic",
                 "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
             }
@@ -467,7 +467,7 @@ class FinanceCopilotService:
             "interpretation": qa_resp.direct_answer,
             "recommendation": "Validate the live exception list and confirm the working capital impact before closing this issue.",
             "fact_summary": qa_resp.key_metrics,
-            "evidence": qa_resp.evidence_records,
+            "evidence": qa_resp.evidence_records if isinstance(qa_resp.evidence_records, list) else [qa_resp.evidence_records] if qa_resp.evidence_records else [],
             "source": "deterministic",
             "needs_human_review": False,
         }
