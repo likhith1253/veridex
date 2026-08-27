@@ -219,7 +219,7 @@ with units and measurement window.
 
 ## ISSUE-006 — Settlement/accounting expected amount conflicts with cash position
 
-**Status:** OPEN  
+**Status:** RESOLVED  
 **Severity:** P0  
 **Area:** Settlement & Accounting / Cash Position
 

@@ -137,7 +137,11 @@ def view_overview():
     with col3:
         st.metric("ML Recovered", f"{kpis.get('ml_recovered_matches', 0):,} matches")
     with col4:
-        st.metric("Expected Settlement", format_money(cash.get('expected_amount', 0.0)))
+        st.metric(
+            "Expected Net Settlement",
+            format_money(cash.get("expected_net_settlement", cash.get("expected_amount", 0.0))),
+            delta=f"Gross {format_money(cash.get('expected_gross', cash.get('expected_amount', 0.0)))}",
+        )
     with col5:
         st.metric("Unreconciled Exposure", format_money(kpis.get('unresolved_monetary_exposure_inr', 0.0)), delta_color="inverse")
     with col6:
@@ -576,11 +580,14 @@ def view_cash_position_and_forecast():
         render_empty_state("Cash position and forecast", "No live cash or forecast data is available from the controller API.")
         return
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Expected Total", f"₹{cash.get('expected_amount', 0.0):,.2f}")
-    c2.metric("Received Bank Settlement", f"₹{cash.get('received_amount', 0.0):,.2f}")
-    c3.metric("Pending In Window", f"₹{cash.get('pending_amount', 0.0):,.2f}")
-    c4.metric("Unreconciled Exposure", f"₹{cash.get('unreconciled_amount', 0.0):,.2f}", delta_color="inverse")
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Gross Gateway Volume", format_money(cash.get("expected_gross", cash.get("expected_amount", 0.0))))
+    c2.metric("Expected Net Settlement", format_money(cash.get("expected_net_settlement", 0.0)), delta=f"-₹{cash.get('total_deducted_fees', 0.0) + cash.get('total_deducted_taxes', 0.0):,.2f} deductions")
+    c3.metric("Received Bank Credits", format_money(cash.get("received_bank_credits", cash.get("received_amount", 0.0))))
+    c4.metric("Net Settlement Variance", format_money(cash.get("settlement_variance", 0.0)), delta_color="inverse")
+    c5.metric("Unreconciled Exposure", format_money(cash.get("unreconciled_amount", 0.0)), delta_color="inverse")
+
+    st.caption("Accounting Invariant: Gross Volume - MDR Fees - GST - Refunds = Expected Net Bank Settlement | Actual Bank Credits - Expected Net = Net Settlement Variance")
 
     st.divider()
 

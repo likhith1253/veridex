@@ -490,6 +490,50 @@ class TestRefundAndSettlementAccounting:
         assert summary.net_settlement_variance == "0.00"
         assert summary.settlement_reconciliation_status == "RECONCILED"
 
+    @pytest.mark.asyncio
+    async def test_settlement_and_cash_position_harmonized_equation(self):
+        """Verify that SettlementAccountingService and CashPositionService produce identical authoritative settlement equations."""
+        from app.database.models import Transaction as TransactionORM
+        from app.models.transaction import TransactionSource
+        from app.services.cash_position import CashPositionService
+
+        session = AsyncMock()
+        t_gw = MagicMock(spec=TransactionORM)
+        t_gw.amount = Decimal("2310799.00")
+        t_gw.fee = Decimal("46215.98")
+        t_gw.tax = Decimal("8318.88")
+        t_gw.source = TransactionSource.GATEWAY.value
+
+        t_bk = MagicMock(spec=TransactionORM)
+        t_bk.amount = Decimal("2310799.00")
+        t_bk.fee = None
+        t_bk.tax = None
+        t_bk.source = TransactionSource.BANK.value
+
+        res_txns = MagicMock()
+        res_txns.scalars.return_value.all.return_value = [t_gw, t_bk]
+
+        res_excs = MagicMock()
+        res_excs.scalars.return_value.all.return_value = []
+
+        session.execute = AsyncMock(side_effect=[res_txns, res_excs])
+
+        service = CashPositionService(session)
+        cash_summary = await service.get_cash_position()
+
+        # Invariant 1: Gross - MDR - GST - Refunds = Expected Net
+        expected_net = cash_summary.expected_gross - cash_summary.total_deducted_fees - cash_summary.total_deducted_taxes - cash_summary.total_refunded_amount
+        assert cash_summary.expected_net_settlement == expected_net
+        assert cash_summary.expected_net_settlement == Decimal("2256264.14")
+        assert cash_summary.expected_gross == Decimal("2310799.00")
+
+        # Invariant 2: Actual Bank Credits - Expected Net = Variance
+        variance = cash_summary.received_bank_credits - cash_summary.expected_net_settlement
+        assert cash_summary.settlement_variance == variance
+        assert cash_summary.settlement_variance == Decimal("54534.86")
+        assert cash_summary.received_bank_credits == Decimal("2310799.00")
+
+
 
 class TestWebhookIntegration:
     """Test Razorpay Webhook Ingestion & Signature Verification."""

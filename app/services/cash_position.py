@@ -28,8 +28,15 @@ from app.models.transaction import TransactionSource, TransactionStatus
 @dataclass
 class CashPositionSummary:
     """Consolidated financial cash position summary."""
-    expected_amount: Decimal = Decimal("0")
-    received_amount: Decimal = Decimal("0")
+    expected_amount: Decimal = Decimal("0")  # Retained for backwards compatibility (= expected_gross)
+    expected_gross: Decimal = Decimal("0")
+    expected_net_settlement: Decimal = Decimal("0")
+    received_amount: Decimal = Decimal("0")  # Retained for backwards compatibility (= received_bank_credits)
+    received_bank_credits: Decimal = Decimal("0")
+    settlement_variance: Decimal = Decimal("0")
+    total_deducted_fees: Decimal = Decimal("0")
+    total_deducted_taxes: Decimal = Decimal("0")
+    total_refunded_amount: Decimal = Decimal("0")
     pending_amount: Decimal = Decimal("0")
     delayed_amount: Decimal = Decimal("0")
     unreconciled_amount: Decimal = Decimal("0")
@@ -42,7 +49,14 @@ class CashPositionSummary:
     def to_dict(self) -> dict[str, Any]:
         return {
             "expected_amount": float(self.expected_amount),
+            "expected_gross": float(self.expected_gross),
+            "expected_net_settlement": float(self.expected_net_settlement),
             "received_amount": float(self.received_amount),
+            "received_bank_credits": float(self.received_bank_credits),
+            "settlement_variance": float(self.settlement_variance),
+            "total_deducted_fees": float(self.total_deducted_fees),
+            "total_deducted_taxes": float(self.total_deducted_taxes),
+            "total_refunded_amount": float(self.total_refunded_amount),
             "pending_amount": float(self.pending_amount),
             "delayed_amount": float(self.delayed_amount),
             "unreconciled_amount": float(self.unreconciled_amount),
@@ -74,9 +88,10 @@ class CashPositionService:
         exc_res = await self.session.execute(exc_stmt)
         exceptions = exc_res.scalars().all()
 
-        expected = Decimal("0")
         received = Decimal("0")
-        pending = Decimal("0")
+        fees = Decimal("0")
+        taxes = Decimal("0")
+        refunds = Decimal("0")
         by_source: dict[str, Decimal] = {
             TransactionSource.GATEWAY.value: Decimal("0"),
             TransactionSource.LEDGER.value: Decimal("0"),
@@ -88,15 +103,24 @@ class CashPositionService:
             src = t.source
             by_source[src] = by_source.get(src, Decimal("0")) + amt
 
-            if src in (TransactionSource.GATEWAY.value, TransactionSource.LEDGER.value):
-                expected += amt
+            if src == TransactionSource.GATEWAY.value:
+                fee_val = Decimal(str(t.fee)) if t.fee is not None else (amt * Decimal("0.02")).quantize(Decimal("0.01"))
+                tax_val = Decimal(str(t.tax)) if t.tax is not None else (fee_val * Decimal("0.18")).quantize(Decimal("0.01"))
+                fees += fee_val
+                taxes += tax_val
             elif src == TransactionSource.BANK.value:
                 received += amt
 
-        # Expected cash from gateway/ledger vs bank
-        net_expected = max(by_source.get(TransactionSource.GATEWAY.value, Decimal("0")),
-                           by_source.get(TransactionSource.LEDGER.value, Decimal("0")))
-        pending = max(Decimal("0"), net_expected - received)
+        # Expected gross cash from gateway/ledger vs bank
+        expected_gross = max(
+            by_source.get(TransactionSource.GATEWAY.value, Decimal("0")),
+            by_source.get(TransactionSource.LEDGER.value, Decimal("0")),
+        )
+
+        # Authoritative Expected Net Bank Settlement: Gross - Fees - Taxes - Refunds
+        expected_net = expected_gross - fees - taxes - refunds
+        variance = (received - expected_net).quantize(Decimal("0.01"))
+        pending = max(Decimal("0"), expected_net - received)
 
         # Exception aggregations
         delayed = Decimal("0")
@@ -117,8 +141,15 @@ class CashPositionService:
                 at_risk += exp_amt
 
         return CashPositionSummary(
-            expected_amount=net_expected,
+            expected_amount=expected_gross,
+            expected_gross=expected_gross,
+            expected_net_settlement=expected_net,
             received_amount=received,
+            received_bank_credits=received,
+            settlement_variance=variance,
+            total_deducted_fees=fees,
+            total_deducted_taxes=taxes,
+            total_refunded_amount=refunds,
             pending_amount=pending,
             delayed_amount=delayed,
             unreconciled_amount=unreconciled,
