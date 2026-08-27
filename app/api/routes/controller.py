@@ -274,6 +274,21 @@ async def get_exception_intelligence(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.get("/exceptions/{exception_id}/investigation")
+async def get_exception_investigation_view(
+    exception_id: str,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Return comprehensive investigation view with timeline, evidence, and decision boundary."""
+    from app.services.investigation_view_service import InvestigationViewService
+    service = InvestigationViewService(session)
+    try:
+        view = await service.get_investigation_view(exception_id)
+        return view.to_dict()
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 # 8. Human Decision API
 @router.post("/exceptions/{exception_id}/decision")
 async def apply_human_decision(

@@ -173,7 +173,7 @@ def view_overview():
             ]
         }
         df_funnel = pd.DataFrame(funnel_data)
-        st.bar_chart(df_funnel.set_index("Stage"), use_container_width=True)
+        st.bar_chart(df_funnel.set_index("Stage"), width='stretch')
 
     with c2:
         st.subheader("💰 Treasury Cash & Risk Exposure")
@@ -219,7 +219,7 @@ def view_reconciliation():
         "Confidence Gate": [">= 0.95", ">= 0.90", "0.70 - 0.90", "< 0.70"],
         "Action Policy": ["Auto-Commit", "Auto-Commit", "Flag for Controller", "Quarantine to Exception Queue"]
     })
-    st.dataframe(dec_df, use_container_width=True)
+    st.dataframe(dec_df, width='stretch')
 
 
 def view_exception_queue():
@@ -259,7 +259,7 @@ def view_exception_queue():
             
     if buckets:
         df_aging = pd.DataFrame(buckets)
-        st.bar_chart(df_aging.set_index("bucket")[["financial_exposure_inr"]], use_container_width=True)
+        st.bar_chart(df_aging.set_index("bucket")[["financial_exposure_inr"]], width='stretch')
 
     st.divider()
 
@@ -271,7 +271,7 @@ def view_exception_queue():
         df_items = pd.DataFrame(items)
         st.dataframe(
             df_items[["exception_id", "transaction_id", "category", "status", "financial_exposure_inr", "confidence", "recommended_action", "explanation"]],
-            use_container_width=True,
+            width='stretch',
             height=450,
         )
     else:
@@ -280,7 +280,7 @@ def view_exception_queue():
 
 def view_exception_workspace():
     st.title("🔍 Exception Investigation Workspace")
-    st.caption("Drill down into structured evidence, AI root-cause analysis, and execute controller decisions.")
+    st.caption("Complete investigation workflow: understand why, assess impact, and decide.")
 
     try:
         exc_list = api.list_exceptions(page_size=20).get("exceptions", [])
@@ -297,78 +297,183 @@ def view_exception_workspace():
     selected_id = exc_options[selected_label]
 
     try:
-        detail = api.get_exception_detail(selected_id)
+        inv_view = api.get_exception_investigation_view(selected_id)
     except Exception as e:
-        st.error(f"Failed to load exception detail: {e}")
+        st.error(f"Failed to load investigation view: {e}")
         return
 
-    c1, c2 = st.columns([1.2, 1])
+    # Decision Boundary Banner
+    decision_boundary = inv_view.get("decision_boundary", {})
+    boundary_category = decision_boundary.get("category", "UNKNOWN")
+    
+    if boundary_category == "AUTO_SAFE":
+        st.success(f"🟢 **AUTO-SAFE** | Confidence: {decision_boundary.get('confidence', 0)*100:.1f}% | {decision_boundary.get('reason', '')}")
+    elif boundary_category == "AI_SUGGESTED":
+        st.warning(f"🟡 **AI-SUGGESTED** | Confidence: {decision_boundary.get('confidence', 0)*100:.1f}% | {decision_boundary.get('reason', '')}")
+    else:
+        st.error(f"🔴 **HUMAN REVIEW REQUIRED** | Confidence: {decision_boundary.get('confidence', 0)*100:.1f}% | {decision_boundary.get('reason', '')}")
 
-    with c1:
-        st.subheader("Exception Structured Evidence")
-        st.markdown(f"**Exception ID:** `{detail.get('exception_id')}`")
-        st.markdown(f"**Transaction ID:** `{detail.get('transaction_id')}`")
-        st.markdown(f"**Category:** `{detail.get('category')}`")
-        st.markdown(f"**Financial Exposure:** {format_money(detail.get('financial_exposure_inr'))}")
-        st.markdown(f"**Current Status:** `{detail.get('status')}`")
-        st.markdown(f"**Recommended Action:** `{detail.get('recommended_action')}`")
-        st.info(f"**Explanation:** {detail.get('explanation')}")
+    st.divider()
 
-        inv = detail.get("investigation_conclusion")
-        if inv:
-            st.success(f"🤖 **AI Investigation Conclusion ({inv.get('method')}):**\n\n**Root Cause:** {inv.get('root_cause')}\n\n**Confidence:** {inv.get('confidence', 0)*100:.1f}%\n\n{inv.get('explanation')}")
+    # Identity Section
+    st.subheader("IDENTITY")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Exception ID", inv_view.get("exception_id", "N/A")[:8] + "...")
+    with col2:
+        st.metric("Transaction ID", inv_view.get("transaction_id", "N/A")[:8] + "..." if inv_view.get("transaction_id") else "N/A")
+    with col3:
+        st.metric("Source", inv_view.get("source", "N/A").upper() if inv_view.get("source") else "N/A")
+    with col4:
+        st.metric("Status", inv_view.get("status", "N/A").upper())
 
-        try:
-            intel = api.get_exception_intelligence(selected_id)
-            st.subheader("🧠 Exception Intelligence")
-            st.markdown(f"**Why it happened:** {intel.get('why_it_happened')}")
-            st.markdown(f"**Risk:** {intel.get('risk_bucket', 'unknown').upper()} | risk score {intel.get('risk_score', 0):.2f}")
-            st.markdown(f"**Expected cost:** {format_money(intel.get('how_serious', {}).get('expected_cost_inr'))}")
-            for fact in intel.get('what_evidence_supports_this', []):
-                st.caption(f"{fact.get('label')}: {fact.get('value')}")
-            st.markdown("**What the operator should do next:**")
-            for step in intel.get('what_should_the_operator_do_next', []):
-                st.write(f"- {step}")
-        except Exception as e:
-            st.caption(f"Exception intelligence unavailable: {e}")
+    st.divider()
 
-    with c2:
-        st.subheader("Human Controller Actions")
+    # Financial Impact Section
+    st.subheader("FINANCIAL IMPACT")
+    financial = inv_view.get("financial_impact", {})
+    fcol1, fcol2, fcol3, fcol4 = st.columns(4)
+    with fcol1:
+        st.metric("Transaction Amount", format_money(financial.get("transaction_amount")))
+    with fcol2:
+        st.metric("Monetary Exposure", format_money(financial.get("monetary_exposure")))
+    with fcol3:
+        st.metric("Fee Difference", format_money(financial.get("fee_difference")))
+    with fcol4:
+        st.metric("Tax Difference", format_money(financial.get("tax_difference")))
+
+    st.divider()
+
+    # WHY THIS EXCEPTION Section (Most Important)
+    st.subheader("WHY THIS EXCEPTION WAS FLAGGED")
+    
+    st.markdown(f"**Primary Reason:** {inv_view.get('root_cause', inv_view.get('explanation', 'No root cause established'))}")
+    
+    st.markdown(f"**Financial Impact:** {format_money(financial.get('monetary_exposure'))}")
+    
+    st.markdown("**Evidence:**")
+    matching = inv_view.get("matching_evidence", {})
+    if matching.get("deterministic_match_result"):
+        st.write(f"• Deterministic match result: {matching.get('deterministic_match_result')}")
+    if matching.get("ml_match_result"):
+        st.write(f"• ML match result: {matching.get('ml_match_result')}")
+    for mismatch in matching.get("mismatch_fields", []):
+        st.write(f"• Mismatch field: {mismatch}")
+    
+    st.markdown(f"**Confidence:** {inv_view.get('confidence', 0)*100:.1f}%")
+    
+    risk_bucket = inv_view.get("risk_bucket", "UNKNOWN").upper()
+    st.markdown(f"**Risk:** {risk_bucket}")
+    
+    st.markdown(f"**Recommended Action:** {inv_view.get('recommended_action', 'No recommendation')}")
+    
+    human_review = decision_boundary.get("requires_human_review", False)
+    st.markdown(f"**Human Review:** {'REQUIRED' if human_review else 'NOT REQUIRED'}")
+
+    st.divider()
+
+    # Timeline Section
+    st.subheader("TIMELINE")
+    timeline = inv_view.get("timeline", {})
+    tcol1, tcol2, tcol3, tcol4 = st.columns(4)
+    with tcol1:
+        st.metric("Exception Created", timeline.get("exception_created", "N/A")[:10] if timeline.get("exception_created") else "N/A")
+    with tcol2:
+        st.metric("Investigation Started", timeline.get("investigation_started", "N/A")[:10] if timeline.get("investigation_started") else "N/A")
+    with tcol3:
+        st.metric("Human Decision", timeline.get("human_decision", "N/A")[:10] if timeline.get("human_decision") else "N/A")
+    with tcol4:
+        st.metric("Resolved", timeline.get("resolved", "N/A")[:10] if timeline.get("resolved") else "N/A")
+
+    st.divider()
+
+    # Decision Panel
+    st.subheader("DECISION")
+    
+    current_status = inv_view.get("status", "open")
+    resolved = inv_view.get("resolved", False)
+    
+    if resolved:
+        st.success(f"✅ This exception has been resolved as of {inv_view.get('resolved_at', 'N/A')}")
+    else:
+        col_dec1, col_dec2, col_dec3 = st.columns(3)
         
-        tab_dec, tab_assign, tab_note = st.tabs(["Decision", "Assign", "Add Note"])
-
-        with tab_dec:
-            action = st.selectbox("Select Decision Action:", ["approve", "reject", "escalate", "resolve"])
-            reason = st.text_input("Decision Reason / Audit Note:", "Approved after verifying settlement credit")
-            actor = st.text_input("Controller ID:", "finance_lead")
-
-            if st.button("Submit Decision", type="primary"):
+        with col_dec1:
+            if st.button("APPROVE", type="primary"):
                 try:
-                    res = api.apply_decision(selected_id, action, actor, reason)
-                    st.success(f"Action '{action}' executed successfully! Audit Event ID: `{res.get('audit_event_id')}`")
+                    res = api.apply_decision(selected_id, "approve", "finance_controller", "Approved after investigation")
+                    st.success(f"Approved! Audit Event ID: `{res.get('audit_event_id')}`")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Action failed: {e}")
-
-        with tab_assign:
-            assignee = st.text_input("Assign to Analyst / Team:", "analyst_bob@sentinel.internal")
-            if st.button("Assign Exception"):
+                    st.error(f"Approval failed: {e}")
+        
+        with col_dec2:
+            if st.button("REJECT"):
                 try:
-                    res = api.assign_exception(selected_id, assignee, actor="controller_admin")
-                    st.success(f"Assigned to {assignee} successfully!")
+                    res = api.apply_decision(selected_id, "reject", "finance_controller", "Rejected after investigation")
+                    st.success(f"Rejected! Audit Event ID: `{res.get('audit_event_id')}`")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Assignment failed: {e}")
-
-        with tab_note:
-            note_text = st.text_area("Review Note:")
-            if st.button("Attach Note"):
+                    st.error(f"Rejection failed: {e}")
+        
+        with col_dec3:
+            if st.button("ESCALATE"):
                 try:
-                    res = api.add_exception_note(selected_id, note_text, actor="finance_reviewer")
-                    st.success("Note attached to audit trail.")
+                    res = api.apply_decision(selected_id, "escalate", "finance_controller", "Escalated to senior team")
+                    st.success(f"Escalated! Audit Event ID: `{res.get('audit_event_id')}`")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Note attachment failed: {e}")
+                    st.error(f"Escalation failed: {e}")
+        
+        st.divider()
+        
+        reason = st.text_input("Decision Reason / Audit Note:", "Investigated and verified")
+        actor = st.text_input("Controller ID:", "finance_controller")
+        
+        col_dec4, col_dec5 = st.columns(2)
+        with col_dec4:
+            if st.button("RESOLVE"):
+                try:
+                    res = api.apply_decision(selected_id, "resolve", actor, reason)
+                    st.success(f"Resolved! Audit Event ID: `{res.get('audit_event_id')}`")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Resolution failed: {e}")
+        
+        with col_dec5:
+            if st.button("INVESTIGATE"):
+                try:
+                    res = api.apply_decision(selected_id, "investigate", actor, reason)
+                    st.success(f"Marked for investigation! Audit Event ID: `{res.get('audit_event_id')}`")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Investigation flag failed: {e}")
+
+    st.divider()
+
+    # Additional Actions
+    st.subheader("ADDITIONAL ACTIONS")
+    col_add1, col_add2 = st.columns(2)
+    
+    with col_add1:
+        assignee = st.text_input("Assign to Analyst / Team:", "analyst_bob@sentinel.internal")
+        if st.button("Assign Exception"):
+            try:
+                res = api.assign_exception(selected_id, assignee, actor="controller_admin")
+                st.success(f"Assigned to {assignee} successfully!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Assignment failed: {e}")
+    
+    with col_add2:
+        note_text = st.text_area("Review Note:")
+        if st.button("Attach Note"):
+            try:
+                res = api.add_exception_note(selected_id, note_text, actor="finance_reviewer")
+                st.success("Note attached to audit trail.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Note attachment failed: {e}")
 
 
 def view_settlement_accounting():
@@ -451,7 +556,7 @@ def view_refunds_and_duplicates():
     st.subheader("Incident Evidence Records")
     incidents = duplicates.get("incidents", [])
     if incidents:
-        st.dataframe(pd.DataFrame(incidents), use_container_width=True)
+        st.dataframe(pd.DataFrame(incidents), width='stretch')
     else:
         st.info("No active duplicate payment incidents detected.")
 
@@ -486,7 +591,7 @@ def view_cash_position_and_forecast():
     if days:
         df_fc = pd.DataFrame(days)
         st.line_chart(df_fc.set_index("date")[["forecast_amount_inr", "confidence_interval_low", "confidence_interval_high"]])
-        st.dataframe(df_fc, use_container_width=True)
+        st.dataframe(df_fc, width='stretch')
 
 
 def view_source_health():
@@ -562,7 +667,7 @@ def view_benchmark_evaluation():
     if scenario_summary:
         st.subheader("Scenario Breakdown")
         sc_df = pd.DataFrame(list(scenario_summary.values()))
-        st.dataframe(sc_df[["scenario", "total_records", "precision", "recall", "f1_score", "unresolved_records"]], use_container_width=True)
+        st.dataframe(sc_df[["scenario", "total_records", "precision", "recall", "f1_score", "unresolved_records"]], width='stretch')
 
     st.subheader("Full Evaluation JSON")
     st.json(r)
@@ -606,7 +711,7 @@ def view_finance_ai_qa():
                 ev = qa_res.get("evidence_records", [])
                 if ev:
                     st.write("**Verifiable Evidence Records:**")
-                    st.dataframe(pd.DataFrame(ev), use_container_width=True)
+                    st.dataframe(pd.DataFrame(ev), width='stretch')
                 else:
                     st.info("The controller returned no evidence records for this query.")
 
@@ -657,6 +762,12 @@ def view_ai_finance_copilot():
         "What can I safely auto-resolve?",
         "What requires human review?",
         "Explain today's reconciliation performance.",
+        "Why was this exception created?",
+        "What evidence supports this exception?",
+        "What is the financial impact of this exception?",
+        "What should I do with this exception?",
+        "Does this exception require human review?",
+        "Explain the matching failure for this exception.",
     ]
 
     if "copilot_question" not in st.session_state:
@@ -718,7 +829,7 @@ def view_audit_trail_and_ingestion():
             events = api.get_audit_timeline()
             if events:
                 df_events = pd.DataFrame(events)
-                st.dataframe(df_events[["event_id", "timestamp", "event_type", "run_id", "transaction_id", "details"]], use_container_width=True, height=400)
+                st.dataframe(df_events[["event_id", "timestamp", "event_type", "run_id", "transaction_id", "details"]], width='stretch', height=400)
             else:
                 st.info("No audit events recorded yet.")
         except Exception as e:

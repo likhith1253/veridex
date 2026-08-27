@@ -104,6 +104,12 @@ class FinanceControllerAPIClient:
             res.raise_for_status()
             return res.json()
 
+    def get_exception_investigation_view(self, exception_id: str) -> dict[str, Any]:
+        with httpx.Client(timeout=self.timeout) as client:
+            res = client.get(self._url(f"/api/v1/controller/exceptions/{exception_id}/investigation"))
+            res.raise_for_status()
+            return res.json()
+
     def list_exception_intelligence(self, run_id: Optional[str] = None, limit: int = 50) -> list[dict[str, Any]]:
         params = {"limit": limit}
         if run_id:
