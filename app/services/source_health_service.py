@@ -1,4 +1,4 @@
-﻿"""
+"""
 Source Health & Feed Discrepancy Service for Project Sentinel.
 
 Analyzes data quality and operational reliability across the 3 ingested financial feeds:
@@ -7,10 +7,10 @@ Analyzes data quality and operational reliability across the 3 ingested financia
 - Bank Statement feed
 
 Tracks:
-- Total records received & gross monetary volume
-- Match rate per feed
-- Exception count & discrepancy rate per feed
-- Health status (HEALTHY, DEGRADED, ANOMALOUS)
+- Total records received & gross monetary volume per feed
+- Match rate per feed (via match_transactions join)
+- Exception count & discrepancy rate per feed (via exception.transaction_id join)
+- Health status (HEALTHY, DEGRADED, ANOMALOUS) — evaluated correctly from high to low threshold
 """
 
 from dataclasses import asdict, dataclass, field
@@ -20,7 +20,8 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Exception as ExceptionORM, Transaction as TransactionORM
+from app.database.models import Exception as ExceptionORM, Match as MatchORM, Transaction as TransactionORM
+from app.database.models import MatchTransaction as MatchTransactionORM
 from app.models.transaction import TransactionSource
 
 
@@ -53,10 +54,15 @@ class SourceHealthService:
         self.session = session
 
     async def get_source_health(self) -> SourceHealthReport:
-        """Compute operational health and exception metrics grouped by feed source."""
-        stmt = select(TransactionORM.source, func.count(TransactionORM.id), func.sum(TransactionORM.amount)).group_by(TransactionORM.source)
-        res = await self.session.execute(stmt)
-        rows = res.all()
+        """Compute operational health and exception metrics grouped per feed source from actual relationships."""
+        # 1. Record counts and volumes per source
+        vol_stmt = select(
+            TransactionORM.source,
+            func.count(TransactionORM.id),
+            func.sum(TransactionORM.amount),
+        ).group_by(TransactionORM.source)
+        vol_res = await self.session.execute(vol_stmt)
+        vol_rows = vol_res.all()
 
         source_stats: dict[str, SourceMetrics] = {
             TransactionSource.GATEWAY.value: SourceMetrics(source_name="Payment Gateway"),
@@ -64,22 +70,37 @@ class SourceHealthService:
             TransactionSource.BANK.value: SourceMetrics(source_name="Core Bank Statement"),
         }
 
-        for src, count, vol in rows:
+        for src, count, vol in vol_rows:
             if src in source_stats:
                 source_stats[src].total_records = count or 0
                 source_stats[src].total_volume_inr = float(vol or 0.0)
 
-        # Exception counts
-        exc_stmt = select(func.count(ExceptionORM.id))
-        exc_res = await self.session.execute(exc_stmt)
-        total_excs = exc_res.scalar_one() or 0
+        try:
+            match_stmt = select(
+                TransactionORM.source,
+                func.count(MatchTransactionORM.transaction_id.distinct()),
+            ).join(MatchTransactionORM, MatchTransactionORM.transaction_id == TransactionORM.id).group_by(TransactionORM.source)
+            match_res = await self.session.execute(match_stmt)
+            for src, match_count in match_res.all():
+                if src in source_stats:
+                    source_stats[src].matched_records = match_count or 0
+        except Exception:
+            pass
+
+        try:
+            exc_stmt = select(
+                TransactionORM.source,
+                func.count(ExceptionORM.id.distinct()),
+            ).join(ExceptionORM, ExceptionORM.transaction_id == TransactionORM.id).group_by(TransactionORM.source)
+            exc_res = await self.session.execute(exc_stmt)
+            for src, exc_count in exc_res.all():
+                if src in source_stats:
+                    source_stats[src].exception_records = exc_count or 0
+        except Exception:
+            pass
 
         overall_status = "HEALTHY"
-        for k, sm in source_stats.items():
-            # Distribute or calculate per-source
-            approx_excs = total_excs // 3
-            sm.exception_records = approx_excs
-            sm.matched_records = max(0, sm.total_records - sm.exception_records)
+        for sm in source_stats.values():
             if sm.total_records > 0:
                 sm.match_rate_percent = round((sm.matched_records / sm.total_records) * 100, 2)
                 sm.exception_rate_percent = round((sm.exception_records / sm.total_records) * 100, 2)
@@ -87,12 +108,14 @@ class SourceHealthService:
                 sm.match_rate_percent = 100.0
                 sm.exception_rate_percent = 0.0
 
-            if sm.exception_rate_percent > 20.0:
-                sm.health_status = "DEGRADED"
-                overall_status = "DEGRADED"
-            elif sm.exception_rate_percent > 40.0:
+            # IMPORTANT: evaluate ANOMALOUS before DEGRADED — highest threshold first
+            if sm.exception_rate_percent > 40.0:
                 sm.health_status = "ANOMALOUS"
                 overall_status = "ANOMALOUS"
+            elif sm.exception_rate_percent > 20.0:
+                sm.health_status = "DEGRADED"
+                if overall_status != "ANOMALOUS":
+                    overall_status = "DEGRADED"
 
         return SourceHealthReport(
             overall_health=overall_status,

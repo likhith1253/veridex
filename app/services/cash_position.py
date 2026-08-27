@@ -117,18 +117,20 @@ class CashPositionService:
             by_source.get(TransactionSource.LEDGER.value, Decimal("0")),
         )
 
-        # Authoritative Expected Net Bank Settlement: Gross - Fees - Taxes - Refunds
         expected_net = expected_gross - fees - taxes - refunds
         variance = (received - expected_net).quantize(Decimal("0.01"))
         pending = max(Decimal("0"), expected_net - received)
+        tolerance = Decimal("50.00")
 
-        # Exception aggregations
         delayed = Decimal("0")
         unreconciled = Decimal("0")
         at_risk = Decimal("0")
         by_category: dict[str, Decimal] = {}
 
         for exc in exceptions:
+            resolved_flag = getattr(exc, "resolved", False)
+            if resolved_flag:
+                continue
             exp_amt = Decimal(str(getattr(exc, "financial_exposure", getattr(exc, "amount_delta", 0)) or 0))
             raw_cat = getattr(exc, "exception_category", getattr(exc, "category", "unexplained"))
             cat = raw_cat.value if hasattr(raw_cat, "value") else str(raw_cat)
@@ -139,6 +141,20 @@ class CashPositionService:
                 delayed += exp_amt
             if exp_amt >= Decimal("100000") or cat == ExceptionCategory.UNEXPLAINED.value:
                 at_risk += exp_amt
+
+        abs_variance = abs(variance)
+        if abs_variance > tolerance:
+            unreconciled += abs_variance
+            variance_cat = (
+                ExceptionCategory.DELAYED_SETTLEMENT.value
+                if variance < 0
+                else ExceptionCategory.UNEXPLAINED.value
+            )
+            by_category[variance_cat] = by_category.get(variance_cat, Decimal("0")) + abs_variance
+            if variance < 0:
+                delayed += abs_variance
+            if abs_variance >= Decimal("100000") or variance > 0:
+                at_risk += abs_variance
 
         return CashPositionSummary(
             expected_amount=expected_gross,
