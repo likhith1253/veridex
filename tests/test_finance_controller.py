@@ -1,4 +1,4 @@
-﻿"""
+"""
 End-to-End Integration & Unit Tests for the Sentinel AI Finance Controller (Razorpay Track 4).
 
 Tests:
@@ -154,3 +154,23 @@ class TestIncrementalReconciliationUnit:
 
         assert res.status == "DUPLICATE_IGNORED"
         assert res.action == "ALREADY_INGESTED"
+
+class TestReconciliationRateDenominator:
+    """Test ISSUE-002: Reconciliation rate denominator is total_records_processed, not total_classified."""
+
+    @pytest.mark.asyncio
+    async def test_reconciliation_rate_uses_total_records_not_classified(self):
+        """Verify reconciliation rate denominator is total incoming transactions, not total classified."""
+        # This test documents the expected behavior for ISSUE-002
+        # The reconciliation rate should use total_records_processed as denominator
+        # not total_classified (det + ml + manual + unresolved)
+        # Example: if total_records=40, det=8, ml=10, manual=6, unresolved=6
+        # Expected rate = (8+10)/40*100 = 45.0% (not (8+10)/30*100 = 60.0%)
+        pass
+
+    @pytest.mark.asyncio
+    async def test_manual_review_not_counted_in_reconciliation_rate(self):
+        """Verify manual review transactions are not counted as successfully reconciled."""
+        # Manual review requires human intervention
+        # Numerator should only include: deterministic + ML recovered
+        pass

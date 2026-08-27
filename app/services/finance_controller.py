@@ -300,8 +300,11 @@ class FinanceController:
         unresolved_count = len(unresolved_txn_ids)
 
         # Calculate match rate based on transactions
+        # Reconciliation rate measures the share of all incoming transactions successfully auto-reconciled without human intervention
+        # Numerator: deterministic + ML recovered (auto-matched transactions)
+        # Denominator: total incoming transactions processed
         total_classified = det_count + ml_count + manual_count + unresolved_count
-        m_rate = ((det_count + ml_count) / total_classified * 100) if total_classified > 0 else 0.0
+        m_rate = ((det_count + ml_count) / total_records * 100) if total_records > 0 else 0.0
 
         # For backward compatibility, keep match-level counts in some fields
         # but use transaction-level counts for the funnel
