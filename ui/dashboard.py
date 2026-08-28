@@ -622,7 +622,7 @@ def view_cash_position_and_forecast():
 
 def view_source_health():
     st.title("🏥 Feed Source Health & Data Quality")
-    st.caption("Operational reliability, record volume, and exception rates for Gateway, Ledger, and Bank feeds.")
+    st.caption("Operational reliability, record volume, clean reconciliation, and exception rates for Gateway, Ledger, and Bank feeds.")
 
     try:
         health = api.get_source_health()
@@ -635,15 +635,22 @@ def view_source_health():
         return
 
     st.subheader(f"Overall System Ingestion Health: {health.get('overall_health', 'HEALTHY')}")
+    st.caption("ℹ️ Feed metrics reflect real PostgreSQL ingestion records. Transactions can be matched across feeds while carrying exceptions (e.g., fee discrepancies). Clean Match indicates records reconciled without any exceptions.")
 
     sources = health.get("sources", {})
     s_cols = st.columns(len(sources))
 
     for idx, (src_key, s_data) in enumerate(sources.items()):
         with s_cols[idx]:
-            st.metric(s_data.get("source_name", src_key), f"{s_data.get('total_records', 0):,} records", delta=f"{s_data.get('match_rate_percent', 100.0):.1f}% match")
+            clean_pct = s_data.get('clean_match_rate_percent', s_data.get('match_rate_percent', 100.0))
+            st.metric(
+                s_data.get("source_name", src_key),
+                f"{s_data.get('total_records', 0):,} records",
+                delta=f"{clean_pct:.1f}% clean match",
+            )
             st.write(f"**Volume:** {format_money(s_data.get('total_volume_inr', 0))}")
-            st.write(f"**Exceptions:** {s_data.get('exception_records', 0)} ({s_data.get('exception_rate_percent', 0.0):.1f}%)")
+            st.write(f"**Matched in Clusters:** {s_data.get('matched_records', 0)} ({s_data.get('match_rate_percent', 0.0):.1f}%)")
+            st.write(f"**Flagged Exceptions:** {s_data.get('exception_records', 0)} ({s_data.get('exception_rate_percent', 0.0):.1f}%)")
             st.write(f"**Status:** `{s_data.get('health_status', 'HEALTHY')}`")
 
 

@@ -150,33 +150,23 @@ Ad-hoc try/except block dumped raw tracebacks to stdout and exposed raw internal
 ## ISSUE-AUD-007 — Benchmark Endpoint Instantiates FinanceController with `__new__`, Skipping `__init__`
 
 **Severity:** HIGH
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
 **Component/Page:** Benchmark API
-**File/Function/Endpoint:** [controller.py](file:///d:/sentinel/app/api/routes/controller.py) L452-L459, `/api/v1/controller/benchmark`
+**File/Function/Endpoint:** [controller.py](file:///d:/sentinel/app/api/routes/controller.py) `/api/v1/controller/benchmark`, [finance_controller.py](file:///d:/sentinel/app/services/finance_controller.py) `FinanceController.get_benchmark_evaluation`
 
-**Observed:**
-The `get_benchmark_results` endpoint uses `FinanceController.__new__(FinanceController)` to create an object without running `__init__`. It then calls `get_benchmark_evaluation` on it. Although `get_benchmark_evaluation` does not use any instance fields currently (it instantiates `ReconciliationEvaluator` internally), this is an **anti-pattern that will break silently** if any future version of `get_benchmark_evaluation` references `self.session`, `self.qa_service`, or any other `__init__`-initialized field. The comment claims it "never touches live PostgreSQL state," but the `__new__` pattern is an invitation to null-reference crashes.
+**Original Defect:**
+`/api/v1/controller/benchmark` instantiated `FinanceController.__new__(FinanceController)` bypassing constructor initialization.
 
-**Expected:**
-Use a proper factory or a standalone function. Pass explicit dependencies. Do not `__new__`-skip `__init__`.
+**Actual Root Cause:**
+Evaluation logic was bound as an async instance method despite operating deterministically on in-memory benchmark datasets without instance state.
 
-**Evidence:**
-```python
-# controller.py L458
-controller = FinanceController.__new__(FinanceController)
-return await controller.get_benchmark_evaluation(num_transactions=num_transactions, seed=seed)
-```
+**Exact Fix:**
+- Refactored `FinanceController.get_benchmark_evaluation` in [finance_controller.py](file:///d:/sentinel/app/services/finance_controller.py) as a clean `@staticmethod`.
+- Updated `/api/v1/controller/benchmark` in [controller.py](file:///d:/sentinel/app/api/routes/controller.py) to invoke `FinanceController.get_benchmark_evaluation(...)` directly without `__new__` or uninitialized instance creation.
 
-**Reproduction:**
-Code inspection. The class `__init__` sets 12+ critical services; none of them are set on this instance.
-
-**Impact:**
-- **Correctness:** Future regression risk. Any use of `self.*` in `get_benchmark_evaluation` will `AttributeError` at runtime with zero static-analysis coverage.
-- **Maintainability:** Hack pattern. Evaluators notice this kind of shortcut as "production immaturity."
-
-**Recommended direction:**
-Move `get_benchmark_evaluation` to a module-level function or dedicated `BenchmarkService`.
+**Verification Performed:**
+- Verified with automated tests in `tests/test_architecture_g10.py` asserting clean static execution and live API HTTP 200 response with benchmark evaluation metrics.
 
 ---
 
@@ -1312,41 +1302,25 @@ Rewrite matched monetary aggregation to explicitly join `MatchTransaction → Tr
 ## ISSUE-AUD-037 — Source Health Simultaneously Reports 100% Match Rate and 60% Exception Rate on the Same Feed
 
 **Severity:** HIGH
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
-**Component/Page:** Source Health page 8, Executive Overview summary tile cross-ref
-**File/Function/Endpoint:** `/api/v1/controller/source-health` GET → per-source match_rate_percent + exception_rate_percent pair
+**Component/Page:** Source Health page 8
+**File/Function/Endpoint:** [source_health_service.py](file:///d:/sentinel/app/services/source_health_service.py), [dashboard.py](file:///d:/sentinel/ui/dashboard.py) `view_source_health`
 
-**Observed:**
-Gateway feed returns `match_rate_percent: 100.0` and `exception_rate_percent: 60.0` on the same JSON object. Ledger feed: 100.0 match / 30.0 exception. A user reading the panel sees a fully-green "100% matched" KPI directly adjacent to a red "60% exceptions → ANOMALOUS" KPI. Semantically the metrics are contradictory: 100% implies "all records reconciled cleanly"; 60% exceptions implies "most records have reconciliation exceptions".
+**Original Defect:**
+Source health reported 100% match rate alongside high exception rates, appearing contradictory to UI consumers.
 
-**Expected:**
-Either the two metrics must share a consistent denominator definition and not be contradictory, OR the panel must explicitly label "matched_records = distinct txns with ≥1 match object" vs "exception_records = distinct txns with ≥1 exception object" and explain that a transaction can co-exist in both universes (e.g., matched + exception due to partial discrepancy / fee mismatch). A naive user cannot tell this.
+**Actual Root Cause:**
+`match_rate_percent` was computed as (matched_records / total_records) which measured any transaction present in a match cluster — regardless of whether exceptions also existed on that transaction. A transaction can be matched AND have an exception (e.g., fee/GST discrepancy). The two metrics measured different semantic universes without labelling.
 
-**Evidence:**
-```
-[GET /api/v1/controller/source-health LIVE]
-gateway:  total_records=10, matched_records=10, exception_records=6
-          match_rate_percent=100.0, exception_rate_percent=60.0, health_status=ANOMALOUS
-ledger:   total_records=10, matched_records=10, exception_records=3
-          match_rate_percent=100.0, exception_rate_percent=30.0, health_status=DEGRADED
-bank:     total_records=10, matched_records=10, exception_records=0
-          match_rate_percent=100.0, exception_rate_percent=0.0,  health_status=HEALTHY
-```
-ALL three feeds report `match_rate_percent: 100.0`. The ONLY differentiator of health status is exception_rate. 100% matched is therefore a meaningless/empty metric visually.
+**Exact Fix:**
+- Added `clean_matched_records` and `clean_match_rate_percent` fields to `SourceMetrics` dataclass in [source_health_service.py](file:///d:/sentinel/app/services/source_health_service.py). Clean match is computed as: matched transactions with no associated exceptions.
+- Updated [dashboard.py](file:///d:/sentinel/ui/dashboard.py) `view_source_health` to display `clean_match_rate_percent` as the headline metric and separately labelled "Matched in Clusters" (includes exception-carrying txns) vs "Flagged Exceptions" with explicit counts and percentages.
+- Added explanatory caption: "Transactions can be matched across feeds while carrying exceptions (e.g., fee discrepancies). Clean Match indicates records reconciled without any exceptions."
 
-**Reproduction:**
-1. Navigate Streamlit UI → Page 8 "Source Health" OR `Invoke-RestMethod /source-health`.
-2. Observe every source has `match_rate_percent = 100.0`.
-3. Compare with Exception Queue page (expected 9 exceptions aggregated; 6 gw + 3 ld + 0 bank).
-
-**Impact:**
-- **UX / Hackathon Evaluator:** "100% matched" on every feed looks like a test fixture / seed-data bug. An evaluator will assume the matching engine output is not wired correctly into the source-health aggregator, because the green KPI is invariant.
-- **Operational:** Operators ignore match rate because it always reads 100%. Future on-call playbooks that page on "match_rate < 95%" will never fire.
-- **Trust:** Direct contradiction with ANOMALOUS/DEGRADED labels erodes user confidence in every other number on the source health panel.
-
-**Recommended direction:**
-Compute match_rate as (matched_records_without_exception OR matched_weighted_by_priority) / total_records — OR drop match_rate from source health if its semantic meaning cannot be reconciled with exception_rate. Label each metric on the UI with its explicit denotation (e.g. "Transactions matched via any rule" vs "Transactions flagged for human investigation").
+**Verification Performed:**
+- Verified with `test_aud_037_source_health_api_live` confirming `clean_match_rate_percent` is present in every source's API response.
+- Confirmed UI now renders distinct "Matched in Clusters" and "Flagged Exceptions" rows without contradiction.
 
 ---
 
@@ -1404,42 +1378,23 @@ Unify a single `get_monetary_exposure(exception_row)` helper across exposure_ser
 ## ISSUE-AUD-039 — UI Live: "Total Processed = 30 records | 10 txns" Displays the Hardcoded total_records//3 Output
 
 **Severity:** MEDIUM
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
 **Component/Page:** Executive Overview "Total Processed" metric tile
-**File/Function/Endpoint:** `ui/dashboard.py` Executive Overview KPI formatter, FinanceController total_logical_transactions calculation (AUD-009 code location)
+**File/Function/Endpoint:** [finance_controller.py](file:///d:/sentinel/app/services/finance_controller.py) `get_summary_kpis` `total_logical_txns` computation
 
-**Observed:**
-Browser snapshot of Executive Overview ref e41–e44:
-```
-label: "Total Processed"       [ref e41, e42]
-value: "30 records"            [ref e43]
-sub-value: "10 txns"           [ref e44]
-```
-30 // 3 = 10 exactly. For this dataset it happens that logical-transaction count = 10, but the code path is `total_records // 3 if total_records >= 3 else total_records` (see AUD-009). Any feed that is not perfectly symmetric 1:1:1 Gateway:Ledger:Bank will display a wrong "10 txns" sub-metric that does not equal real COUNT(DISTINCT domain_order_id / logical_txn_id).
+**Original Defect:**
+`total_logical_transactions` was computed via `total_records // 3`, hardcoding the assumption that each logical payment appears exactly once across all 3 feeds.
 
-**Expected:**
-"Logical transactions" sub-metric must be `SELECT COUNT(DISTINCT logical_transaction_key_domain_field) FROM transactions` — e.g. distinct `order_id` or `external_txn_ref` or whatever real business key represents a single logical payment across the 3 feeds. Dividing the physical row count by a constant (3) is not a substitute.
+**Actual Root Cause:**
+Verified through code inspection that [finance_controller.py](file:///d:/sentinel/app/services/finance_controller.py) `get_summary_kpis` already computes `total_logical_txns` correctly as `len(matches) + len(unmatched_clusters)` using actual match cluster counts plus unmatched transaction clusters keyed by `order_id`, `reference_number`, or transaction ID. The `// 3` anti-pattern was addressed in G1. The UI display reflects the already-corrected logic.
 
-**Evidence:**
-```
-[UI snapshot viewId 4929219b] Total Processed tile → "30 records" + "10 txns"
-[summary LIVE API] total_records_processed: 30, total_logical_transactions: 10
-[Code AUD-009] FinanceController L345: total_records // 3
-[Math check] 30 // 3 = 10   MATCHES UI EXACTLY.
-```
+**Exact Fix:**
+Verified correct implementation is in place. `total_logical_txns` uses actual cluster deduplication across transaction identity keys — never raw division.
 
-**Reproduction:**
-1. Open UI, read the top-left KPI tile.
-2. Either seed an asymmetric run (e.g. 40 gw + 10 ld + 10 bank = 60 records but logical txns still 10 domain-level, code would output 20) OR read source AUD-009 branch directly to confirm.
-
-**Impact:**
-- **UX:** Misleading operational sub-metric. Operators use logical-txn counts for reconciliation staffing; a wrong hardcoded-ratio number is harmful for any non-symmetric feed (most real payment streams have asymmetric batch sizes).
-- **Hackathon Signal:** A judge who reads the implementation file can grep for `// 3` and instantly find this anti-pattern. It is considered a "code smell / obvious hardcode" in automated grading pipelines.
-- **Low monetary impact (MEDIUM only):** The sub-label is not used in any exposure formula; the monetary totals use real row sums. It is however a prominent label directly visible in the first 3 seconds on the landing tile.
-
-**Recommended direction:**
-Replace with `SELECT COUNT(DISTINCT <domain_key>) FROM transactions` or if no domain key exists, remove the sub-label entirely rather than fabricate it from `total_records // 3`. Update the ControllerKPIs schema field `total_logical_transactions` to be Optional (null when unable to compute) instead of a pseudo-value.
+**Verification Performed:**
+- Verified with `test_aud_039_summary_kpis_no_hardcoded_division` confirming `/api/v1/controller/summary` returns an integer `total_logical_transactions` derived from real cluster counts.
+- Grepped codebase; `// 3` pattern is absent from all production service code.
 
 ---
 

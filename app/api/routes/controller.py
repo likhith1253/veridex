@@ -451,8 +451,7 @@ async def get_benchmark_results(
     seed: int = Query(42, ge=0, le=999999),
 ) -> dict[str, Any]:
     """Run an evaluation-only benchmark in memory without touching live PostgreSQL state."""
-    controller = FinanceController.__new__(FinanceController)
-    return await controller.get_benchmark_evaluation(num_transactions=num_transactions, seed=seed)
+    return FinanceController.get_benchmark_evaluation(num_transactions=num_transactions, seed=seed)
 
 
 # 17. Source Health

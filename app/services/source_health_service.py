@@ -31,8 +31,10 @@ class SourceMetrics:
     total_records: int = 0
     total_volume_inr: Decimal = Decimal("0.00")
     matched_records: int = 0
+    clean_matched_records: int = 0
     exception_records: int = 0
     match_rate_percent: float = 0.0
+    clean_match_rate_percent: float = 0.0
     exception_rate_percent: float = 0.0
     health_status: str = "HEALTHY"
 
@@ -92,6 +94,24 @@ class SourceHealthService:
             pass
 
         try:
+            clean_stmt = select(
+                TransactionORM.source,
+                func.count(TransactionORM.id.distinct()),
+            ).join(
+                MatchTransactionORM, MatchTransactionORM.transaction_id == TransactionORM.id
+            ).outerjoin(
+                ExceptionORM, ExceptionORM.transaction_id == TransactionORM.id
+            ).where(
+                ExceptionORM.id.is_(None)
+            ).group_by(TransactionORM.source)
+            clean_res = await self.session.execute(clean_stmt)
+            for src, clean_count in clean_res.all():
+                if src in source_stats:
+                    source_stats[src].clean_matched_records = clean_count or 0
+        except Exception:
+            pass
+
+        try:
             exc_stmt = select(
                 TransactionORM.source,
                 func.count(ExceptionORM.id.distinct()),
@@ -107,9 +127,11 @@ class SourceHealthService:
         for sm in source_stats.values():
             if sm.total_records > 0:
                 sm.match_rate_percent = round((sm.matched_records / sm.total_records) * 100, 2)
+                sm.clean_match_rate_percent = round((sm.clean_matched_records / sm.total_records) * 100, 2)
                 sm.exception_rate_percent = round((sm.exception_records / sm.total_records) * 100, 2)
             else:
                 sm.match_rate_percent = 100.0
+                sm.clean_match_rate_percent = 100.0
                 sm.exception_rate_percent = 0.0
 
             # IMPORTANT: evaluate ANOMALOUS before DEGRADED — highest threshold first

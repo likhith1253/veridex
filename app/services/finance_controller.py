@@ -434,8 +434,8 @@ class FinanceController:
             ],
         }
 
-    async def get_benchmark_evaluation(
-        self,
+    @staticmethod
+    def get_benchmark_evaluation(
         num_transactions: int = 100,
         seed: int = 42,
         output_dir: Optional[str] = None,
