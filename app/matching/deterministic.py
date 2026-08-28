@@ -355,7 +355,8 @@ class DeterministicMatcher:
                 match_key = tuple(sorted(txn_ids))
                 if match_key not in self.matched_combinations:
                     self.matched_combinations.add(match_key)
-                    self.matched_txn_ids.update(txn_ids)
+                    ts1 = txn.timestamp.replace(tzinfo=None) if hasattr(txn.timestamp, "replace") else txn.timestamp
+                    ts2 = candidate.timestamp.replace(tzinfo=None) if hasattr(candidate.timestamp, "replace") else candidate.timestamp
                     results.append(
                         self._build_match_result(
                             txn_ids,
@@ -363,7 +364,7 @@ class DeterministicMatcher:
                             f"Amount + date match (±{DATE_WINDOW_DAYS} days)",
                             {
                                 "amount": str(txn.amount),
-                                "date_diff": str(abs((txn.timestamp - candidate.timestamp).days)),
+                                "date_diff": str(abs((ts1 - ts2).days)),
                             },
                         )
                     )

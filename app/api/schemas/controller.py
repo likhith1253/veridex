@@ -1,20 +1,21 @@
-﻿"""
+"""
 Pydantic API Schemas for the Finance Controller layer.
 """
 
-from typing import Any, Optional
+from decimal import Decimal
+from typing import Any, Literal, Optional
 from pydantic import BaseModel, Field
 
 
 class BatchRecordItem(BaseModel):
     txn_id: str = Field(..., description="Unique transaction ID within source")
-    amount: float = Field(..., description="Monetary transaction amount", ge=0.0)
+    amount: Decimal = Field(..., description="Monetary transaction amount", gt=Decimal("0.0"))
     currency: str = Field("INR", description="3-letter currency code")
     order_id: Optional[str] = Field(None, description="Associated Order ID")
     reference_number: Optional[str] = Field(None, description="UTR or Bank Reference")
     timestamp: Optional[str] = Field(None, description="ISO timestamp")
-    fee: Optional[float] = Field(0.0, description="Deducted fee")
-    tax: Optional[float] = Field(0.0, description="Deducted tax")
+    fee: Optional[Decimal] = Field(Decimal("0.0"), description="Deducted fee", ge=Decimal("0.0"))
+    tax: Optional[Decimal] = Field(Decimal("0.0"), description="Deducted tax", ge=Decimal("0.0"))
     narration: Optional[str] = Field(None, description="Transaction narration string")
 
 
@@ -39,15 +40,34 @@ class BatchIngestResponse(BaseModel):
     unresolved_count: int
 
 
+class SingleTransactionIngestRequest(BaseModel):
+    txn_id: str = Field(..., min_length=1, description="Unique transaction ID")
+    source: Literal["gateway", "ledger", "bank"] = Field(..., description="Transaction feed source")
+    amount: Decimal = Field(..., description="Monetary transaction amount", gt=Decimal("0.0"))
+    currency: str = Field("INR", description="3-letter currency code")
+    order_id: Optional[str] = Field(None, description="Associated Order ID")
+    reference_number: Optional[str] = Field(None, description="UTR or Bank Reference")
+    narration: Optional[str] = Field(None, description="Transaction narration string")
+
+
 class HumanDecisionRequest(BaseModel):
-    action: str = Field(..., description="Human action: 'approve', 'reject', 'escalate', 'resolve'")
+    action: Literal["approve", "reject", "escalate", "resolve"] = Field(..., description="Human action")
     actor: str = Field("finance_controller_user", description="Identifier of human decision-maker")
     reason: Optional[str] = Field(None, description="Optional explanation for audit log")
 
 
 class FailureSimulationRequest(BaseModel):
-    scenario: str = Field(..., description="Failure scenario: 'corrupted_utr', 'delayed_settlement', 'duplicate', 'ambiguous', 'groq_unavailable'")
-    amount: float = Field(50000.0, description="Transaction amount for test scenario")
+    scenario: Literal[
+        "corrupted_utr",
+        "delayed_settlement",
+        "duplicate",
+        "ambiguous",
+        "groq_unavailable",
+        "groq_api_down",
+        "db_timeout",
+        "qdrant_unreachable",
+    ] = Field(..., description="Failure simulation scenario")
+    amount: Decimal = Field(Decimal("50000.00"), description="Transaction amount for test scenario", ge=Decimal("0.01"))
 
 
 class CopilotQueryRequest(BaseModel):
@@ -64,6 +84,10 @@ class CopilotQueryResponse(BaseModel):
     evidence: list[dict[str, Any]] = Field(default_factory=list)
     source: str = "deterministic"
     needs_human_review: bool = False
+
+
+class CopilotBriefRequest(BaseModel):
+    run_id: Optional[str] = Field(None, description="Optional run scope for the brief")
 
 
 class CopilotBriefResponse(BaseModel):

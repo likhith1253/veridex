@@ -21,7 +21,7 @@ Comprehensive REST API Endpoints:
 """
 
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -36,6 +36,7 @@ from app.api.schemas.controller import (
     CopilotQueryResponse,
     FailureSimulationRequest,
     HumanDecisionRequest,
+    SingleTransactionIngestRequest,
 )
 from app.investigation.service import InvestigationService
 from app.models.transaction import Transaction, TransactionSource, TransactionStatus
@@ -88,16 +89,6 @@ async def ingest_batch_records(
     controller = FinanceController(session, investigation_service=investigation_service)
     res = await controller.ingest_and_reconcile_batch(gw_txns, ld_txns, bk_txns, request.batch_id)
     return res
-
-
-class SingleTransactionIngestRequest(BaseModel):
-    txn_id: str
-    source: str
-    amount: float
-    currency: str = "INR"
-    order_id: Optional[str] = None
-    reference_number: Optional[str] = None
-    narration: Optional[str] = None
 
 
 @router.post("/ingest")
@@ -184,10 +175,10 @@ async def get_reconciliation_funnel(
 # 5. Exception Management & Filtering
 @router.get("/exceptions")
 async def list_exceptions(
-    status: Optional[str] = Query(None),
-    category: Optional[str] = Query(None),
-    min_exposure: Optional[float] = Query(None),
-    max_exposure: Optional[float] = Query(None),
+    status: Optional[Literal["open", "investigating", "resolved", "approved", "rejected", "escalated"]] = Query(None, description="Exception lifecycle status filter"),
+    category: Optional[Literal["amount_mismatch", "missing_ledger", "missing_bank", "delayed_settlement", "duplicate_transaction", "duplicate_entry", "fee_discrepancy", "timing_difference", "unmatched_settlement", "currency_mismatch", "unrecognized"]] = Query(None, description="Exception root-cause category filter"),
+    min_exposure: Optional[Decimal] = Query(None, ge=Decimal("0.0"), description="Minimum financial exposure filter"),
+    max_exposure: Optional[Decimal] = Query(None, ge=Decimal("0.0"), description="Maximum financial exposure filter"),
     transaction_id: Optional[str] = Query(None),
     run_id: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
@@ -197,14 +188,12 @@ async def list_exceptions(
     """Query exceptions with multi-criteria filtering and pagination."""
     from app.services.exception_management_service import ExceptionManagementService
     service = ExceptionManagementService(session)
-    min_dec = Decimal(str(min_exposure)) if min_exposure is not None else None
-    max_dec = Decimal(str(max_exposure)) if max_exposure is not None else None
 
     items, total_count = await service.list_exceptions(
         status=status,
         category=category,
-        min_exposure=min_dec,
-        max_exposure=max_dec,
+        min_exposure=min_exposure,
+        max_exposure=max_exposure,
         transaction_id=transaction_id,
         run_id=run_id,
         page=page,
@@ -421,19 +410,20 @@ async def ask_copilot_query(
     return await service.answer_question(request.question, request.run_id)
 
 
-@router.post("/copilot/brief", response_model=CopilotBriefResponse)
+@router.api_route("/copilot/brief", methods=["GET", "POST"], response_model=CopilotBriefResponse)
 async def get_finance_monthly_brief(
     request: dict[str, Any] | None = None,
+    run_id: Optional[str] = Query(None, description="Optional run scope for the brief"),
     session: AsyncSession = Depends(get_db_session),
 ) -> dict[str, Any]:
     """Render a live executive brief from the current controller state and exception intelligence."""
     from app.services.copilot_service import FinanceCopilotService
 
     service = FinanceCopilotService(session)
-    run_id = None
-    if isinstance(request, dict):
-        run_id = request.get("run_id")
-    return await service.generate_daily_brief(run_id)
+    effective_run_id = run_id
+    if isinstance(request, dict) and request.get("run_id"):
+        effective_run_id = request.get("run_id")
+    return await service.generate_daily_brief(effective_run_id)
 
 
 # 15. 7-Day Cash Forecast
