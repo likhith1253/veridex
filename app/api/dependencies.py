@@ -1,7 +1,7 @@
 import logging
 from typing import AsyncGenerator
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, Header, HTTPException, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -90,14 +90,42 @@ def get_exception_repository(
     return ExceptionRepository(session)
 
 
+from fastapi.security import APIKeyHeader
+from typing import Optional
+import os
 from app.graph.investigation_graph import InvestigationGraphRunner
 from app.investigation.llm_client import FakeLLMClient, GroqLLMClient, LLMClient
-import os
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def verify_api_key(
+    api_key: Optional[str] = Security(api_key_header),
+    authorization: Optional[str] = Header(None),
+) -> Optional[str]:
+    """Verify API key authentication when SENTINEL_API_KEY / API_KEY is configured."""
+    configured_key = (os.environ.get("SENTINEL_API_KEY") or os.environ.get("API_KEY") or "").strip()
+    if not configured_key:
+        return None
+
+    provided_key = None
+    if api_key:
+        provided_key = api_key.strip()
+    elif authorization and authorization.lower().startswith("bearer "):
+        provided_key = authorization[7:].strip()
+
+    if not provided_key or provided_key != configured_key:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key.",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+    return provided_key
 
 
 def get_llm_client() -> LLMClient:
     """Dependency for LLM client: GroqLLMClient if GROQ_API_KEY is available, else FakeLLMClient."""
-    api_key = os.environ.get("GROQ_API_KEY")
+    api_key = (os.environ.get("GROQ_API_KEY") or "").strip()
     if api_key:
         return GroqLLMClient(api_key=api_key)
     return FakeLLMClient()

@@ -13,6 +13,32 @@ from app.database.models import Base
 
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost/sentinel")
+import logging
+logger = logging.getLogger(__name__)
+
+
+def validate_database_security(url_str: str) -> None:
+    """Validate database connection URL and guard against default insecure credentials in production."""
+    try:
+        url = make_url(url_str)
+    except Exception:
+        return
+
+    is_prod = os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") or os.getenv("SENTINEL_ENV", "").lower() in ("production", "prod")
+    insecure_passwords = {"postgres", "password", "admin", "123456", "root", ""}
+    insecure_users = {"postgres", "root", "admin"}
+
+    if is_prod:
+        if (url.password and url.password.lower() in insecure_passwords) or not url.password:
+            raise ValueError("SECURITY VIOLATION: Production database cannot run with default/insecure password.")
+        if url.username and url.username.lower() in insecure_users:
+            raise ValueError("SECURITY VIOLATION: Production database cannot run with default superuser username.")
+    elif url.password and url.password.lower() in insecure_passwords:
+        logger.warning(
+            "SECURITY WARNING: Database configured with default/development credentials (%s:****@%s). Use strong credentials in production.",
+            url.username,
+            url.host,
+        )
 
 
 def get_engine_args(url_str: str) -> Tuple[URL, Dict[str, Any]]:
@@ -64,6 +90,7 @@ def get_engine_args(url_str: str) -> Tuple[URL, Dict[str, Any]]:
 
 def create_app_engine(url_str: str = DATABASE_URL, echo: bool = False) -> AsyncEngine:
     """Create an AsyncEngine with sanitized connection parameters."""
+    validate_database_security(url_str)
     clean_url, connect_args = get_engine_args(url_str)
     return create_async_engine(clean_url, connect_args=connect_args, echo=echo)
 
