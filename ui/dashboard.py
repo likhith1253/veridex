@@ -27,6 +27,8 @@ import pandas as pd
 import streamlit as st
 
 from ui.api_client import FinanceControllerAPIClient
+from decimal import Decimal, InvalidOperation
+from ui.api_client import FinanceControllerAPIClient
 from ui.styles import FINTECH_CSS
 
 # Page Configuration
@@ -48,8 +50,9 @@ def format_money(value, *, fallback="N/A — unavailable from live data"):
     if value is None:
         return fallback
     try:
-        return f"₹{float(value):,.2f}"
-    except (TypeError, ValueError):
+        dec = Decimal(str(value))
+        return f"₹{dec:,.2f}"
+    except (TypeError, ValueError, InvalidOperation):
         return fallback
 
 
@@ -57,8 +60,11 @@ def format_number(value, *, decimals=0, fallback="N/A — unavailable from live 
     if value is None:
         return fallback
     try:
-        return f"{float(value):,.{decimals}f}"
-    except (TypeError, ValueError):
+        dec = Decimal(str(value))
+        if decimals == 0:
+            return f"{dec:,.0f}"
+        return f"{dec:,.{decimals}f}"
+    except (TypeError, ValueError, InvalidOperation):
         return fallback
 
 
@@ -66,8 +72,9 @@ def format_percent(value, *, decimals=1, fallback="N/A — unavailable from live
     if value is None:
         return fallback
     try:
-        return f"{float(value):.{decimals}f}%"
-    except (TypeError, ValueError):
+        dec = Decimal(str(value))
+        return f"{dec:.{decimals}f}%"
+    except (TypeError, ValueError, InvalidOperation):
         return fallback
 
 
@@ -182,9 +189,9 @@ def view_overview():
     with c2:
         st.subheader("💰 Treasury Cash & Risk Exposure")
         cc1, cc2, cc3 = st.columns(3)
-        cc1.metric("Received Bank Credits", f"₹{cash.get('received_amount', 0.0):,.2f}")
-        cc2.metric("Pending In Window", f"₹{cash.get('pending_amount', 0.0):,.2f}")
-        cc3.metric("High-Risk Discrepancy", f"₹{cash.get('at_risk_amount', 0.0):,.2f}", delta_color="inverse")
+        cc1.metric("Received Bank Credits", format_money(cash.get('received_amount', 0)))
+        cc2.metric("Pending In Window", format_money(cash.get('pending_amount', 0)))
+        cc3.metric("High-Risk Discrepancy", format_money(cash.get('at_risk_amount', 0)), delta_color="inverse")
 
         cat_breakdown = cash.get("breakdown_by_category", {})
         if cat_breakdown:
@@ -499,13 +506,13 @@ def view_settlement_accounting():
 
     st.markdown(f"""
     <div class="accounting-box">
-        <div class="accounting-step"><span>Gross Gateway Volume</span><span>₹{float(settlement.get('gross_gateway_volume', 0)):,.2f}</span></div>
-        <div class="accounting-step"><span>(-) Total Deducted MDR Fees</span><span>-₹{float(settlement.get('total_deducted_fees', 0)):,.2f}</span></div>
-        <div class="accounting-step"><span>(-) Total Deducted Taxes (18% GST)</span><span>-₹{float(settlement.get('total_deducted_taxes', 0)):,.2f}</span></div>
-        <div class="accounting-step"><span>(-) Total Customer Refunds</span><span>-₹{float(settlement.get('total_refunded_amount', 0)):,.2f}</span></div>
-        <div class="accounting-step-highlight"><span>(=) Expected Net Bank Settlement</span><span>₹{float(settlement.get('expected_net_settlement', 0)):,.2f}</span></div>
-        <div class="accounting-step-highlight"><span>Actual Bank Statement Credits Received</span><span>₹{float(settlement.get('actual_bank_settled_credits', 0)):,.2f}</span></div>
-        <div class="accounting-step"><span>Net Settlement Variance</span><span>₹{float(settlement.get('net_settlement_variance', 0)):,.2f}</span></div>
+        <div class="accounting-step"><span>Gross Gateway Volume</span><span>{format_money(settlement.get('gross_gateway_volume', 0))}</span></div>
+        <div class="accounting-step"><span>(-) Total Deducted MDR Fees</span><span>-{format_money(settlement.get('total_deducted_fees', 0))}</span></div>
+        <div class="accounting-step"><span>(-) Total Deducted Taxes (18% GST)</span><span>-{format_money(settlement.get('total_deducted_taxes', 0))}</span></div>
+        <div class="accounting-step"><span>(-) Total Customer Refunds</span><span>-{format_money(settlement.get('total_refunded_amount', 0))}</span></div>
+        <div class="accounting-step-highlight"><span>(=) Expected Net Bank Settlement</span><span>{format_money(settlement.get('expected_net_settlement', 0))}</span></div>
+        <div class="accounting-step-highlight"><span>Actual Bank Statement Credits Received</span><span>{format_money(settlement.get('actual_bank_settled_credits', 0))}</span></div>
+        <div class="accounting-step"><span>Net Settlement Variance</span><span>{format_money(settlement.get('net_settlement_variance', 0))}</span></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -513,7 +520,7 @@ def view_settlement_accounting():
     if status == "RECONCILED":
         st.success(f"Status: {status} — All expected settlements match bank credits within clearing tolerance.")
     else:
-        st.warning(f"Status: {status} — Unsettled delayed exposure: ₹{float(settlement.get('unsettled_delayed_exposure', 0)):,.2f}")
+        st.warning(f"Status: {status} — Unsettled delayed exposure: {format_money(settlement.get('unsettled_delayed_exposure', 0))}")
 
     st.divider()
 
@@ -521,7 +528,7 @@ def view_settlement_accounting():
     c1, c2, c3 = st.columns(3)
     c1.metric("Analyzed Transactions", f"{feetax.get('total_transactions_analyzed', 0):,}")
     c2.metric("Discrepant Deductions", f"{feetax.get('discrepant_transactions_count', 0)}")
-    c3.metric("Fee/Tax Exposure", f"₹{float(feetax.get('total_fee_tax_exposure', 0)):,.2f}")
+    c3.metric("Fee/Tax Exposure", format_money(feetax.get('total_fee_tax_exposure', 0)))
 
 
 def view_refunds_and_duplicates():
@@ -546,14 +553,14 @@ def view_refunds_and_duplicates():
         r1, r2, r3 = st.columns(3)
         r1.metric("Audited Payments", f"{refunds.get('total_payments_audited', 0):,}")
         r2.metric("Fully / Partially Refunded", f"{refunds.get('fully_refunded_count', 0) + refunds.get('partially_refunded_count', 0)}")
-        r3.metric("Over-Refund Anomalies", f"{refunds.get('over_refund_anomalies_count', 0)}", delta=f"₹{float(refunds.get('total_over_refund_exposure', 0)):,.2f}", delta_color="inverse")
+        r3.metric("Over-Refund Anomalies", f"{refunds.get('over_refund_anomalies_count', 0)}", delta=f"{format_money(refunds.get('total_over_refund_exposure', 0))}", delta_color="inverse")
 
     with c2:
         st.subheader("Duplicate Incident Classification")
         d1, d2, d3 = st.columns(3)
         d1.metric("Total Incidents", f"{duplicates.get('total_incidents_detected', 0)}")
-        d2.metric("Duplicate Gateway Charges", f"{duplicates.get('duplicate_charges_count', 0)}", delta=f"₹{float(duplicates.get('duplicate_charges_exposure', 0)):,.2f}")
-        d3.metric("Duplicate Bank Credits", f"{duplicates.get('duplicate_settlements_count', 0)}", delta=f"₹{float(duplicates.get('duplicate_settlements_exposure', 0)):,.2f}")
+        d2.metric("Duplicate Gateway Charges", f"{duplicates.get('duplicate_charges_count', 0)}", delta=f"{format_money(duplicates.get('duplicate_charges_exposure', 0))}")
+        d3.metric("Duplicate Bank Credits", f"{duplicates.get('duplicate_settlements_count', 0)}", delta=f"{format_money(duplicates.get('duplicate_settlements_exposure', 0))}")
 
     st.divider()
 
@@ -580,9 +587,16 @@ def view_cash_position_and_forecast():
         render_empty_state("Cash position and forecast", "No live cash or forecast data is available from the controller API.")
         return
 
+    try:
+        fee_dec = Decimal(str(cash.get("total_deducted_fees", 0) or 0))
+        tax_dec = Decimal(str(cash.get("total_deducted_taxes", 0) or 0))
+        deductions_str = f"-{format_money(fee_dec + tax_dec)} deductions"
+    except Exception:
+        deductions_str = None
+
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Gross Gateway Volume", format_money(cash.get("expected_gross", cash.get("expected_amount", 0.0))))
-    c2.metric("Expected Net Settlement", format_money(cash.get("expected_net_settlement", 0.0)), delta=f"-₹{cash.get('total_deducted_fees', 0.0) + cash.get('total_deducted_taxes', 0.0):,.2f} deductions")
+    c2.metric("Expected Net Settlement", format_money(cash.get("expected_net_settlement", 0.0)), delta=deductions_str)
     c3.metric("Received Bank Credits", format_money(cash.get("received_bank_credits", cash.get("received_amount", 0.0))))
     c4.metric("Net Settlement Variance", format_money(cash.get("settlement_variance", 0.0)), delta_color="inverse")
     c5.metric("Unreconciled Exposure", format_money(cash.get("unreconciled_amount", 0.0)), delta_color="inverse")
@@ -592,7 +606,7 @@ def view_cash_position_and_forecast():
     st.divider()
 
     st.subheader("7-Day Forward Settlement Forecast (Moving Average)")
-    st.caption(f"Methodology: {forecast.get('methodology')} | 7-Day Inflow Total: ₹{forecast.get('seven_day_forecast_total_inr', 0.0):,.2f}")
+    st.caption(f"Methodology: {forecast.get('methodology')} | 7-Day Inflow Total: {format_money(forecast.get('seven_day_forecast_total_inr', 0))}")
 
     if not forecast.get("historical_data_sufficient", True) and forecast.get("distinct_historical_days", 0) > 0:
         st.warning("⚠️ Baseline Projection: Limited historical dates available (< 3 days). As additional batches are ingested, empirical volatility bounds will automatically refine.")
@@ -628,7 +642,7 @@ def view_source_health():
     for idx, (src_key, s_data) in enumerate(sources.items()):
         with s_cols[idx]:
             st.metric(s_data.get("source_name", src_key), f"{s_data.get('total_records', 0):,} records", delta=f"{s_data.get('match_rate_percent', 100.0):.1f}% match")
-            st.write(f"**Volume:** ₹{s_data.get('total_volume_inr', 0.0):,.0f}")
+            st.write(f"**Volume:** {format_money(s_data.get('total_volume_inr', 0))}")
             st.write(f"**Exceptions:** {s_data.get('exception_records', 0)} ({s_data.get('exception_rate_percent', 0.0):.1f}%)")
             st.write(f"**Status:** `{s_data.get('health_status', 'HEALTHY')}`")
 

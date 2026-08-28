@@ -84,7 +84,7 @@ class ControllerKPIs:
     """Consolidated Finance Controller KPIs calculated from actual database records."""
     total_records_processed: int = 0
     total_logical_transactions: int = 0
-    total_transaction_value_inr: float = 0.0
+    total_transaction_value_inr: Decimal = Decimal("0.00")
     deterministic_matches: int = 0
     ml_recovered_matches: int = 0
     total_matched_records: int = 0
@@ -96,18 +96,22 @@ class ControllerKPIs:
     reconciliation_recall: Optional[float] = None
     f1_score: Optional[float] = None
     exception_rate: float = 0.0
-    total_matched_monetary_value_inr: float = 0.0
-    unresolved_monetary_exposure_inr: float = 0.0
-    manual_review_exposure_inr: float = 0.0
-    high_risk_exposure_inr: float = 0.0
-    delayed_settlement_inr: float = 0.0
-    duplicate_amount_inr: float = 0.0
-    fee_mismatch_inr: float = 0.0
+    total_matched_monetary_value_inr: Decimal = Decimal("0.00")
+    unresolved_monetary_exposure_inr: Decimal = Decimal("0.00")
+    manual_review_exposure_inr: Decimal = Decimal("0.00")
+    high_risk_exposure_inr: Decimal = Decimal("0.00")
+    delayed_settlement_inr: Decimal = Decimal("0.00")
+    duplicate_amount_inr: Decimal = Decimal("0.00")
+    fee_mismatch_inr: Decimal = Decimal("0.00")
     processing_throughput_tps: Optional[float] = None
     average_processing_latency_ms: Optional[float] = None
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        d = asdict(self)
+        for k, v in d.items():
+            if isinstance(v, Decimal):
+                d[k] = str(v)
+        return d
 
 
 class FinanceController:
@@ -374,7 +378,7 @@ class FinanceController:
         return ControllerKPIs(
             total_records_processed=total_records,
             total_logical_transactions=total_logical_txns,
-            total_transaction_value_inr=float(exp.total_processed_value),
+            total_transaction_value_inr=Decimal(str(exp.total_processed_value)),
             deterministic_matches=det_count,  # Now transaction-level count
             ml_recovered_matches=ml_count,     # Now transaction-level count
             total_matched_records=det_count + ml_count + manual_count,  # Transaction-level
@@ -386,13 +390,13 @@ class FinanceController:
             reconciliation_recall=None,
             f1_score=None,
             exception_rate=round((unresolved_count / total_classified * 100) if total_classified > 0 else 0.0, 2),
-            total_matched_monetary_value_inr=float(exp.matched_value),
-            unresolved_monetary_exposure_inr=float(exp.unresolved_value),
-            manual_review_exposure_inr=float(exp.manual_review_value),
-            high_risk_exposure_inr=float(exp.high_risk_value),
-            delayed_settlement_inr=float(exp.delayed_settlement_exposure),
-            duplicate_amount_inr=float(exp.duplicate_exposure),
-            fee_mismatch_inr=float(exp.fee_tax_mismatch_exposure),
+            total_matched_monetary_value_inr=Decimal(str(exp.matched_value)),
+            unresolved_monetary_exposure_inr=Decimal(str(exp.unresolved_value)),
+            manual_review_exposure_inr=Decimal(str(exp.manual_review_value)),
+            high_risk_exposure_inr=Decimal(str(exp.high_risk_value)),
+            delayed_settlement_inr=Decimal(str(exp.delayed_settlement_exposure)),
+            duplicate_amount_inr=Decimal(str(exp.duplicate_exposure)),
+            fee_mismatch_inr=Decimal(str(exp.fee_tax_mismatch_exposure)),
             processing_throughput_tps=tps,
             average_processing_latency_ms=lat_ms,
         )
@@ -548,4 +552,4 @@ class FinanceController:
                 "note": "Vector DB outage handled with graceful SQL fallback.",
             }
 
-        return {"scenario": scenario, "status": "SIMULATION_EXECUTED", "amount": float(amt)}
+        return {"scenario": scenario, "status": "SIMULATION_EXECUTED", "amount": str(amt)}

@@ -729,108 +729,68 @@ Confirm implementation is intent-mapped or parameterised-query only. Document al
 ## ISSUE-AUD-021 — Streamlit Dashboard `format_money` Converts Decimals to Float Before Display, Introducing Floating-Point Rounding Errors
 
 **Severity:** MEDIUM
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
 **Component/Page:** UI financial formatting
-**File/Function/Endpoint:** [dashboard.py](file:///d:/sentinel/ui/dashboard.py) L51
+**File/Function/Endpoint:** [dashboard.py](file:///d:/sentinel/ui/dashboard.py) L47-L75 `format_money`, `format_number`, `format_percent`
 
-**Observed:**
-```python
-return f"₹{float(value):,.2f}"
-```
-`float()` on a Decimal value stored in PostgreSQL introduces binary floating-point imprecision. Decimal("0.1") → `float(Decimal("0.1"))` → 0.1000000000000000055... → formatted to `.2f` → OK visually for 2 dp, **BUT**:
-1. The displayed figure is still a float approximation, not the authoritative Decimal.
-2. For large values (crore range, 10^7 and above), float32/float64 precision loss becomes material at 2 dp.
-3. Violates ARCHITECTURE.md L553 principle: "Decimal for monetary calculations: Never use floating point for financial state." The rule says "state", but UI display *inherently rounds differently*. The project's own principles forbid floating-point for financials.
+**Original Defect:**
+`format_money` used `float(value)` before string formatting, introducing binary floating-point rounding errors on Decimal values.
 
-**Expected:**
-Use `Decimal` formatting: `from decimal import Decimal; f"₹{Decimal(str(value)):,.2f}"` or a dedicated currency formatter that operates purely on Decimals.
+**Actual Root Cause:**
+Direct `float()` conversion in UI formatting helpers caused imprecise representation for large amounts and decimal fractions.
 
-**Evidence:**
-```
-dashboard.py L51: float(value):,.2f
-```
+**Exact Fix:**
+Refactored `format_money`, `format_number`, and `format_percent` in [dashboard.py](file:///d:/sentinel/ui/dashboard.py) to parse values into Python `Decimal` directly (`Decimal(str(value))`) and format with exact comma-separated precision without any intermediate float conversions.
 
-**Reproduction:**
-1. Insert a transaction with amount=Decimal('123456789012345.12')
-2. Dashboard display → floating point may round to 123456789012345.13.
-
-**Impact:**
-- **Financial:** At sufficient scale, displayed totals differ from DB-authoritative totals by 1–5 paise → auditors and controllers reject the report as unreconciled at penny-level.
-- **Compliance:** Audit trail says amount X, UI says amount X+ε.
-
-**Recommended direction:**
-Remove `float()` from `format_money`, `format_number`, `format_percent`. Use Decimal formatting throughout.
+**Verification Performed:**
+- Verified with `test_aud_021_ui_format_money_decimal_precision` for `0.10 + 0.20 == "₹0.30"` and crore-level figures `123456789012345.12`.
 
 ---
 
 ## ISSUE-AUD-022 — Dashboard Ingests Decimal via API as String → Immediately `float()` in Multiple Places (format_money, .metric delta, etc.)
 
 **Severity:** LOW-MEDIUM
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
 **Component/Page:** Streamlit metrics rendering
-**File/Function/Endpoint:** [dashboard.py](file:///d:/sentinel/ui/dashboard.py) L132-L152, L185-L187
+**File/Function/Endpoint:** [dashboard.py](file:///d:/sentinel/ui/dashboard.py)
 
-**Observed:**
-Throughout dashboard.py:
-- `float(f1_val):.1f%` (L135)
-- `cash.get(...)` values passed directly into format_money then rendered with float() inside
-- `₹{cash.get('received_amount', 0.0):,.2f}` (L185) — **unpacks a JSON number** (may already be float on wire due to JSON) but treats it as exact float literal for formatting
+**Original Defect:**
+Streamlit views performed ad-hoc `float()` conversions and additions across metrics, accounting boxes, and table columns.
 
-The API returns many monetary values as JSON numbers / Python floats **already** (AUD-023 to follow on that), and the UI compounds the problem.
+**Actual Root Cause:**
+Absence of centralized Decimal formatting in view components led to dispersed `float()` conversions across dashboard tabs.
 
-**Expected:**
-API returns Decimals as string-cents or Decimal strings to preserve precision end-to-end. UI parses strings back to Decimals and uses Decimal formatting.
+**Exact Fix:**
+Replaced all inline `float()` casts across Treasury Net Settlement, MDR Fee & Tax audit, Refund reconciliation, Duplicate detection, Cash position, Forecast, and Source health with `format_money(...)` and exact Decimal arithmetic.
 
-**Evidence:**
-L185: `₹{cash.get('received_amount', 0.0):,.2f}` — default 0.0 is a float, `:,.2f` is float format string.
-
-**Impact:**
-Same as AUD-021.
-
-**Recommended direction:**
-Standardise on string-serialised Decimals across the API boundary.
+**Verification Performed:**
+- Verified with `test_aud_022_ui_format_number_and_percent_precision` and live browser inspection.
 
 ---
 
 ## ISSUE-AUD-023 — API Returns Decimals as JSON Numbers via `float()` Conversion, Breaking Precision
 
 **Severity:** HIGH
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
 **Component/Page:** API monetary serialisation
-**File/Function/Endpoint:** [finance_controller.py](file:///d:/sentinel/app/services/finance_controller.py) L346, L359-L364 (ControllerKPIs fields), [exposure_service.py](file:///d:/sentinel/app/services/exposure_service.py) L47-L61 `to_dict()`
+**File/Function/Endpoint:** [finance_controller.py](file:///d:/sentinel/app/services/finance_controller.py) `ControllerKPIs` dataclass & `to_dict()`
 
-**Observed:**
-ControllerKPIs stores monetary values as `float = 0.0`:
-```python
-total_transaction_value_inr: float = 0.0  # L87
-unresolved_monetary_exposure_inr: float = 0.0  # L100
-```
-The exposure service correctly stores in Decimal internally but `to_dict()` casts to string: `"total_processed_value": str(self.total_processed_value)`.
-However, `ControllerKPIs` converts to float **at field declaration time**, so the API JSON contains floats. FastAPI JSON-encodes floats as JSON numbers → lossy.
+**Original Defect:**
+`ControllerKPIs` declared monetary fields as `float = 0.0`, discarding Decimal precision when converting service results to API JSON.
 
-Two different serialisation patterns in the same product:
-- Some endpoints: `to_dict()` with `str(Decimal(...))`
-- Other endpoints: Pydantic model fields or dataclass fields typed `float` → JSON numbers.
+**Actual Root Cause:**
+`ControllerKPIs` converted PostgreSQL / service Decimals into native floats at field declaration and in `asdict()` serialization.
 
-Mix of both means the UI has to sometimes parse strings and sometimes parse JSON floats, but UI always does `float()`. So even stringified Decimals eventually get re-floated.
+**Exact Fix:**
+- Updated all monetary fields in `ControllerKPIs` dataclass to `Decimal = Decimal("0.00")`.
+- Updated `ControllerKPIs.to_dict()` to serialize all Decimal instances to string representations (`str(v)`), ensuring exact precision across the API boundary.
 
-**Expected:**
-Monetary values serialised as strings preserving precision, or as integer-cents. Never as JSON floats.
-
-**Evidence:**
-- ControllerKPIs L87-L107: 10+ monetary fields typed `float`.
-- Exposure `to_dict()`: `str()` conversion (good practice but inconsistent).
-- `/summary` API response already observed showing values as JSON numbers because FastAPI routes `ControllerKPIs.to_dict()` that has floats.
-
-**Impact:**
-- **Financial:** End-to-end precision broken at API boundary. ControllerKPIs sums differ from DB-authoritative Decimals by floating-point noise.
-- **Auditability:** Cannot diff the API response JSON against a `psql` export to verify numbers.
-
-**Recommended direction:**
-Convert all `float` monetary fields to `Decimal` or `str`. Use a Pydantic custom encoder that writes all Decimals as strings.
+**Verification Performed:**
+- Verified with `test_aud_023_controller_kpis_decimal_exact_serialization`.
+- Verified live `GET /api/v1/controller/summary` returns monetary fields as exact strings with full Decimal precision.
 
 ---
 
@@ -1230,37 +1190,23 @@ Use a single authoritative source for expected_gross (document which). Record GW
 ## ISSUE-AUD-032 — Cash Position `to_dict()` Casts All Decimals to `float()` (Duplicate AUD-023 Pattern Here)
 
 **Severity:** HIGH
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
 **Component/Page:** Cash Position serialisation
-**File/Function/Endpoint:** [cash_position.py](file:///d:/sentinel/app/services/cash_position.py) L49-L68
+**File/Function/Endpoint:** [cash_position.py](file:///d:/sentinel/app/services/cash_position.py) L49-L68 `CashPositionSummary.to_dict()`
 
-**Observed:**
-```python
-def to_dict(self) -> dict[str, Any]:
-    return {
-        "expected_amount": float(self.expected_amount),
-        "expected_gross": float(self.expected_gross),
-        "expected_net_settlement": float(self.expected_net_settlement),
-        "received_amount": float(self.received_amount),
-        ... 13 more float() casts ...
-    }
-```
-Every Decimal field in CashPositionSummary is cast to float before being JSON-encoded to the API. This is the same AUD-023 pattern (ControllerKPIs has 10+ float-typed fields) applied here too. Together these 2 services handle ~25 monetary values, all converted to float at the API boundary.
+**Original Defect:**
+`CashPositionSummary.to_dict()` cast all 13 `Decimal` fields to `float()` before JSON encoding.
 
-**Expected:**
-Stringified Decimals or Pydantic Decimal encoder.
+**Actual Root Cause:**
+Explicit `float(...)` conversion in the serialization method truncated Decimal precision for treasury and settlement reporting.
 
-**Evidence:**
-```
-cash_position.py L51-L67: float() on every single monetary field
-```
+**Exact Fix:**
+Updated `CashPositionSummary.to_dict()` in [cash_position.py](file:///d:/sentinel/app/services/cash_position.py) to serialize all monetary values (`expected_gross`, `expected_net_settlement`, `received_bank_credits`, `settlement_variance`, `unreconciled_amount`, etc.) as exact strings (`str(self.field)`).
 
-**Impact:**
-Same as AUD-023.
-
-**Recommended direction:**
-Standardise across all `to_dict()` serialisers: Decimal → str(Decimal).
+**Verification Performed:**
+- Verified with `test_aud_032_cash_position_summary_string_decimal_serialization`.
+- Verified live `GET /api/v1/controller/cash-position` returns all monetary fields as stringified Decimals with 0 precision loss.
 
 ---
 
@@ -2028,51 +1974,25 @@ Refactor FailureSimulationRequest to use `scenario: Literal[<explicit list>]`. F
 ## ISSUE-AUD-051 — Single Transaction Ingest Endpoint Accepts Float Amount at API Boundary; Truncates/Deforms Precision Before ORM Layer Even Receives Decimal
 
 **Severity:** HIGH
-**Status:** CONFIRMED
+**Status:** RESOLVED
 
 **Component/Page:** Transaction Ingestion (single-txn endpoint)
-**File/Function/Endpoint:** [controller.py](file:///d:/sentinel/app/api/routes/controller.py) L93-143 `/ingest` POST; [schemas/controller.py](file:///d:/sentinel/app/api/schemas/controller.py) L11 `BatchRecordItem.amount: float`; L96 inline `SingleTransactionIngestRequest.amount: float`
+**File/Function/Endpoint:** [controller.py](file:///d:/sentinel/app/api/routes/controller.py) `/ingest` POST; [schemas/controller.py](file:///d:/sentinel/app/api/schemas/controller.py) `BatchRecordItem.amount: Decimal`, `SingleTransactionIngestRequest.amount: Decimal`
 
-**Observed:**
-The `POST /ingest` route declares its inline Pydantic model as:
-```python
-class SingleTransactionIngestRequest(BaseModel):
-    amount: float  # L96 — FLOAT not Decimal!
-```
-And `BatchIngestRequest → BatchRecordItem.amount` also uses `float: Field(..., ge=0.0)` (L11).
+**Original Defect:**
+Ingestion models declared `amount`, `fee`, and `tax` as floats, causing float precision loss and rounding distortion before database insertion.
 
-Pydantic / FastAPI JSON-decode float amounts **before** the route handler runs. So a value like `0.1` arrives as `float(0.1) = 0.1000000000000000055…`. The handler then tries to "fix" it with `Decimal(str(request.amount))` (L120). But `str(float(0.1))` in Python is `'0.1'` (Python's float repr rounds), so the bug is hidden for values that round-trip through float nicely. For paisa-level amounts like `amount: 123456789012345.12` (large INR amounts with 2 dp precision commonly in reconciliation systems), the float representation will differ materially from the intended Decimal after `str()` conversion.
+**Actual Root Cause:**
+API boundary request schemas used `float` rather than Pydantic `Decimal` fields.
 
-Worse: `BatchRecordItem.fee` and `.tax` also default to `Field(0.0, ...)` typed float, so fee/tax defaults are float zero not Decimal zero.
+**Exact Fix:**
+- Declared `amount: Decimal = Field(..., gt=Decimal("0.0"))` on `SingleTransactionIngestRequest` and `BatchRecordItem`.
+- Declared `fee` and `tax` as `Optional[Decimal] = Field(Decimal("0.0"), ge=Decimal("0.0"))`.
+- Preserved exact Decimal values through normalization and persistence without intermediate float conversions.
 
-This is the API-level variant of AUD-023 (ControllerKPIs float fields) + AUD-021 (UI float formatting) + AUD-032 (cash_position.to_dict() float cast): it's the **inbound ingestion side** of the same Decimal-to-float precision break, hitting the *entry point* before any data is persisted.
-
-**Expected:**
-All monetary fields (`amount`, `fee`, `tax`, `financial_exposure`, `amount_delta`, etc.) must be serialised as strings across the JSON boundary: `"123.45"` not `123.45`. Use Pydantic's `plain_serializer` / custom validator or declare as `str` and validate/convert inside the handler to Decimal directly. Never declare financial data as `float` at the Pydantic boundary in either direction.
-
-Additionally, `ge=0.0` validation on a float field operates on the floated value; if the intent is to reject negative amounts, do the comparison on the Decimal after parse, not on the potentially-imprecise float input.
-
-**Evidence:**
-```
-[controller.py L96] SingleTransactionIngestRequest.amount: float
-[schemas/controller.py L11] BatchRecordItem.amount: float
-[schemas/controller.py L16-L17] BatchRecordItem.fee: Optional[float] = Field(0.0, ...)
-[schemas/controller.py L17]                          .tax: Optional[float] = Field(0.0, ...)
-```
-
-**Reproduction:**
-1. `POST /ingest` body `{txn_id:"prec_test", source:"gateway", amount: 123456789012345.12, currency:"INR"}`
-2. Read row back from `transactions` table via SQL: `SELECT amount FROM transactions WHERE txn_id='prec_test'`
-3. Compare stored value to the exact decimal the client JSON intended. If the JSON numeric `123456789012345.12` round-trips to e.g. `123456789012345.13` or `123456789012345.11` after float parsing, the endpoint silently corrupted the financial amount.
-4. Also reproduce with `amount: 0.29` (classic float edge-case) — `float(0.29)` → `Decimal(str(float(0.29)))` may or may not survive intact.
-
-**Impact:**
-- **Data Integrity:** Inbound transaction amounts are silently deformed at the JSON/HTTP boundary *before* reconciliation runs. The reconciliation engine then compares these deformed values across feeds, producing spurious amount_mismatch exceptions on values that were equal before float conversion.
-- **Compound:** AUD-023 serialises back to float on response; AUD-021 displays floats; AUD-032 casts to_dict to float. The entire inbound→DB→outbound chain has monetary precision mangled TWICE (in as float, out as float) with the DB's Decimal squeezed in between.
-- **Audit:** Cannot prove a transaction was ingested with the exact amount the customer specified since the first thing the API does is float-parse it.
-
-**Recommended direction:**
-Change all monetary Pydantic fields to `str` or use `pydantic.Decimal` with `json_schema_extra={"format": "decimal-string"}` and a custom encoder that writes strings on output. Reject JSON numeric floats at the boundary for currency fields (fail validation if value's type in JSON is number, not string). Add regression tests for 10+ paisa-level precision values that must round-trip ingest→DB→read exactly equal.
+**Verification Performed:**
+- Verified with `test_aud_051_ingest_pydantic_schemas_enforce_decimal_precision` on edge-case amounts (e.g. `0.10`, `123456789.75`).
+- Verified live `POST /ingest` and batch normalization against live PostgreSQL database.
 
 ---
 

@@ -29,7 +29,7 @@ from app.models.transaction import TransactionSource
 class SourceMetrics:
     source_name: str
     total_records: int = 0
-    total_volume_inr: float = 0.0
+    total_volume_inr: Decimal = Decimal("0.00")
     matched_records: int = 0
     exception_records: int = 0
     match_rate_percent: float = 0.0
@@ -44,7 +44,11 @@ class SourceHealthReport:
     sources: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        d = asdict(self)
+        for s_key, s_data in d.get("sources", {}).items():
+            if isinstance(s_data, dict) and "total_volume_inr" in s_data and isinstance(s_data["total_volume_inr"], Decimal):
+                s_data["total_volume_inr"] = str(s_data["total_volume_inr"])
+        return d
 
 
 class SourceHealthService:
@@ -73,7 +77,7 @@ class SourceHealthService:
         for src, count, vol in vol_rows:
             if src in source_stats:
                 source_stats[src].total_records = count or 0
-                source_stats[src].total_volume_inr = float(vol or 0.0)
+                source_stats[src].total_volume_inr = Decimal(str(vol or 0.0))
 
         try:
             match_stmt = select(
