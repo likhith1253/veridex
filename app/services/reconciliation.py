@@ -143,9 +143,19 @@ class ReconciliationService:
                     m for m in deterministic_matches
                     if m.confidence < Decimal("0.95") and not any(tid in ml_matched_txn_ids for tid in m.transaction_ids)
                 ]
-                all_matches = high_conf_deterministic_matches + ml_matches + remaining_det_matches
+                raw_all_matches = high_conf_deterministic_matches + ml_matches + remaining_det_matches
             else:
-                all_matches = deterministic_matches
+                raw_all_matches = deterministic_matches
+
+            # Enforce strict disjoint match assignment across all final matches
+            assigned_tids = set()
+            all_matches = []
+            for m in raw_all_matches:
+                unassigned = [tid for tid in m.transaction_ids if tid not in assigned_tids]
+                if len(unassigned) >= 2:
+                    m_clean = m.model_copy(update={"transaction_ids": unassigned})
+                    all_matches.append(m_clean)
+                    assigned_tids.update(unassigned)
             
             # Run DecisionPolicy for all candidates
             decision_policy = DecisionPolicy()
@@ -295,12 +305,13 @@ class ReconciliationService:
         # ------------------------------------------------------------------ #
         results: list[MatchResult] = []
         already_proposed: set[str] = set()
+        unresolved_ids = {t.txn_id for t in unresolved_txns}
 
         for txn in unresolved_txns:
             if txn.txn_id in already_proposed:
                 continue
 
-            candidates = candidate_gen.get_candidates(txn)
+            candidates = [c for c in candidate_gen.get_candidates(txn) if c.txn_id in unresolved_ids and c.txn_id not in already_proposed]
             if not candidates:
                 continue
 

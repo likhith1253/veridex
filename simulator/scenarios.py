@@ -432,9 +432,9 @@ def generate_wrong_reference(
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
     """Corrupted references across sources (e.g. typos, altered characters)."""
     utr = f"UTR{logical_id[-12:]}"
-    corrupted_order_id = ledger_id[:-2] + "XX" if len(ledger_id) > 2 else f"{ledger_id}_X"
-    corrupted_utr = utr[:-2] + "99" if len(utr) > 2 else f"{utr}_9"
-    wrong_ref = logical_id[:-2] + "YY"
+    corrupted_order_id = f"{ledger_id}_ERR"
+    corrupted_utr = f"{utr}_ERR"
+    wrong_ref = f"{logical_id}_ERR"
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,

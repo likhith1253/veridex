@@ -230,6 +230,13 @@ class BankNormalizer:
                 "debit_amount": row["debit_amount"],
             }
 
+            order_id = row.get("order_id")
+            if not order_id and narration:
+                import re
+                ord_match = re.search(r"\b(ORD[A-Za-z0-9_-]+)\b", narration, re.IGNORECASE)
+                if ord_match:
+                    order_id = ord_match.group(1)
+
             return Transaction(
                 txn_id=txn_id,
                 source=TransactionSource.BANK,
@@ -239,6 +246,7 @@ class BankNormalizer:
                 timestamp=timestamp,
                 narration=narration,
                 status=TransactionStatus.COMPLETED,
+                order_id=order_id,
                 metadata=metadata,
             )
         except (InvalidOperation, ValueError) as e:

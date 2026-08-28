@@ -223,9 +223,9 @@ class DecisionPolicy:
         # Find all candidates from the same source as txn2
         candidates = transactions_by_source.get(txn2.source, [])
         
-        # If only one candidate, margin doesn't apply (max confidence margin 1.0)
+        # If only one candidate, margin doesn't apply (infinite margin)
         if len(candidates) <= 1:
-            return 1.0, None
+            return float("inf"), None
 
         # In a real implementation, we would compute ML probabilities for all candidates
         # and find the second-best. For now, we assume the provided probability is the best

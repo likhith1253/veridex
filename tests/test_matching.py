@@ -182,8 +182,10 @@ def test_exact_three_source_reconciliation():
     )
     results = matcher.match_all()
 
-    # Should produce two matches: gateway-ledger and gateway-bank
-    assert len(results) == 2
+    # Should produce a single consolidated true 3-way match (gateway + ledger + bank)
+    assert len(results) == 1
+    assert set(results[0].transaction_ids) == {"g1", "l1", "b1"}
+    assert results[0].evidence.get("three_way_match") is True
 
 
 def test_different_references_do_not_automatically_match():

@@ -194,14 +194,23 @@ class FinanceController:
         """Compute live controller KPIs directly from PostgreSQL state."""
         exp = await self.exposure_service.calculate_exposure(run_id)
 
-        txn_stmt = select(func.count(TransactionORM.id))
-        res = await self.session.execute(txn_stmt)
-        total_records = res.scalar_one() or 0
+        all_txns_stmt = select(TransactionORM)
+        res = await self.session.execute(all_txns_stmt)
+        all_txns = res.scalars().all()
+        total_records = len(all_txns)
 
         # Get matches and their decisions for the run
         match_stmt = select(MatchORM)
         if run_id:
-            match_stmt = match_stmt.where(MatchORM.run_id == run_id)
+            run_query = select(ReconciliationRunORM).where(
+                (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+            )
+            run_result = await self.session.execute(run_query)
+            run_obj = run_result.scalar_one_or_none()
+            if run_obj:
+                match_stmt = match_stmt.where((MatchORM.run_id == run_obj.id) | (MatchORM.run_id == run_id))
+            else:
+                match_stmt = match_stmt.where(MatchORM.run_id == run_id)
         res = await self.session.execute(match_stmt)
         matches = res.scalars().all()
 
@@ -340,9 +349,26 @@ class FinanceController:
                 tps = round(run_records / duration_sec, 2)
                 lat_ms = round((duration_sec * 1000.0) / run_records, 2)
 
+        # Compute true logical transactions: distinct matches + distinct unmatched transaction clusters
+        matched_txns_set = set(txn_to_matches.keys())
+        unmatched_clusters = set()
+        for t in all_txns:
+            if t.id not in matched_txns_set:
+                if t.order_id:
+                    unmatched_clusters.add(f"order:{t.order_id}")
+                elif t.reference_number:
+                    unmatched_clusters.add(f"ref:{t.reference_number}")
+                else:
+                    unmatched_clusters.add(f"txn:{t.id}")
+
+        if total_records == 0:
+            total_logical_txns = 0
+        else:
+            total_logical_txns = len(matches) + len(unmatched_clusters)
+
         return ControllerKPIs(
             total_records_processed=total_records,
-            total_logical_transactions=total_records // 3 if total_records >= 3 else total_records,
+            total_logical_transactions=total_logical_txns,
             total_transaction_value_inr=float(exp.total_processed_value),
             deterministic_matches=det_count,  # Now transaction-level count
             ml_recovered_matches=ml_count,     # Now transaction-level count
