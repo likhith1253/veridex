@@ -594,11 +594,16 @@ def view_cash_position_and_forecast():
     st.subheader("7-Day Forward Settlement Forecast (Moving Average)")
     st.caption(f"Methodology: {forecast.get('methodology')} | 7-Day Inflow Total: ₹{forecast.get('seven_day_forecast_total_inr', 0.0):,.2f}")
 
+    if not forecast.get("historical_data_sufficient", True) and forecast.get("distinct_historical_days", 0) > 0:
+        st.warning("⚠️ Baseline Projection: Limited historical dates available (< 3 days). As additional batches are ingested, empirical volatility bounds will automatically refine.")
+
     days = forecast.get("forecast_days", [])
     if days:
         df_fc = pd.DataFrame(days)
         st.line_chart(df_fc.set_index("date")[["forecast_amount_inr", "confidence_interval_low", "confidence_interval_high"]])
         st.dataframe(df_fc, width='stretch')
+    else:
+        st.info("No transaction history available to compute settlement projections.")
 
 
 def view_source_health():
