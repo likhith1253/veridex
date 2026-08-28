@@ -26,7 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.database.session import create_app_engine
 from sqlalchemy import text
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/sentinel_test")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL", "postgresql+asyncpg://localhost/sentinel_test")
 
 
 @pytest_asyncio.fixture(autouse=True)

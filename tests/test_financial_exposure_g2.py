@@ -26,7 +26,7 @@ from app.services.finance_controller import FinanceController
 from app.services.finance_qa import FinanceQAService
 from app.services.settlement_accounting_service import SettlementAccountingService
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/sentinel_test")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL", "postgresql+asyncpg://localhost/sentinel_test")
 
 
 @pytest_asyncio.fixture(autouse=True)

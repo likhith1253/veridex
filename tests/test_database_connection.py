@@ -17,7 +17,7 @@ def test_neon_url_sanitization():
 
 def test_local_url_sanitization():
     """Test that standard local PostgreSQL URLs work without forcing SSL."""
-    local_url = "postgresql+asyncpg://postgres:postgres@localhost:5432/sentinel"
+    local_url = "postgresql+asyncpg://user:pass@localhost:5432/sentinel"
     clean_url, connect_args = get_engine_args(local_url)
 
     assert clean_url.drivername == "postgresql+asyncpg"
