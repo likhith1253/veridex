@@ -161,12 +161,121 @@ class TestReconciliationRateDenominator:
     @pytest.mark.asyncio
     async def test_reconciliation_rate_uses_total_records_not_classified(self):
         """Verify reconciliation rate denominator is total incoming transactions, not total classified."""
-        pass
+        session = AsyncMock()
+        ctrl = FinanceController(session)
+
+        from app.services.exposure_service import FinancialExposureBreakdown
+
+        ctrl.exposure_service.calculate_exposure = AsyncMock(
+            return_value=FinancialExposureBreakdown(
+                total_processed_value=Decimal("5000.00"),
+                matched_value=Decimal("2000.00"),
+                unresolved_value=Decimal("3000.00"),
+            )
+        )
+
+        txns = [
+            MagicMock(id="t1", source="gateway"),
+            MagicMock(id="t2", source="gateway"),
+            MagicMock(id="t3", source="ledger"),
+            MagicMock(id="t4", source="bank"),
+            MagicMock(id="t5", source="bank"),
+        ]
+        res_txns = MagicMock()
+        res_txns.scalars.return_value.all.return_value = txns
+
+        match1 = MagicMock(id="m1", match_type="exact", reason="deterministic exact match")
+        match2 = MagicMock(id="m2", match_type="exact", reason="manual review needed")
+        match3 = MagicMock(id="m3", match_type="exact", reason="unresolved exception")
+        res_matches = MagicMock()
+        res_matches.scalars.return_value.all.return_value = [match1, match2, match3]
+
+        dec1 = MagicMock(match_id="m1", decision_action=DecisionAction.AUTO_MATCH.value, action=DecisionAction.AUTO_MATCH.value)
+        dec2 = MagicMock(match_id="m2", decision_action=DecisionAction.MANUAL_REVIEW.value, action=DecisionAction.MANUAL_REVIEW.value)
+        dec3 = MagicMock(match_id="m3", decision_action=DecisionAction.UNRESOLVED.value, action=DecisionAction.UNRESOLVED.value)
+        res_decisions = MagicMock()
+        res_decisions.scalars.return_value.all.return_value = [dec1, dec2, dec3]
+
+        mt1 = MagicMock()
+        mt1.scalars.return_value.all.return_value = ["t1", "t2"]
+        mt2 = MagicMock()
+        mt2.scalars.return_value.all.return_value = ["t3"]
+        mt3 = MagicMock()
+        mt3.scalars.return_value.all.return_value = ["t4"]
+        res_run = MagicMock()
+        valid_run = MagicMock()
+        valid_run.started_at = datetime(2026, 8, 28, 10, 0, 0)
+        valid_run.completed_at = datetime(2026, 8, 28, 10, 0, 10)
+        valid_run.gateway_count = 2
+        valid_run.ledger_count = 1
+        valid_run.bank_count = 2
+        res_run.scalars.return_value.all.return_value = [valid_run]
+
+        session.execute = AsyncMock(side_effect=[res_txns, res_matches, res_decisions, mt1, mt2, mt3, res_run])
+
+        kpis = await ctrl.get_summary_kpis()
+
+        assert kpis.total_records_processed == 5
+        assert kpis.deterministic_matches == 2
+        assert kpis.manual_reviews == 1
+        assert kpis.unresolved_transactions == 2
+        assert kpis.match_rate == 40.0
+        assert kpis.exception_rate == 40.0
 
     @pytest.mark.asyncio
     async def test_manual_review_not_counted_in_reconciliation_rate(self):
         """Verify manual review transactions are not counted as successfully reconciled."""
-        pass
+        session = AsyncMock()
+        ctrl = FinanceController(session)
+
+        from app.services.exposure_service import FinancialExposureBreakdown
+
+        ctrl.exposure_service.calculate_exposure = AsyncMock(
+            return_value=FinancialExposureBreakdown(
+                total_processed_value=Decimal("3000.00"),
+                matched_value=Decimal("1000.00"),
+                unresolved_value=Decimal("2000.00"),
+            )
+        )
+
+        txns = [
+            MagicMock(id="t1", source="gateway"),
+            MagicMock(id="t2", source="ledger"),
+            MagicMock(id="t3", source="bank"),
+        ]
+        res_txns = MagicMock()
+        res_txns.scalars.return_value.all.return_value = txns
+
+        match1 = MagicMock(id="m1", match_type="exact", reason="deterministic exact match")
+        match2 = MagicMock(id="m2", match_type="exact", reason="manual review needed")
+        res_matches = MagicMock()
+        res_matches.scalars.return_value.all.return_value = [match1, match2]
+
+        dec1 = MagicMock(match_id="m1", decision_action=DecisionAction.AUTO_MATCH.value, action=DecisionAction.AUTO_MATCH.value)
+        dec2 = MagicMock(match_id="m2", decision_action=DecisionAction.MANUAL_REVIEW.value, action=DecisionAction.MANUAL_REVIEW.value)
+        res_decisions = MagicMock()
+        res_decisions.scalars.return_value.all.return_value = [dec1, dec2]
+
+        mt1 = MagicMock()
+        mt1.scalars.return_value.all.return_value = ["t1", "t2"]
+        mt2 = MagicMock()
+        mt2.scalars.return_value.all.return_value = ["t3"]
+        res_run = MagicMock()
+        valid_run = MagicMock()
+        valid_run.started_at = datetime(2026, 8, 28, 10, 0, 0)
+        valid_run.completed_at = datetime(2026, 8, 28, 10, 0, 4)
+        valid_run.gateway_count = 1
+        valid_run.ledger_count = 1
+        valid_run.bank_count = 1
+        res_run.scalars.return_value.all.return_value = [valid_run]
+
+        session.execute = AsyncMock(side_effect=[res_txns, res_matches, res_decisions, mt1, mt2, res_run])
+
+        kpis = await ctrl.get_summary_kpis()
+
+        assert kpis.deterministic_matches == 2
+        assert kpis.manual_reviews == 1
+        assert kpis.match_rate == 66.67
 
 
 class TestThroughputCalculation:
@@ -203,10 +312,53 @@ class TestThroughputCalculation:
         res_decisions.scalars.return_value.all.return_value = []
 
         res_run = MagicMock()
-        res_run.scalar_one_or_none.return_value = mock_run
+        res_run.scalars.return_value.all.return_value = [mock_run]
 
         session.execute = AsyncMock(side_effect=[res_count, res_matches, res_decisions, res_run])
 
         kpis = await ctrl.get_summary_kpis()
         assert kpis.processing_throughput_tps == 15.0  # 30 records / 2.0 sec
         assert kpis.average_processing_latency_ms == pytest.approx(66.67, rel=1e-2)  # 2000 ms / 30 records
+
+    @pytest.mark.asyncio
+    async def test_summary_kpis_selects_latest_valid_completed_run(self):
+        from unittest.mock import MagicMock
+        from datetime import datetime, timedelta
+        from app.services.exposure_service import FinancialExposureBreakdown
+
+        session = AsyncMock()
+        ctrl = FinanceController(session)
+        ctrl.exposure_service.calculate_exposure = AsyncMock(return_value=FinancialExposureBreakdown())
+
+        res_count = MagicMock()
+        res_count.scalar_one.return_value = 10
+
+        res_matches = MagicMock()
+        res_matches.scalars.return_value.all.return_value = []
+
+        res_decisions = MagicMock()
+        res_decisions.scalars.return_value.all.return_value = []
+
+        zero_run = MagicMock()
+        zero_run.started_at = datetime(2026, 8, 28, 9, 0, 0)
+        zero_run.completed_at = datetime(2026, 8, 28, 9, 0, 0)
+        zero_run.gateway_count = 5
+        zero_run.ledger_count = 3
+        zero_run.bank_count = 2
+
+        valid_run = MagicMock()
+        valid_run.started_at = datetime(2026, 8, 28, 9, 0, 0)
+        valid_run.completed_at = datetime(2026, 8, 28, 9, 0, 5)
+        valid_run.gateway_count = 4
+        valid_run.ledger_count = 3
+        valid_run.bank_count = 3
+
+        res_run = MagicMock()
+        res_run.scalars.return_value.all.return_value = [zero_run, valid_run]
+
+        session.execute = AsyncMock(side_effect=[res_count, res_matches, res_decisions, res_run])
+
+        kpis = await ctrl.get_summary_kpis()
+
+        assert kpis.processing_throughput_tps == 2.0
+        assert kpis.average_processing_latency_ms == 500.0

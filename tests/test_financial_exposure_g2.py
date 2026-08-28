@@ -355,3 +355,69 @@ async def test_case_g_all_sources_summed_in_total_processed(db_session: AsyncSes
 
     # MUST be 300.00 (all 3 feeds), NEVER 200.00 (GW+LD only)
     assert exp.total_processed_value == Decimal("300.00")
+
+
+@pytest.mark.asyncio
+async def test_case_h_cash_position_does_not_double_count_variance_and_exceptions(db_session: AsyncSession):
+    """Cash exposure must not sum exception exposure and settlement variance together."""
+    run = ReconciliationRunORM(
+        id="run_g2_h",
+        run_id="run_g2_h",
+        status="completed",
+        created_at=_now(),
+        started_at=_now(),
+        completed_at=_now(),
+        gateway_count=1,
+        ledger_count=0,
+        bank_count=1,
+        match_count=0,
+        exception_count=1,
+    )
+    db_session.add(run)
+
+    gw = TransactionORM(
+        id="txn_g2_h_gw",
+        domain_transaction_id="H_GW",
+        source=TransactionSource.GATEWAY.value,
+        amount=Decimal("100.00"),
+        currency="INR",
+        timestamp=_now(),
+        status=TransactionStatus.COMPLETED.value,
+        created_at=_now(),
+    )
+    bk = TransactionORM(
+        id="txn_g2_h_bk",
+        domain_transaction_id="H_BK",
+        source=TransactionSource.BANK.value,
+        amount=Decimal("20.00"),
+        currency="INR",
+        timestamp=_now(),
+        status=TransactionStatus.COMPLETED.value,
+        created_at=_now(),
+    )
+    db_session.add_all([gw, bk])
+    await db_session.flush()
+
+    exc = ExceptionORM(
+        id="exc_g2_h_1",
+        run_id="run_g2_h",
+        transaction_id="txn_g2_h_gw",
+        exception_category="missing_record",
+        status="open",
+        confidence=Decimal("0.75"),
+        financial_exposure=Decimal("30.00"),
+        expected_cost=Decimal("30.00"),
+        explanation="Open missing record exposure",
+        resolved=False,
+        created_at=_now(),
+    )
+    db_session.add(exc)
+    await db_session.commit()
+
+    cash_service = CashPositionService(db_session)
+    cash = await cash_service.get_cash_position("run_g2_h")
+
+    assert cash.settlement_variance == Decimal("-80.00")
+    assert cash.unreconciled_amount == Decimal("80.00")
+    assert cash.breakdown_by_category["missing_record"] == Decimal("30.00")
+    assert cash.breakdown_by_category["delayed_settlement"] == Decimal("50.00")

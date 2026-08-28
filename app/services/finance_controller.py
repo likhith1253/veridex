@@ -334,18 +334,27 @@ class FinanceController:
         tps: Optional[float] = None
         lat_ms: Optional[float] = None
 
-        run_stmt = select(ReconciliationRunORM)
+        recon_run = None
         if run_id:
-            run_stmt = run_stmt.where(
+            run_stmt = select(ReconciliationRunORM).where(
                 (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
             )
+            run_res = await self.session.execute(run_stmt)
+            recon_run = run_res.scalar_one_or_none()
         else:
-            run_stmt = run_stmt.where(ReconciliationRunORM.status == "completed").order_by(
-                ReconciliationRunORM.completed_at.desc()
-            ).limit(1)
-
-        run_res = await self.session.execute(run_stmt)
-        recon_run = run_res.scalar_one_or_none()
+            run_stmt = (
+                select(ReconciliationRunORM)
+                .where(ReconciliationRunORM.status == "completed")
+                .order_by(ReconciliationRunORM.completed_at.desc().nullslast())
+            )
+            run_res = await self.session.execute(run_stmt)
+            for candidate in run_res.scalars().all():
+                if candidate.started_at and candidate.completed_at:
+                    t_start = candidate.started_at.replace(tzinfo=None) if candidate.started_at.tzinfo else candidate.started_at
+                    t_end = candidate.completed_at.replace(tzinfo=None) if candidate.completed_at.tzinfo else candidate.completed_at
+                    if (t_end - t_start).total_seconds() > 0:
+                        recon_run = candidate
+                        break
 
         if recon_run and recon_run.started_at and recon_run.completed_at:
             t_start = recon_run.started_at.replace(tzinfo=None) if recon_run.started_at.tzinfo else recon_run.started_at
@@ -375,21 +384,28 @@ class FinanceController:
         else:
             total_logical_txns = len(matches) + len(unmatched_clusters)
 
+        # Transactions not in any match cluster are implicitly unresolved.
+        # Add them to unresolved_count so the funnel accounts for all 61 records.
+        orphan_txn_ids = {t.id for t in all_txns if t.id not in matched_txns_set}
+        unresolved_count += len(orphan_txn_ids)
+
+
         return ControllerKPIs(
             total_records_processed=total_records,
             total_logical_transactions=total_logical_txns,
             total_transaction_value_inr=Decimal(str(exp.total_processed_value)),
-            deterministic_matches=det_count,  # Now transaction-level count
-            ml_recovered_matches=ml_count,     # Now transaction-level count
-            total_matched_records=det_count + ml_count + manual_count,  # Transaction-level
-            automatic_matches=det_match_count,   # Keep match-level for compatibility
-            manual_reviews=manual_count,        # Now transaction-level count
-            unresolved_transactions=unresolved_count,  # Now transaction-level count
+            deterministic_matches=det_count,  # match_transaction records with auto_match decision
+            ml_recovered_matches=ml_count,
+            total_matched_records=det_count + ml_count + manual_count,
+            automatic_matches=det_match_count,   # match-level count (16 match objects)
+            manual_reviews=manual_count,
+            unresolved_transactions=unresolved_count,  # includes orphan txns not in any cluster
             match_rate=round(m_rate, 2),
             reconciliation_precision=None,
             reconciliation_recall=None,
             f1_score=None,
-            exception_rate=round((unresolved_count / total_classified * 100) if total_classified > 0 else 0.0, 2),
+            exception_rate=round((unresolved_count / total_records * 100) if total_records > 0 else 0.0, 2),
+
             total_matched_monetary_value_inr=Decimal(str(exp.matched_value)),
             unresolved_monetary_exposure_inr=Decimal(str(exp.unresolved_value)),
             manual_review_exposure_inr=Decimal(str(exp.manual_review_value)),

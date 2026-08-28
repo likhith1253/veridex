@@ -7,6 +7,22 @@ from app.models.exception_record import ExceptionCategory
 from simulator.ground_truth import GroundTruthRecord
 
 
+DEFAULT_MDR_RATE = Decimal("0.02")
+GST_RATE = Decimal("0.18")
+
+
+def _fee_and_tax(amount: Decimal, mdr_rate: Decimal = DEFAULT_MDR_RATE) -> tuple[Decimal, Decimal]:
+    """Compute fee-based MDR and GST with cent-level precision."""
+    fee = (amount * mdr_rate).quantize(Decimal("0.01"))
+    tax = (fee * GST_RATE).quantize(Decimal("0.01"))
+    return fee, tax
+
+
+def _net_settlement(amount: Decimal, fee: Decimal, tax: Decimal, refund: Decimal = Decimal("0")) -> Decimal:
+    """Compute expected net settlement after deductions."""
+    return amount - fee - tax - refund
+
+
 @dataclass
 class GatewayRecord:
     settlement_id: str
@@ -55,6 +71,8 @@ def generate_normal(
     currency: str,
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
     utr = f"UTR{logical_id[-12:]}"
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -62,9 +80,9 @@ def generate_normal(
         order_id=ledger_id,
         utr=utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date,
         currency=currency,
         status="SETTLED",
@@ -84,7 +102,7 @@ def generate_normal(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=utr,
-        credit_amount=amount,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date,
         narration=f"SETTLEMENT {utr}",
@@ -118,6 +136,8 @@ def generate_delayed_settlement(
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
     utr = f"UTR{logical_id[-12:]}"
     delay_days = 5
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -125,9 +145,9 @@ def generate_delayed_settlement(
         order_id=ledger_id,
         utr=utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date + timedelta(days=delay_days),
         currency=currency,
         status="SETTLED",
@@ -147,7 +167,7 @@ def generate_delayed_settlement(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=utr,
-        credit_amount=amount,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date + timedelta(days=delay_days),
         narration=f"SETTLEMENT {utr}",
@@ -180,7 +200,12 @@ def generate_fee_mismatch(
     currency: str,
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
     utr = f"UTR{logical_id[-12:]}"
-    fee_discrepancy = amount * Decimal("0.01")
+    expected_fee, expected_tax = _fee_and_tax(amount)
+    observed_fee = (amount * Decimal("0.03")).quantize(Decimal("0.01"))
+    observed_tax = (observed_fee * GST_RATE).quantize(Decimal("0.01"))
+    fee_discrepancy = (observed_fee - expected_fee).quantize(Decimal("0.01"))
+    tax_discrepancy = (observed_tax - expected_tax).quantize(Decimal("0.01"))
+    net_amount = _net_settlement(amount, observed_fee, observed_tax)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -188,9 +213,9 @@ def generate_fee_mismatch(
         order_id=ledger_id,
         utr=utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.03"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount - fee_discrepancy,
+        fee=observed_fee,
+        tax=observed_tax,
+        net_amount=net_amount,
         settlement_date=date,
         currency=currency,
         status="SETTLED",
@@ -210,7 +235,7 @@ def generate_fee_mismatch(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=utr,
-        credit_amount=amount - fee_discrepancy,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date,
         narration=f"SETTLEMENT {utr}",
@@ -227,7 +252,7 @@ def generate_fee_mismatch(
         true_amount=amount,
         true_refund=None,
         true_settlement_date=date,
-        financial_exposure=fee_discrepancy,
+        financial_exposure=(abs(fee_discrepancy) + abs(tax_discrepancy)).quantize(Decimal("0.01")),
     )
     
     return gateway, ledger, bank, ground_truth
@@ -244,6 +269,8 @@ def generate_partial_refund(
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
     utr = f"UTR{logical_id[-12:]}"
     refund_amount = amount * Decimal("0.3")
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax, refund_amount)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -251,9 +278,9 @@ def generate_partial_refund(
         order_id=ledger_id,
         utr=utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount - refund_amount,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date,
         currency=currency,
         status="SETTLED",
@@ -273,7 +300,7 @@ def generate_partial_refund(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=utr,
-        credit_amount=amount - refund_amount,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date,
         narration=f"SETTLEMENT {utr}",
@@ -306,6 +333,8 @@ def generate_duplicate(
     currency: str,
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
     utr = f"UTR{logical_id[-12:]}"
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -313,9 +342,9 @@ def generate_duplicate(
         order_id=ledger_id,
         utr=utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date,
         currency=currency,
         status="SETTLED",
@@ -335,7 +364,7 @@ def generate_duplicate(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=utr,
-        credit_amount=amount,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date,
         narration=f"SETTLEMENT {utr}",
@@ -369,6 +398,8 @@ def generate_rounding(
 ) -> tuple[GatewayRecord, LedgerRecord, BankRecord, GroundTruthRecord]:
     utr = f"UTR{logical_id[-12:]}"
     rounding_diff = Decimal("0.01")
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax, rounding_diff)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -376,9 +407,9 @@ def generate_rounding(
         order_id=ledger_id,
         utr=utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount - rounding_diff,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date,
         currency=currency,
         status="SETTLED",
@@ -398,7 +429,7 @@ def generate_rounding(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=utr,
-        credit_amount=amount - rounding_diff,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date,
         narration=f"SETTLEMENT {utr}",
@@ -435,6 +466,8 @@ def generate_wrong_reference(
     corrupted_order_id = f"{ledger_id}_ERR"
     corrupted_utr = f"{utr}_ERR"
     wrong_ref = f"{logical_id}_ERR"
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -442,9 +475,9 @@ def generate_wrong_reference(
         order_id=corrupted_order_id,
         utr=utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date,
         currency=currency,
         status="SETTLED",
@@ -464,7 +497,7 @@ def generate_wrong_reference(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=corrupted_utr,
-        credit_amount=amount,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date + timedelta(days=1),
         narration=f"SETTLEMENT {ledger_id}",
@@ -499,6 +532,8 @@ def generate_ambiguous(
     """Ambiguous candidate matching with altered keys and close amounts/dates."""
     amb_order_id = f"AMB_{ledger_id[-6:]}"
     amb_utr = f"AMB_{logical_id[-8:]}"
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -506,9 +541,9 @@ def generate_ambiguous(
         order_id=amb_order_id,
         utr=amb_utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date,
         currency=currency,
         status="SETTLED",
@@ -528,7 +563,7 @@ def generate_ambiguous(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=f"BK_{amb_utr}",
-        credit_amount=amount,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date,
         narration=f"SETTLEMENT BATCH {amount}",
@@ -563,6 +598,8 @@ def generate_unexplained(
     """Corrupted order ID and cross-source mismatch requiring ML resolution."""
     alt_order_id = f"GW_{ledger_id[-6:]}"
     alt_utr = f"GW_UTR_{logical_id[-6:]}"
+    fee, tax = _fee_and_tax(amount)
+    net_amount = _net_settlement(amount, fee, tax)
     
     gateway = GatewayRecord(
         settlement_id=gateway_id,
@@ -570,9 +607,9 @@ def generate_unexplained(
         order_id=alt_order_id,
         utr=alt_utr,
         gross_amount=amount,
-        fee=amount * Decimal("0.02"),
-        tax=amount * Decimal("0.18"),
-        net_amount=amount,
+        fee=fee,
+        tax=tax,
+        net_amount=net_amount,
         settlement_date=date + timedelta(days=1),
         currency=currency,
         status="SETTLED",
@@ -592,7 +629,7 @@ def generate_unexplained(
     bank = BankRecord(
         bank_transaction_id=bank_id,
         utr=f"BK_UTR_{logical_id[-6:]}",
-        credit_amount=amount,
+        credit_amount=net_amount,
         debit_amount=Decimal("0"),
         value_date=date + timedelta(days=1),
         narration=f"PAYMENT FOR {ledger_id}",

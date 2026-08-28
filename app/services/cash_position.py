@@ -157,18 +157,32 @@ class CashPositionService:
                 delayed += exp_amt
 
         abs_variance = abs(variance)
-        if abs_variance > tolerance:
-            unreconciled += abs_variance
+
+        # unreconciled_amount is the authoritative settlement shortfall.
+        # Exception exposures explain WHY there is a shortfall — they must not
+        # be summed on top of abs_variance (that would double-count).
+        # Use the larger of: the sum of exception exposures (known breakdown)
+        # vs the raw settlement variance (accounting residual).
+        # Any residual variance not covered by exceptions is categorised separately.
+        if abs_variance > unreconciled and abs_variance > tolerance:
+            # There is an unexplained residual between variance and known exceptions
+            residual = (abs_variance - unreconciled).quantize(Decimal("0.01"))
             variance_cat = (
                 ExceptionCategory.DELAYED_SETTLEMENT.value
                 if variance < 0
                 else ExceptionCategory.UNEXPLAINED.value
             )
-            by_category[variance_cat] = by_category.get(variance_cat, Decimal("0.00")) + abs_variance
+            by_category[variance_cat] = by_category.get(variance_cat, Decimal("0.00")) + residual
             if variance < 0:
-                delayed += abs_variance
-            if abs_variance >= Decimal("100000.00") or variance > 0:
-                at_risk += abs_variance
+                delayed += residual
+            if residual >= Decimal("100000.00") or variance > 0:
+                at_risk += residual
+            unreconciled = abs_variance
+        elif abs_variance <= tolerance:
+            # variance is within clearing tolerance — do not inflate unreconciled
+            pass
+        # else: exception exposures >= abs_variance — already captured above
+
 
         return CashPositionSummary(
             expected_amount=expected_gross,

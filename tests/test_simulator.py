@@ -128,8 +128,19 @@ def test_partial_refund_arithmetic_consistency():
 
     assert ledger.refund_amount > Decimal("0")
     assert ledger.refund_amount < amount
-    assert gateway.net_amount == amount - ledger.refund_amount
-    assert bank.credit_amount == amount - ledger.refund_amount
+    assert gateway.net_amount == amount - gateway.fee - gateway.tax - ledger.refund_amount
+    assert bank.credit_amount == amount - gateway.fee - gateway.tax - ledger.refund_amount
+
+
+def test_fee_based_gst_calculation():
+    date = datetime.now()
+    amount = Decimal("368196.00")
+
+    gateway, ledger, bank, gt = generate_fee_mismatch("TXN00000003", "STL00000003", "ORD00000003", "BANK00000003", amount, date, "INR")
+
+    assert gateway.fee == Decimal("11045.88")
+    assert gateway.tax == (gateway.fee * Decimal("0.18")).quantize(Decimal("0.01"))
+    assert bank.credit_amount == amount - gateway.fee - gateway.tax
 
 
 def test_delayed_settlement_date_consistency():
