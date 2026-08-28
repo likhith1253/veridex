@@ -71,6 +71,7 @@ class FinancialExposureService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+
     async def calculate_exposure(self, run_id: Optional[str] = None) -> FinancialExposureBreakdown:
         """Calculate complete monetary exposure metrics strictly using Decimal arithmetic."""
         # 0. Resolve run ORM ID if provided
@@ -219,3 +220,6 @@ class FinancialExposureService:
             fee_tax_mismatch_exposure=fee_tax_exp,
             category_breakdown={k: str(v) for k, v in cat_dict.items()},
         )
+
+
+ExposureService = FinancialExposureService

@@ -205,7 +205,7 @@ class InvestigationGraphRunner:
                 "stage": InvestigationStage.LLM_COMPLETE,
             }
         except Exception as e:
-            logger.error(f"LLM reasoning failed: {e}. Falling back to deterministic analysis.")
+            logger.error("LLM reasoning failed (%s): %s. Falling back to deterministic analysis.", type(e).__name__, e)
             return {
                 "llm_error": str(e),
                 "llm_invoked": True,

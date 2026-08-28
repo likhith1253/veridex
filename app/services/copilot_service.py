@@ -2,15 +2,29 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
 from typing import Any, Optional
 
 from app.services.finance_controller import FinanceController
 from app.services.finance_qa import FinanceQAService
 from app.services.source_health_service import SourceHealthService
 
+logger = logging.getLogger(__name__)
+
+COPILOT_BRIEF_SYSTEM_PROMPT = """You are the Project Sentinel Executive Finance Copilot.
+Your job is to synthesize an executive daily financial brief based SOLELY on the verified facts provided below.
+
+CRITICAL INVARIANTS:
+1. Use ONLY the verified counts, monetary amounts, and percentages provided.
+2. Provide a 2-sentence executive summary highlighting overall health, unreconciled exposure, and immediate operational recommendation.
+3. Zero hallucination.
+"""
+
 
 class FinanceCopilotService:
-    """Deterministic finance copilot that answers controller questions using real data."""
+    """Finance copilot that answers controller questions and generates executive briefs using real PostgreSQL data."""
 
     @staticmethod
     def suggested_questions() -> list[str]:
@@ -102,6 +116,34 @@ class FinanceCopilotService:
             if isinstance(recommended_action, list):
                 recommended_action = recommended_action[0]
 
+        # Optional LLM-enriched narrative
+        llm_client = self.qa_service.llm_client
+        source_mode = "deterministic"
+        if llm_client:
+            facts = (
+                f"Overall Status: {status}\n"
+                f"Money At Risk: INR {money_at_risk:,.2f}\n"
+                f"Match Rate: {match_rate:.2f}%\n"
+                f"Source Health: {health.get('overall_health', 'HEALTHY')}\n"
+                f"Top Exception: {risk_exception.get('exception_id', 'None')} ({explanation})\n"
+                f"Recommended Action: {recommended_action}"
+            )
+            try:
+                ai_narrative = await asyncio.wait_for(
+                    llm_client.generate_text(
+                        system_prompt=COPILOT_BRIEF_SYSTEM_PROMPT,
+                        user_prompt=f"FACTS:\n{facts}\n\nEXECUTIVE BRIEF:",
+                        max_tokens=200,
+                        temperature=0.0,
+                    ),
+                    timeout=8.0,
+                )
+                if ai_narrative:
+                    explanation = ai_narrative
+                    source_mode = "groq_ai"
+            except Exception as e:
+                logger.warning("Copilot brief LLM generation skipped: %s", e)
+
         evidence = []
         if top_exception:
             evidence.append({
@@ -137,6 +179,19 @@ class FinanceCopilotService:
         q = (question or "").strip()
         if not q:
             raise ValueError("Question must not be empty.")
+
+        # Prompt injection protection (AUD-019, AUD-046)
+        if self.qa_service._check_injection(q):
+            return {
+                "question": q,
+                "answer": "Refusal: Security-sensitive query or prompt injection detected.",
+                "interpretation": "Queries must pertain strictly to controller operations and verified reconciliation data.",
+                "recommendation": "Submit a standard financial inquiry.",
+                "fact_summary": {"security_flag": "prompt_injection_detected"},
+                "evidence": [],
+                "source": "security_filter",
+                "needs_human_review": False,
+            }
 
         q_lower = q.lower()
         context = await self._gather_context(run_id)
@@ -242,232 +297,27 @@ class FinanceCopilotService:
             return {
                 "question": q,
                 "answer": "Human review is required." if needs_review else "Human review is not currently required for the highest-priority issue in this scope.",
-                "interpretation": "The decision boundary is based on risk bucket, unresolved exposure, and live source health."
-                ,
+                "interpretation": "The decision boundary is based on risk bucket, unresolved exposure, and live source health.",
                 "recommendation": "Keep the exception queue in review while the controller highlights unresolved and high-risk items.",
                 "fact_summary": {
                     "requires_human_review": needs_review,
                     "overall_health": context["source_health"].get("overall_health", "HEALTHY"),
                     "unresolved_exposure_inr": summary.get("unresolved_monetary_exposure_inr", 0.0),
                 },
-                "evidence": [context["top_exception"]] if context["top_exception"] else [{"source_health": context["source_health"].get("overall_health", "HEALTHY")}],
+                "evidence": [context["top_exception"]] if context["top_exception"] else [{"scope": "risk_threshold", "requires_review": needs_review}],
                 "source": "deterministic",
                 "needs_human_review": needs_review,
             }
 
-        # Investigation-aware questions
-        if any(term in q_lower for term in ["why was this exception created", "why this exception", "exception created"]):
-            top_exception = context["top_exception"]
-            if not top_exception:
-                return {
-                    "question": q,
-                    "answer": "There are no exceptions in the current scope to investigate.",
-                    "interpretation": "No exception records exist for this reconciliation run.",
-                    "recommendation": "Check if any exceptions have been created by running a reconciliation.",
-                    "fact_summary": {"exception_count": 0},
-                    "evidence": [],
-                    "source": "deterministic",
-                    "needs_human_review": False,
-                }
-            
-            return {
-                "question": q,
-                "answer": f"Exception {top_exception.get('exception_id')} was created due to: {top_exception.get('why_it_happened', top_exception.get('root_cause', top_exception.get('explanation', 'Unknown cause')))}",
-                "interpretation": "This exception was flagged by the reconciliation system based on matching evidence and risk assessment.",
-                "recommendation": top_exception.get("recommended_action") or "Review the exception evidence and matching details.",
-                "fact_summary": {
-                    "exception_id": top_exception.get("exception_id"),
-                    "category": top_exception.get("category"),
-                    "risk_bucket": top_exception.get("risk_bucket"),
-                    "financial_exposure_inr": top_exception.get("financial_exposure_inr"),
-                },
-                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
-                "source": "deterministic",
-                "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
-            }
-
-        if any(term in q_lower for term in ["what evidence supports this exception", "evidence supports", "matching evidence"]):
-            top_exception = context["top_exception"]
-            if not top_exception:
-                return {
-                    "question": q,
-                    "answer": "There are no exceptions in the current scope to examine evidence for.",
-                    "interpretation": "No exception records exist for this reconciliation run.",
-                    "recommendation": "Run a reconciliation to generate exception records with evidence.",
-                    "fact_summary": {"exception_count": 0},
-                    "evidence": [],
-                    "source": "deterministic",
-                    "needs_human_review": False,
-                }
-            
-            supporting_facts = top_exception.get("what_evidence_supports_this", [])
-            evidence_summary = ", ".join([f"{f.get('label')}: {f.get('value')}" for f in supporting_facts[:5]])
-            
-            return {
-                "question": q,
-                "answer": f"The supporting evidence includes: {evidence_summary if evidence_summary else 'No structured evidence available'}",
-                "interpretation": "This evidence comes from the matching process, investigation results, and risk assessment.",
-                "recommendation": "Review the full investigation view for detailed matching evidence and mismatched fields.",
-                "fact_summary": {
-                    "exception_id": top_exception.get("exception_id"),
-                    "evidence_count": len(supporting_facts),
-                    "confidence": top_exception.get("confidence", 0),
-                },
-                "evidence": supporting_facts,
-                "source": "deterministic",
-                "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
-            }
-
-        if any(term in q_lower for term in ["what is the financial impact", "financial impact of this exception", "monetary impact"]):
-            top_exception = context["top_exception"]
-            if not top_exception:
-                return {
-                    "question": q,
-                    "answer": "There are no exceptions in the current scope to assess financial impact.",
-                    "interpretation": "No exception records exist for this reconciliation run.",
-                    "recommendation": "Run a reconciliation to generate exception records with financial exposure data.",
-                    "fact_summary": {"exception_count": 0},
-                    "evidence": [],
-                    "source": "deterministic",
-                    "needs_human_review": False,
-                }
-            
-            exposure = top_exception.get("financial_exposure_inr", top_exception.get("financial_exposure", 0))
-            expected_cost = top_exception.get("how_serious", {}).get("expected_cost_inr", 0)
-            
-            return {
-                "question": q,
-                "answer": f"The financial impact is ₹{exposure:,.2f} in exposure with an expected cost of ₹{expected_cost:,.2f}.",
-                "interpretation": "This represents the monetary value at risk due to this exception.",
-                "recommendation": "Prioritize resolution based on the exposure amount and risk bucket.",
-                "fact_summary": {
-                    "exception_id": top_exception.get("exception_id"),
-                    "financial_exposure_inr": exposure,
-                    "expected_cost_inr": expected_cost,
-                    "risk_bucket": top_exception.get("risk_bucket"),
-                },
-                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
-                "source": "deterministic",
-                "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"} or exposure > 100000,
-            }
-
-        if any(term in q_lower for term in ["what should i do with this exception", "what should i do", "recommended action", "next steps"]):
-            top_exception = context["top_exception"]
-            if not top_exception:
-                return {
-                    "question": q,
-                    "answer": "There are no exceptions in the current scope requiring action.",
-                    "interpretation": "No exception records exist for this reconciliation run.",
-                    "recommendation": "Monitor the exception queue for new items after reconciliation runs.",
-                    "fact_summary": {"exception_count": 0},
-                    "evidence": [],
-                    "source": "deterministic",
-                    "needs_human_review": False,
-                }
-            
-            next_steps = top_exception.get("what_should_the_operator_do_next", [])
-            recommended_action = top_exception.get("recommended_action", "review_exception")
-            
-            if isinstance(next_steps, list) and next_steps:
-                action_summary = "; ".join(next_steps[:3])
-            else:
-                action_summary = recommended_action
-            
-            return {
-                "question": q,
-                "answer": f"Recommended action: {action_summary}",
-                "interpretation": "This recommendation is based on the exception category, risk assessment, and financial exposure.",
-                "recommendation": action_summary,
-                "fact_summary": {
-                    "exception_id": top_exception.get("exception_id"),
-                    "recommended_action": recommended_action,
-                    "risk_bucket": top_exception.get("risk_bucket"),
-                    "requires_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
-                },
-                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
-                "source": "deterministic",
-                "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
-            }
-
-        if any(term in q_lower for term in ["does this exception require human review", "require human review", "human review needed"]):
-            top_exception = context["top_exception"]
-            if not top_exception:
-                return {
-                    "question": q,
-                    "answer": "There are no exceptions in the current scope to assess.",
-                    "interpretation": "No exception records exist for this reconciliation run.",
-                    "recommendation": "Run a reconciliation to generate exception records.",
-                    "fact_summary": {"exception_count": 0},
-                    "evidence": [],
-                    "source": "deterministic",
-                    "needs_human_review": False,
-                }
-            
-            risk_bucket = top_exception.get("risk_bucket", "unknown").lower()
-            requires_review = risk_bucket in {"high", "critical"}
-            exposure = top_exception.get("financial_exposure_inr", top_exception.get("financial_exposure", 0))
-            
-            if requires_review or exposure > 100000:
-                answer = f"Yes, this exception requires human review due to {risk_bucket.upper()} risk profile and ₹{exposure:,.2f} exposure."
-            else:
-                answer = f"This exception does not require immediate human review based on its {risk_bucket.upper()} risk profile and ₹{exposure:,.2f} exposure."
-            
-            return {
-                "question": q,
-                "answer": answer,
-                "interpretation": "Human review requirements are determined by risk bucket, financial exposure, and decision boundary policy.",
-                "recommendation": "Proceed with the recommended action if no human review is required, otherwise escalate to a finance controller.",
-                "fact_summary": {
-                    "exception_id": top_exception.get("exception_id"),
-                    "risk_bucket": top_exception.get("risk_bucket"),
-                    "financial_exposure_inr": exposure,
-                    "requires_human_review": requires_review or exposure > 100000,
-                },
-                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
-                "source": "deterministic",
-                "needs_human_review": requires_review or exposure > 100000,
-            }
-
-        if any(term in q_lower for term in ["explain the matching failure", "matching failure", "why did matching fail"]):
-            top_exception = context["top_exception"]
-            if not top_exception:
-                return {
-                    "question": q,
-                    "answer": "There are no exceptions in the current scope to analyze matching failures.",
-                    "interpretation": "No exception records exist for this reconciliation run.",
-                    "recommendation": "Run a reconciliation to generate exception records with matching evidence.",
-                    "fact_summary": {"exception_count": 0},
-                    "evidence": [],
-                    "source": "deterministic",
-                    "needs_human_review": False,
-                }
-            
-            root_cause = top_exception.get("why_it_happened", top_exception.get("root_cause", top_exception.get("explanation", "Unknown")))
-            category = top_exception.get("category", "unknown")
-            
-            return {
-                "question": q,
-                "answer": f"Matching failed due to {category}: {root_cause}",
-                "interpretation": "The matching process could not establish a confident link between transaction records.",
-                "recommendation": "Review the specific mismatched fields and candidate matches in the investigation view.",
-                "fact_summary": {
-                    "exception_id": top_exception.get("exception_id"),
-                    "category": category,
-                    "confidence": top_exception.get("confidence", 0),
-                },
-                "evidence": [top_exception] if isinstance(top_exception, dict) else [top_exception] if top_exception else [],
-                "source": "deterministic",
-                "needs_human_review": top_exception.get("risk_bucket") in {"high", "critical"},
-            }
-
+        # Delegate general financial queries to the enhanced FinanceQAService
         qa_resp = await self.qa_service.answer_query(q, run_id)
         return {
             "question": q,
             "answer": qa_resp.direct_answer,
             "interpretation": qa_resp.direct_answer,
-            "recommendation": "Validate the live exception list and confirm the working capital impact before closing this issue.",
+            "recommendation": "Validate the live exception list and confirm working capital impact before closing this issue.",
             "fact_summary": qa_resp.key_metrics,
             "evidence": qa_resp.evidence_records if isinstance(qa_resp.evidence_records, list) else [qa_resp.evidence_records] if qa_resp.evidence_records else [],
-            "source": "deterministic",
+            "source": "groq_ai" if qa_resp.confidence > 0 else "deterministic",
             "needs_human_review": False,
         }

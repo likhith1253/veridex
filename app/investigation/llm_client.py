@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from abc import ABC, abstractmethod
 from decimal import Decimal
 from typing import Any, Optional
@@ -53,11 +54,22 @@ MANDATORY JSON FIELDS (all required):
 
 
 class LLMClient(ABC):
-    """Abstract interface for LLM reasoning provider."""
+    """Abstract interface for LLM reasoning and text synthesis providers."""
 
     @abstractmethod
     async def reason(self, context_dict: dict[str, Any]) -> LLMInvestigationResult:
         """Perform structured reasoning on investigation context."""
+        pass
+
+    @abstractmethod
+    async def generate_text(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 500,
+        temperature: float = 0.0,
+    ) -> str:
+        """Generate natural language text synthesis over verified data facts."""
         pass
 
 
@@ -67,9 +79,11 @@ class FakeLLMClient(LLMClient):
     def __init__(
         self,
         canned_result: Optional[LLMInvestigationResult] = None,
+        canned_text: Optional[str] = None,
         raise_error: Optional[Exception] = None,
     ):
         self.canned_result = canned_result
+        self.canned_text = canned_text
         self.raise_error = raise_error
         self.invocation_count = 0
         self.last_context: Optional[dict[str, Any]] = None
@@ -84,7 +98,6 @@ class FakeLLMClient(LLMClient):
         if self.canned_result:
             return self.canned_result
 
-        # Default smart fake response derived from context
         category_str = context_dict.get("category", "unexplained")
         try:
             category = ExceptionCategory(category_str)
@@ -111,9 +124,23 @@ class FakeLLMClient(LLMClient):
             reasoning_summary=f"Evaluated multi-source evidence against historical patterns for {category.value}.",
         )
 
+    async def generate_text(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 500,
+        temperature: float = 0.0,
+    ) -> str:
+        self.invocation_count += 1
+        if self.raise_error:
+            raise self.raise_error
+        if self.canned_text:
+            return self.canned_text
+        return f"Synthesized analysis based on verified financial data: {user_prompt[:100]}"
+
 
 class GeminiLLMClient(LLMClient):
-    """Google Gemini LLM client implementing strict structured JSON reasoning."""
+    """Google Gemini LLM client implementing strict structured JSON reasoning and synthesis."""
 
     def __init__(
         self,
@@ -122,7 +149,8 @@ class GeminiLLMClient(LLMClient):
         temperature: float = 0.0,
         timeout_seconds: float = 30.0,
     ):
-        self.api_key = api_key
+        raw_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        self.api_key: str | None = raw_key.strip() if raw_key and raw_key.strip() else None
         self.model_name = model_name
         self.temperature = temperature
         self.timeout_seconds = timeout_seconds
@@ -137,24 +165,19 @@ class GeminiLLMClient(LLMClient):
         )
 
         try:
-            # We attempt import of Google Generative AI SDK if available
-            import os
-            api_key = self.api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-            if not api_key:
+            if not self.api_key:
                 logger.warning("No Gemini API key configured. Using local deterministic fallback.")
                 fake = FakeLLMClient()
                 return await fake.reason(context_dict)
 
-            # If google.generativeai is installed, make async call
             import google.generativeai as genai
-            genai.configure(api_key=api_key)
+            genai.configure(api_key=self.api_key)
             model = genai.GenerativeModel(
                 model_name=self.model_name,
                 generation_config={"temperature": self.temperature, "response_mime_type": "application/json"},
             )
             response = await model.generate_content_async(prompt)
             raw_text = response.text.strip()
-            # Clean possible markdown wrapping
             if raw_text.startswith("```json"):
                 raw_text = raw_text[7:]
             if raw_text.startswith("```"):
@@ -169,17 +192,36 @@ class GeminiLLMClient(LLMClient):
             logger.error(f"Gemini LLM call failed: {e}. Raising for fallback handling.")
             raise e
 
+    async def generate_text(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 500,
+        temperature: float = 0.0,
+    ) -> str:
+        """Generate text using Gemini."""
+        if not self.api_key:
+            return f"Deterministic synthesis: {user_prompt[:120]}"
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=self.api_key)
+            model = genai.GenerativeModel(
+                model_name=self.model_name,
+                system_instruction=system_prompt,
+                generation_config={"temperature": temperature, "max_output_tokens": max_tokens},
+            )
+            response = await model.generate_content_async(user_prompt)
+            return response.text.strip()
+        except Exception as e:
+            logger.error(f"Gemini text generation failed: {e}")
+            raise e
+
 
 class GroqLLMClient(LLMClient):
-    """Groq LLM client implementing structured JSON reasoning via the Groq API.
+    """Groq LLM client implementing structured JSON reasoning and factual text synthesis."""
 
-    Configuration is read exclusively from environment variables:
-        GROQ_API_KEY  — required; Groq API key (never hardcoded or logged)
-        GROQ_MODEL    — optional; defaults to "llama3-8b-8192"
-    """
-
-    _DEFAULT_MODEL = "openai/gpt-oss-20b"
-    _DEFAULT_TIMEOUT = 30.0
+    _DEFAULT_MODEL = "qwen/qwen3.8-27b"
+    _DEFAULT_TIMEOUT = 15.0
 
     def __init__(
         self,
@@ -187,16 +229,19 @@ class GroqLLMClient(LLMClient):
         model_name: str | None = None,
         timeout_seconds: float = _DEFAULT_TIMEOUT,
     ):
-        import os
-        # API key: caller-supplied takes priority (allows DI in tests), then env
-        self._api_key: str | None = api_key or os.environ.get("GROQ_API_KEY") or None
-        # Model: caller-supplied, then env, then default
+        raw_key = api_key or os.environ.get("GROQ_API_KEY")
+        self._api_key: str | None = raw_key.strip() if raw_key and raw_key.strip() else None
         self._model_name: str = (
             model_name
             or os.environ.get("GROQ_MODEL")
             or self._DEFAULT_MODEL
         )
         self._timeout_seconds: float = timeout_seconds
+
+    @property
+    def is_configured(self) -> bool:
+        """Check whether a non-empty API key is present."""
+        return bool(self._api_key)
 
     async def reason(self, context_dict: dict[str, Any]) -> LLMInvestigationResult:
         """Call Groq with a structured JSON prompt and validate the response."""
@@ -238,7 +283,6 @@ class GroqLLMClient(LLMClient):
                 raise ValueError("Groq returned an empty response content.")
 
             raw_text = raw_text.strip()
-            # Strip any accidental markdown wrapping
             if raw_text.startswith("```json"):
                 raw_text = raw_text[7:]
             if raw_text.startswith("```"):
@@ -247,7 +291,6 @@ class GroqLLMClient(LLMClient):
                 raw_text = raw_text[:-3]
 
             parsed_json = json.loads(raw_text.strip())
-            # Run through the existing Pydantic validation firewall
             result = LLMInvestigationResult(**parsed_json)
             return result
 
@@ -255,3 +298,35 @@ class GroqLLMClient(LLMClient):
             logger.error("Groq LLM call failed: %s. Raising for fallback handling.", type(e).__name__)
             raise
 
+    async def generate_text(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 500,
+        temperature: float = 0.0,
+    ) -> str:
+        """Generate factual natural-language synthesis over verified PostgreSQL facts."""
+        if not self._api_key:
+            raise ValueError("GROQ_API_KEY is not configured.")
+
+        from groq import AsyncGroq
+
+        client = AsyncGroq(
+            api_key=self._api_key,
+            timeout=self._timeout_seconds,
+        )
+
+        response = await client.chat.completions.create(
+            model=self._model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
+        content = response.choices[0].message.content
+        if not content:
+            raise ValueError("Groq returned empty text response.")
+        return content.strip()
