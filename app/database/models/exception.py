@@ -52,6 +52,18 @@ class Exception(Base):
         "ExceptionTransaction", back_populates="exception", cascade="all, delete-orphan"
     )
 
+    def resolve(self, resolved_at: Optional[datetime] = None, status: str = "resolved") -> None:
+        """Atomically mark exception as resolved and set resolved_at."""
+        self.status = status
+        self.resolved = True
+        self.resolved_at = resolved_at or datetime.utcnow()
+
+    def reopen(self, status: str = "open") -> None:
+        """Atomically reopen exception."""
+        self.status = status
+        self.resolved = False
+        self.resolved_at = None
+
 
 class ExceptionTransaction(Base):
     __tablename__ = "exception_transactions"

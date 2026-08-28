@@ -13,14 +13,16 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Optional
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database.mappers.exception_mapper import _DOMAIN_TO_ORM_CATEGORY, _ORM_TO_DOMAIN_CATEGORY
 from app.database.models import (
     Exception as ExceptionORM,
     Investigation as InvestigationORM,
     Transaction as TransactionORM,
 )
+from app.models.exception_record import ExceptionCategory as DomainExceptionCategory
 
 
 @dataclass
@@ -80,19 +82,51 @@ class ExceptionManagementService:
         page_size: int = 50,
     ) -> tuple[list[dict[str, Any]], int]:
         """Query exceptions with filtering and pagination."""
-        stmt = select(ExceptionORM)
+        stmt = (
+            select(ExceptionORM, TransactionORM.amount)
+            .outerjoin(TransactionORM, ExceptionORM.transaction_id == TransactionORM.id)
+        )
         conditions = []
 
         if status:
             conditions.append(ExceptionORM.status == status)
         if category:
-            conditions.append(ExceptionORM.exception_category == category)
+            # Match both raw string and mapped domain/ORM representations
+            cat_candidates = {category}
+            for d_cat, o_cat in _DOMAIN_TO_ORM_CATEGORY.items():
+                if d_cat.value == category or o_cat.value == category:
+                    cat_candidates.add(d_cat.value)
+                    cat_candidates.add(o_cat.value)
+            conditions.append(ExceptionORM.exception_category.in_(list(cat_candidates)))
+
         if min_exposure is not None:
-            conditions.append(ExceptionORM.financial_exposure >= min_exposure)
+            conditions.append(
+                or_(
+                    ExceptionORM.financial_exposure >= min_exposure,
+                    and_(
+                        ExceptionORM.financial_exposure == Decimal("0"),
+                        TransactionORM.amount >= min_exposure,
+                    ),
+                )
+            )
         if max_exposure is not None:
-            conditions.append(ExceptionORM.financial_exposure <= max_exposure)
+            conditions.append(
+                or_(
+                    ExceptionORM.financial_exposure <= max_exposure,
+                    and_(
+                        ExceptionORM.financial_exposure == Decimal("0"),
+                        TransactionORM.amount <= max_exposure,
+                    ),
+                )
+            )
         if transaction_id:
-            conditions.append(ExceptionORM.transaction_id == transaction_id)
+            conditions.append(
+                or_(
+                    ExceptionORM.transaction_id == transaction_id,
+                    TransactionORM.id == transaction_id,
+                    TransactionORM.domain_transaction_id == transaction_id,
+                )
+            )
         if run_id:
             conditions.append(ExceptionORM.run_id == run_id)
 
@@ -105,16 +139,36 @@ class ExceptionManagementService:
         total_count = count_res.scalar_one() or 0
 
         # Paginate
-        stmt = stmt.order_by(ExceptionORM.financial_exposure.desc())
+        stmt = stmt.order_by(ExceptionORM.financial_exposure.desc(), ExceptionORM.created_at.desc())
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
 
         res = await self.session.execute(stmt)
-        excs = res.scalars().all()
+        exc_rows = res.all()
 
         results = []
-        for e in excs:
-            raw_cat = getattr(e, "exception_category", getattr(e, "category", "unknown"))
+        for e, txn_amt in exc_rows:
+            raw_cat = getattr(e, "exception_category", getattr(e, "category", "unexplained"))
             cat_str = raw_cat.value if hasattr(raw_cat, "value") else str(raw_cat)
+            if cat_str in ("unknown", "None", ""):
+                cat_str = "unexplained"
+
+            stored_exp = float(e.financial_exposure or 0.0)
+            exp_amt = stored_exp if stored_exp > 0.0 else float(txn_amt or 0.0)
+            stored_cost = float(e.expected_cost or 0.0)
+            cost_amt = stored_cost if stored_cost > 0.0 else exp_amt
+
+            action = e.recommended_action
+            if not action or action == "escalate_manual":
+                if cat_str in ("duplicate_record", "duplicate_entry"):
+                    action = "flag_duplicate"
+                elif cat_str in ("amount_mismatch", "fee_mismatch"):
+                    action = "request_credit_note"
+                elif cat_str in ("timing_mismatch", "delayed_settlement"):
+                    action = "await_settlement_window"
+                elif cat_str in ("missing_record", "ambiguous_match"):
+                    action = "trace_missing_source"
+                else:
+                    action = "investigate"
 
             results.append({
                 "exception_id": e.id,
@@ -123,10 +177,10 @@ class ExceptionManagementService:
                 "category": cat_str,
                 "status": e.status,
                 "confidence": float(e.confidence or 0.0),
-                "financial_exposure_inr": float(e.financial_exposure or 0.0),
-                "expected_cost_inr": float(e.expected_cost or 0.0),
+                "financial_exposure_inr": exp_amt,
+                "expected_cost_inr": cost_amt,
                 "explanation": e.explanation,
-                "recommended_action": e.recommended_action or "escalate_manual",
+                "recommended_action": action,
                 "resolved": e.resolved,
                 "created_at": e.created_at.isoformat() if e.created_at else None,
             })
@@ -135,15 +189,27 @@ class ExceptionManagementService:
 
     async def get_exception_detail(self, exception_id: str) -> ExceptionDetail:
         """Fetch complete detail of an exception including evidence and investigation."""
-        stmt = select(ExceptionORM).where(ExceptionORM.id == exception_id)
+        stmt = (
+            select(ExceptionORM, TransactionORM.amount)
+            .outerjoin(TransactionORM, ExceptionORM.transaction_id == TransactionORM.id)
+            .where(ExceptionORM.id == exception_id)
+        )
         res = await self.session.execute(stmt)
-        e = res.scalar_one_or_none()
+        row = res.first()
 
-        if not e:
+        if not row:
             raise ValueError(f"Exception not found: {exception_id}")
 
-        raw_cat = getattr(e, "exception_category", getattr(e, "category", "unknown"))
+        e, txn_amt = row
+        raw_cat = getattr(e, "exception_category", getattr(e, "category", "unexplained"))
         cat_str = raw_cat.value if hasattr(raw_cat, "value") else str(raw_cat)
+        if cat_str in ("unknown", "None", ""):
+            cat_str = "unexplained"
+
+        stored_exp = float(e.financial_exposure or 0.0)
+        exp_amt = stored_exp if stored_exp > 0.0 else float(txn_amt or 0.0)
+        stored_cost = float(e.expected_cost or 0.0)
+        cost_amt = stored_cost if stored_cost > 0.0 else exp_amt
 
         # Check for investigation conclusion
         inv_stmt = select(InvestigationORM).where(InvestigationORM.exception_id == exception_id)
@@ -163,6 +229,8 @@ class ExceptionManagementService:
                 "created_at": inv.created_at.isoformat() if inv.created_at else None,
             }
 
+        action = e.recommended_action or (inv.recommended_action if inv else "investigate")
+
         return ExceptionDetail(
             exception_id=e.id,
             run_id=e.run_id,
@@ -170,11 +238,11 @@ class ExceptionManagementService:
             category=cat_str,
             status=e.status,
             confidence=float(e.confidence or 0.0),
-            financial_exposure_inr=float(e.financial_exposure or 0.0),
-            expected_cost_inr=float(e.expected_cost or 0.0),
+            financial_exposure_inr=exp_amt,
+            expected_cost_inr=cost_amt,
             explanation=e.explanation,
             evidence=e.evidence or {},
-            recommended_action=e.recommended_action or "escalate_manual",
+            recommended_action=action,
             resolved=e.resolved,
             created_at=e.created_at.isoformat() if e.created_at else None,
             investigation_conclusion=inv_data,
@@ -182,11 +250,15 @@ class ExceptionManagementService:
 
     async def calculate_exception_aging(self, run_id: Optional[str] = None) -> ExceptionAgingReport:
         """Calculate exception aging distribution across standard treasury time buckets."""
-        stmt = select(ExceptionORM).where(ExceptionORM.resolved == False)
+        stmt = (
+            select(ExceptionORM, TransactionORM.amount)
+            .outerjoin(TransactionORM, ExceptionORM.transaction_id == TransactionORM.id)
+            .where(ExceptionORM.resolved == False)
+        )
         if run_id:
             stmt = stmt.where(ExceptionORM.run_id == run_id)
         res = await self.session.execute(stmt)
-        open_excs = res.scalars().all()
+        open_excs = res.all()
 
         now = datetime.now(timezone.utc)
         buckets_map = {
@@ -198,13 +270,13 @@ class ExceptionManagementService:
         }
 
         total_exp = 0.0
-        for e in open_excs:
-            exp = float(e.financial_exposure or 0.0)
+        for e, txn_amt in open_excs:
+            stored_exp = float(e.financial_exposure or 0.0)
+            exp = stored_exp if stored_exp > 0.0 else float(txn_amt or 0.0)
             total_exp += exp
 
             created = e.created_at
             if created:
-                # Ensure UTC tz
                 if created.tzinfo is None:
                     created = created.replace(tzinfo=timezone.utc)
                 age_days = (now - created).total_seconds() / 86400.0

@@ -17,6 +17,8 @@ from app.matching.decision import DecisionPolicy
 from app.matching.deterministic import DeterministicMatcher
 from app.matching.features import FeatureExtractor
 from app.matching.ml_scorer import MLScorer
+from app.investigation.analyzer import DeterministicAnalyzer
+from app.investigation.evidence import InvestigationContextBuilder
 from app.models.decision_result import DecisionAction
 from app.models.exception_record import ExceptionCategory, ExceptionRecord
 from app.models.match_result import MatchResult, MatchType
@@ -176,7 +178,8 @@ class ReconciliationService:
                 await self.decision_repo.create(decision, run_orm_id, match_id)
             
             # Create exceptions for MANUAL_REVIEW, AMBIGUOUS, UNRESOLVED, REJECT
-            exception_ids = await self._create_exceptions_with_ids(decisions, run_orm_id, txn_orm_ids)
+            txn_by_id_map = {txn.txn_id: txn for txns in transactions_by_source.values() for txn in txns}
+            exception_ids = await self._create_exceptions_with_ids(decisions, run_orm_id, txn_orm_ids, txn_by_id_map)
             exception_count = len(exception_ids)
             
             # Write audit events for all stages
@@ -419,8 +422,12 @@ class ReconciliationService:
         return len(await self._create_exceptions_with_ids(decisions, run_id))
 
     async def _create_exceptions_with_ids(
-        self, decisions: list, run_id: str, txn_orm_ids: dict[str, str] | None = None
-    ) -> list[tuple[str, list[str]]]:
+        self,
+        decisions: list,
+        run_id: str,
+        txn_orm_ids: dict[str, str] | None = None,
+        txn_by_id: dict[str, Transaction] | None = None,
+    ) -> list[tuple[str, list[str], object]]:
         """Create exceptions and return (exception_id, transaction_ids, decision) tuples.
 
         Returns:
@@ -443,15 +450,58 @@ class ReconciliationService:
         for decision in decisions:
             if decision.action in exception_actions:
                 first_txn_id = _to_orm_id(decision.transaction_ids[0]) if decision.transaction_ids else None
+                
+                # Derive ground truth category, exposure, explanation, and action
+                category = ExceptionCategory.UNEXPLAINED
+                explanation = decision.reason
+                recommended_action = "escalate_manual"
+                exposure = Decimal("0.00")
+                confidence = decision.confidence or Decimal("0.50")
+                evidence_dict = decision.evidence or {}
+
+                involved_txns = []
+                if txn_by_id and decision.transaction_ids:
+                    involved_txns = [txn_by_id[tid] for tid in decision.transaction_ids if tid in txn_by_id]
+
+                if involved_txns:
+                    max_amt = max(t.amount for t in involved_txns)
+                    min_amt = min(t.amount for t in involved_txns)
+
+                    ctx = InvestigationContextBuilder.build(
+                        exception_id="temp",
+                        run_id=run_id,
+                        transactions=involved_txns,
+                        decision=decision,
+                    )
+                    analysis = DeterministicAnalyzer.analyze(ctx.evidence, involved_txns, decision)
+                    category = analysis.detected_category
+                    explanation = f"{analysis.root_cause}: {analysis.explanation}"
+                    recommended_action = analysis.recommended_action
+                    confidence = analysis.confidence
+
+                    if category in (ExceptionCategory.FEE_MISMATCH, ExceptionCategory.CURRENCY_ROUNDING, ExceptionCategory.PARTIAL_REFUND):
+                        exposure = max_amt - min_amt if max_amt != min_amt else max_amt
+                    else:
+                        exposure = max_amt
+                elif decision.evidence and "amount" in decision.evidence:
+                    try:
+                        exposure = Decimal(str(decision.evidence["amount"]))
+                    except Exception:
+                        exposure = Decimal("0.00")
+
+                expected_cost = (exposure * (Decimal("1.0") - confidence)).quantize(Decimal("0.01"))
+                if expected_cost == Decimal("0.00") and exposure > Decimal("0.00"):
+                    expected_cost = exposure
+
                 exception = ExceptionRecord(
                     transaction_id=first_txn_id,
-                    category=ExceptionCategory.UNEXPLAINED,
-                    confidence=decision.confidence,
-                    financial_exposure=Decimal("0"),
-                    expected_cost=Decimal("0"),
-                    explanation=decision.reason,
-                    evidence=decision.evidence,
-                    recommended_action=None,
+                    category=category,
+                    confidence=confidence,
+                    financial_exposure=exposure,
+                    expected_cost=expected_cost,
+                    explanation=explanation,
+                    evidence=evidence_dict,
+                    recommended_action=recommended_action,
                 )
                 exception_id = await self.exception_repo.create(exception, run_id, first_txn_id)
                 # Add remaining transaction IDs to the exception

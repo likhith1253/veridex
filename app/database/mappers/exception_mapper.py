@@ -38,7 +38,7 @@ def _domain_category_to_orm(cat: DomainExceptionCategory) -> ExceptionCategory:
     for d_cat, o_cat in _DOMAIN_TO_ORM_CATEGORY.items():
         if d_cat.value == val:
             return o_cat
-    return ExceptionCategory.UNKNOWN
+    return ExceptionCategory.UNEXPLAINED
 
 
 def _orm_category_to_domain(cat: ExceptionCategory) -> DomainExceptionCategory:
@@ -55,20 +55,21 @@ def domain_to_orm_exception(
     domain: ExceptionDomain, id: str, run_id: str, transaction_id: Optional[str], created_at: datetime
 ) -> ExceptionORM:
     """Convert domain ExceptionRecord to ORM Exception."""
+    is_resolved = bool(domain.resolved)
     return ExceptionORM(
         id=id,
         run_id=run_id,
         transaction_id=transaction_id,
         exception_category=_domain_category_to_orm(domain.category),
-        status="open",
+        status="resolved" if is_resolved else "open",
         confidence=domain.confidence,
         financial_exposure=domain.financial_exposure,
         expected_cost=domain.expected_cost,
         explanation=domain.explanation,
         evidence=domain.evidence,
         recommended_action=domain.recommended_action,
-        resolved=domain.resolved,
-        resolved_at=None,
+        resolved=is_resolved,
+        resolved_at=created_at if is_resolved else None,
         created_at=created_at,
     )
 
