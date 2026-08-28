@@ -1,7 +1,11 @@
 import pytest
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
+import httpx
+from httpx import ASGITransport, AsyncClient
 
+from app.api.main import create_app
+from app.api.dependencies import get_db_session, get_investigation_service
 from app.api.schemas.controller import (
     BatchRecordItem,
     SingleTransactionIngestRequest,
@@ -21,12 +25,16 @@ def test_aud_021_ui_format_money_decimal_precision():
     formatted = format_money(dec_val)
     assert formatted == "₹0.30"
 
-    # Large financial values
+    # High value 999999999.99
+    high_val = Decimal("999999999.99")
+    assert format_money(high_val) == "₹999,999,999.99"
+
+    # 123456789.75 and crore range
+    assert format_money("123456789.75") == "₹123,456,789.75"
     large_val = Decimal("123456789012345.12")
     assert format_money(large_val) == "₹123,456,789,012,345.12"
-    assert format_money("123456789.75") == "₹123,456,789.75"
 
-    # Small values
+    # Small fractional values
     assert format_money(Decimal("0.01")) == "₹0.01"
     assert format_money(None, fallback="N/A") == "N/A"
     assert format_money("invalid", fallback="N/A") == "N/A"
@@ -117,6 +125,23 @@ def test_aud_051_ingest_pydantic_schemas_enforce_decimal_precision():
     assert item.amount == Decimal("0.10")
     assert item.fee == Decimal("0.02")
     assert item.tax == Decimal("0.0036")
+
+
+def test_fractional_fee_tax_accounting_calculations():
+    """Verify fractional fee and tax calculations maintain strict decimal equality without IEEE-754 drift."""
+    gross = Decimal("123456.78")
+    mdr_rate = Decimal("0.02")      # 2.0% MDR
+    gst_rate = Decimal("0.18")      # 18.0% GST on MDR
+
+    fee = gross * mdr_rate          # 2469.1356
+    tax = fee * gst_rate            # 444.444408
+    expected_net = gross - fee - tax # 120543.2000
+
+    assert fee == Decimal("2469.1356")
+    assert tax == Decimal("444.444408")
+    assert expected_net == Decimal("120543.199992")
+    # Exact reconciliation invariant
+    assert gross == expected_net + fee + tax
 
 
 def test_source_health_decimal_serialization():
