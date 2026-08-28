@@ -292,7 +292,7 @@ class ReconciliationEvaluator:
         # 2. Decision distribution & precision
         total_decisions = len(decisions)
         auto_match_count = sum(1 for d in decisions if d.action == DecisionAction.AUTO_MATCH)
-        manual_review_count = sum(1 for d in decisions if d.action == DecisionAction.MANUAL_REVIEW)
+        manual_review_count = sum(1 for d in decisions if d.action in (DecisionAction.MANUAL_REVIEW, DecisionAction.PROPOSE_MATCH))
         ambiguous_count = sum(1 for d in decisions if d.action == DecisionAction.AMBIGUOUS)
         reject_count = sum(1 for d in decisions if d.action == DecisionAction.REJECT)
         unresolved_decision_count = sum(1 for d in decisions if d.action == DecisionAction.UNRESOLVED)

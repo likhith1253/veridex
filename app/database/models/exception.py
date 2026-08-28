@@ -16,6 +16,7 @@ class ExceptionCategory(str, Enum):
     TIMING_MISMATCH = "timing_mismatch"
     DUPLICATE_RECORD = "duplicate_record"
     DATA_QUALITY = "data_quality"
+    UNEXPLAINED = "unexplained"
     UNKNOWN = "unknown"
 
 

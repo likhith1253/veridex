@@ -2,7 +2,7 @@
 Cash Position Aggregation Service for Project Sentinel.
 
 Calculates real-time financial cash position:
-- Expected amount (Gateway / Ledger gross orders)
+- Expected amount (Authoritative Gateway / Ledger gross orders)
 - Received amount (Bank credit settlements confirmed)
 - Pending amount (Orders placed but settlement window open)
 - Delayed amount (Settlement exceeded normal SLA window)
@@ -20,9 +20,9 @@ from typing import Any, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Exception as ExceptionORM, Match as MatchORM, Transaction as TransactionORM
+from app.database.models import Exception as ExceptionORM, Transaction as TransactionORM
 from app.models.exception_record import ExceptionCategory
-from app.models.transaction import TransactionSource, TransactionStatus
+from app.models.transaction import TransactionSource
 
 
 @dataclass
@@ -76,71 +76,85 @@ class CashPositionService:
 
     async def get_cash_position(self, run_id: Optional[str] = None) -> CashPositionSummary:
         """Calculate live cash position across all transactions or scoped to a run."""
-        # Query transactions
+        # 1. Query transactions
         stmt = select(TransactionORM)
         res = await self.session.execute(stmt)
         txns = res.scalars().all()
 
-        # Query exceptions
-        exc_stmt = select(ExceptionORM)
-        if run_id:
-            exc_stmt = exc_stmt.where(ExceptionORM.run_id == run_id)
-        exc_res = await self.session.execute(exc_stmt)
-        exceptions = exc_res.scalars().all()
-
-        received = Decimal("0")
-        fees = Decimal("0")
-        taxes = Decimal("0")
-        refunds = Decimal("0")
+        received = Decimal("0.00")
+        fees = Decimal("0.00")
+        taxes = Decimal("0.00")
+        refunds = Decimal("0.00")
         by_source: dict[str, Decimal] = {
-            TransactionSource.GATEWAY.value: Decimal("0"),
-            TransactionSource.LEDGER.value: Decimal("0"),
-            TransactionSource.BANK.value: Decimal("0"),
+            TransactionSource.GATEWAY.value: Decimal("0.00"),
+            TransactionSource.LEDGER.value: Decimal("0.00"),
+            TransactionSource.BANK.value: Decimal("0.00"),
         }
 
         for t in txns:
-            amt = Decimal(str(t.amount))
-            src = t.source
-            by_source[src] = by_source.get(src, Decimal("0")) + amt
+            amt = Decimal(str(getattr(t, "amount", 0) or 0))
+            src = getattr(t, "source", None)
+            if src in by_source:
+                by_source[src] += amt
 
             if src == TransactionSource.GATEWAY.value:
-                fee_val = Decimal(str(t.fee)) if t.fee is not None else (amt * Decimal("0.02")).quantize(Decimal("0.01"))
-                tax_val = Decimal(str(t.tax)) if t.tax is not None else (fee_val * Decimal("0.18")).quantize(Decimal("0.01"))
-                fees += fee_val
-                taxes += tax_val
+                if getattr(t, "fee", None) is not None:
+                    fees += Decimal(str(t.fee))
+                if getattr(t, "tax", None) is not None:
+                    taxes += Decimal(str(t.tax))
             elif src == TransactionSource.BANK.value:
                 received += amt
 
-        # Expected gross cash from gateway/ledger vs bank
-        expected_gross = max(
-            by_source.get(TransactionSource.GATEWAY.value, Decimal("0")),
-            by_source.get(TransactionSource.LEDGER.value, Decimal("0")),
-        )
+        # Authoritative gross volume (Gateway volume, fallback to Ledger volume)
+        gw_gross = by_source.get(TransactionSource.GATEWAY.value, Decimal("0.00"))
+        ld_gross = by_source.get(TransactionSource.LEDGER.value, Decimal("0.00"))
+        expected_gross = gw_gross if gw_gross > Decimal("0.00") else ld_gross
 
         expected_net = expected_gross - fees - taxes - refunds
         variance = (received - expected_net).quantize(Decimal("0.01"))
-        pending = max(Decimal("0"), expected_net - received)
+        pending = max(Decimal("0.00"), expected_net - received)
         tolerance = Decimal("50.00")
 
-        delayed = Decimal("0")
-        unreconciled = Decimal("0")
-        at_risk = Decimal("0")
+        # 2. Query exceptions
+        exc_stmt = select(ExceptionORM).where(
+            (ExceptionORM.status != "resolved") & (ExceptionORM.resolved == False)
+        )
+        if run_id:
+            exc_stmt = exc_stmt.where(
+                (ExceptionORM.run_id == run_id)
+            )
+        exc_res = await self.session.execute(exc_stmt)
+        exceptions = exc_res.scalars().all()
+
+        delayed = Decimal("0.00")
+        unreconciled = Decimal("0.00")
+        at_risk = Decimal("0.00")
         by_category: dict[str, Decimal] = {}
 
+        txn_map = {getattr(t, "id", None): t for t in txns if hasattr(t, "id")}
+
         for exc in exceptions:
-            resolved_flag = getattr(exc, "resolved", False)
-            if resolved_flag:
-                continue
-            exp_amt = Decimal(str(getattr(exc, "financial_exposure", getattr(exc, "amount_delta", 0)) or 0))
+            stored_exp = Decimal(str(getattr(exc, "financial_exposure", 0) or 0))
+            linked_txn = txn_map.get(getattr(exc, "transaction_id", None))
+            if stored_exp > Decimal("0"):
+                exp_amt = stored_exp
+            elif linked_txn:
+                exp_amt = Decimal(str(getattr(linked_txn, "amount", 0) or 0))
+            else:
+                exp_amt = Decimal(str(getattr(exc, "expected_cost", 0) or 0))
+
             raw_cat = getattr(exc, "exception_category", getattr(exc, "category", "unexplained"))
             cat = raw_cat.value if hasattr(raw_cat, "value") else str(raw_cat)
-            by_category[cat] = by_category.get(cat, Decimal("0")) + exp_amt
+            if cat in ("unknown", "None", ""):
+                cat = "unexplained"
+
+            by_category[cat] = by_category.get(cat, Decimal("0.00")) + exp_amt
             unreconciled += exp_amt
 
-            if cat == ExceptionCategory.DELAYED_SETTLEMENT.value:
-                delayed += exp_amt
-            if exp_amt >= Decimal("100000") or cat == ExceptionCategory.UNEXPLAINED.value:
+            if exp_amt >= Decimal("100000.00") or cat == "unexplained":
                 at_risk += exp_amt
+            if cat in (ExceptionCategory.DELAYED_SETTLEMENT.value, "timing_mismatch"):
+                delayed += exp_amt
 
         abs_variance = abs(variance)
         if abs_variance > tolerance:
@@ -150,10 +164,10 @@ class CashPositionService:
                 if variance < 0
                 else ExceptionCategory.UNEXPLAINED.value
             )
-            by_category[variance_cat] = by_category.get(variance_cat, Decimal("0")) + abs_variance
+            by_category[variance_cat] = by_category.get(variance_cat, Decimal("0.00")) + abs_variance
             if variance < 0:
                 delayed += abs_variance
-            if abs_variance >= Decimal("100000") or variance > 0:
+            if abs_variance >= Decimal("100000.00") or variance > 0:
                 at_risk += abs_variance
 
         return CashPositionSummary(

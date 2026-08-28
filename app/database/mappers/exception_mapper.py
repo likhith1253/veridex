@@ -16,7 +16,7 @@ _DOMAIN_TO_ORM_CATEGORY: dict[DomainExceptionCategory, ExceptionCategory] = {
     DomainExceptionCategory.DELAYED_SETTLEMENT: ExceptionCategory.TIMING_MISMATCH,
     DomainExceptionCategory.WRONG_REFERENCE: ExceptionCategory.DATA_QUALITY,
     DomainExceptionCategory.AMBIGUOUS_MATCH: ExceptionCategory.MISSING_RECORD,
-    DomainExceptionCategory.UNEXPLAINED: ExceptionCategory.UNKNOWN,
+    DomainExceptionCategory.UNEXPLAINED: ExceptionCategory.UNEXPLAINED,
 }
 
 _ORM_TO_DOMAIN_CATEGORY: dict[ExceptionCategory, DomainExceptionCategory] = {
@@ -25,6 +25,7 @@ _ORM_TO_DOMAIN_CATEGORY: dict[ExceptionCategory, DomainExceptionCategory] = {
     ExceptionCategory.TIMING_MISMATCH: DomainExceptionCategory.DELAYED_SETTLEMENT,
     ExceptionCategory.DATA_QUALITY: DomainExceptionCategory.WRONG_REFERENCE,
     ExceptionCategory.MISSING_RECORD: DomainExceptionCategory.AMBIGUOUS_MATCH,
+    ExceptionCategory.UNEXPLAINED: DomainExceptionCategory.UNEXPLAINED,
     ExceptionCategory.UNKNOWN: DomainExceptionCategory.UNEXPLAINED,
 }
 

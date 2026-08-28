@@ -395,12 +395,10 @@ class ReconciliationService:
                 txn2 = txn_by_id.get(match.transaction_ids[1])
                 
                 if txn1 and txn2:
-                    # For deterministic matches, use high confidence
-                    if match.confidence >= Decimal("0.95"):
+                    # For high-confidence deterministic matches, use evaluate_deterministic
+                    if match.confidence >= Decimal("0.95") and match.match_type != MatchType.PROBABLE and "ml" not in str(match.reason).lower():
                         decision = decision_policy.evaluate_deterministic(match)
                     else:
-                        # For ML matches, would use ml_probability
-                        # For now, use match confidence as proxy
                         decision = decision_policy.evaluate_ml(
                             txn1, txn2, float(match.confidence), transactions_by_source
                         )

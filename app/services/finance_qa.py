@@ -57,20 +57,30 @@ class FinanceQAService:
         # 1. Unreconciled Money / Financial Exposure
         if any(w in q_lower for w in ["unreconciled", "unmatched money", "exposure", "money at risk"]):
             cash = await self.cash_service.get_cash_position(run_id)
-            exc_stmt = select(ExceptionORM).order_by(ExceptionORM.financial_exposure.desc()).limit(10)
+            exc_stmt = (
+                select(ExceptionORM, TransactionORM.amount)
+                .outerjoin(TransactionORM, ExceptionORM.transaction_id == TransactionORM.id)
+                .where((ExceptionORM.status != "resolved") & (ExceptionORM.resolved == False))
+                .order_by(ExceptionORM.created_at.desc())
+                .limit(10)
+            )
             res = await self.session.execute(exc_stmt)
-            excs = res.scalars().all()
+            exc_rows = res.all()
 
-            evidence = [
-                {
+            evidence = []
+            for e, t_amt in exc_rows:
+                stored_exp = float(e.financial_exposure or 0)
+                amt = stored_exp if stored_exp > 0 else float(t_amt or 0)
+                cat_val = e.exception_category.value if hasattr(e.exception_category, "value") else str(e.exception_category)
+                if cat_val == "unknown":
+                    cat_val = "unexplained"
+                evidence.append({
                     "exception_id": e.id,
                     "transaction_id": e.transaction_id,
-                    "category": e.exception_category.value if hasattr(e.exception_category, "value") else str(e.exception_category),
-                    "amount": float(e.financial_exposure or 0),
+                    "category": cat_val,
+                    "amount": amt,
                     "reason": e.explanation,
-                }
-                for e in excs
-            ]
+                })
             ans = (
                 f"Currently, INR {cash.unreconciled_amount:,.2f} remains unreconciled across open exceptions, "
                 f"with INR {cash.at_risk_amount:,.2f} classified as high financial exposure."

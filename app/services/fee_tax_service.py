@@ -1,4 +1,4 @@
-﻿"""
+"""
 Fee and Tax Control Service for Project Sentinel.
 
 Reconciles expected vs. observed gateway merchant discount rates (MDR) and tax deductions:
@@ -80,12 +80,16 @@ class FeeTaxService:
             gross = Decimal(str(t.amount or 0))
             total_gross += gross
 
-            # Standard formula: Expected Fee = 2% of Gross, Expected Tax = 18% of Fee
-            exp_fee = (gross * self.DEFAULT_MDR_RATE).quantize(Decimal("0.01"))
-            exp_tax = (exp_fee * self.GST_RATE).quantize(Decimal("0.01"))
-
-            obs_fee = Decimal(str(t.fee or exp_fee))
-            obs_tax = Decimal(str(t.tax or exp_tax))
+            if t.fee is not None or t.tax is not None:
+                exp_fee = (gross * self.DEFAULT_MDR_RATE).quantize(Decimal("0.01"))
+                exp_tax = (exp_fee * self.GST_RATE).quantize(Decimal("0.01"))
+                obs_fee = Decimal(str(t.fee or 0))
+                obs_tax = Decimal(str(t.tax or 0))
+            else:
+                exp_fee = Decimal("0.00")
+                exp_tax = Decimal("0.00")
+                obs_fee = Decimal("0.00")
+                obs_tax = Decimal("0.00")
 
             exp_fee_tot += exp_fee
             obs_fee_tot += obs_fee
