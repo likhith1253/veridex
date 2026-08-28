@@ -20,12 +20,15 @@ Comprehensive REST API Endpoints:
 - Failure Simulation Scenarios
 """
 
+import logging
 from decimal import Decimal
 from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.api.dependencies import get_db_session, get_investigation_service
 from app.api.schemas.controller import (
@@ -302,14 +305,17 @@ async def apply_human_decision(
         )
         from dataclasses import asdict
         return asdict(res)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e).strip("'\""))
     except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=404, detail=str(e))
         raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
-        import traceback
-        print("====== EXCEPTION IN APPLY HUMAN DECISION ======")
-        print(traceback.format_exc())
-        print("===============================================")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Error applying human decision on exception %s: %s", exception_id, e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error occurred.")
 
 
 # 9. Explainability API
@@ -529,13 +535,25 @@ async def assign_exception(
     """Assign an open exception to a controller analyst with immutable audit log."""
     from app.services.human_decision_service import HumanAction, HumanDecisionService
     service = HumanDecisionService(session)
-    res = await service.apply_decision(
-        exception_id=exception_id,
-        action=HumanAction.ASSIGN,
-        actor=request.actor,
-        assigned_to=request.assigned_to,
-    )
-    return res.to_dict()
+    try:
+        res = await service.apply_decision(
+            exception_id=exception_id,
+            action=HumanAction.ASSIGN,
+            actor=request.actor,
+            assigned_to=request.assigned_to,
+        )
+        return res.to_dict()
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e).strip("'\""))
+    except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error assigning exception %s: %s", exception_id, e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error occurred.")
 
 
 @router.post("/exceptions/{exception_id}/note")
@@ -547,10 +565,22 @@ async def add_exception_note(
     """Add a review note to an exception with immutable audit log."""
     from app.services.human_decision_service import HumanAction, HumanDecisionService
     service = HumanDecisionService(session)
-    res = await service.apply_decision(
-        exception_id=exception_id,
-        action=HumanAction.ADD_NOTE,
-        actor=request.actor,
-        note=request.note,
-    )
-    return res.to_dict()
+    try:
+        res = await service.apply_decision(
+            exception_id=exception_id,
+            action=HumanAction.ADD_NOTE,
+            actor=request.actor,
+            note=request.note,
+        )
+        return res.to_dict()
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e).strip("'\""))
+    except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error adding note to exception %s: %s", exception_id, e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error occurred.")

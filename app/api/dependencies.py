@@ -1,7 +1,10 @@
+import logging
 from typing import AsyncGenerator
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.database.repositories import (
     AuditRepository,
@@ -17,17 +20,21 @@ from app.investigation.service import InvestigationService
 from app.services.reconciliation import ReconciliationService
 
 
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for providing a transactional database session."""
     async with async_session_maker() as session:
         try:
             yield session
             await session.commit()
+        except (HTTPException, StarletteHTTPException, RequestValidationError):
+            await session.rollback()
+            raise
         except Exception as e:
-            import traceback
-            print("==== EXCEPTION IN DB DEPENDENCY ====")
-            print(traceback.format_exc())
-            print("====================================")
+            logger.error("DB session error: %s", e, exc_info=True)
             await session.rollback()
             raise
         finally:

@@ -91,7 +91,7 @@ async def test_aud_048_050_simulate_failure_validation_and_scenarios(test_client
 
 @pytest.mark.asyncio
 async def test_aud_049_structured_json_error_responses(test_client: AsyncClient):
-    """AUD-049: Non-2xx responses (404, 405, 400) must return structured JSON, not 0-byte bodies."""
+    """AUD-049: Non-2xx responses (404, 405, 422) must return structured JSON, not 0-byte bodies."""
     # 404 Nonexistent route
     res_404 = await test_client.get("/api/v1/controller/nonexistent-endpoint-xyz")
     assert res_404.status_code == 404
@@ -100,13 +100,21 @@ async def test_aud_049_structured_json_error_responses(test_client: AsyncClient)
     assert "detail" in data_404
     assert data_404["status_code"] == 404
 
-    # 400 Bad Request
-    res_400 = await test_client.post("/api/v1/controller/exceptions/nonexistent_id/decision", json={"action": "approve"})
-    assert res_400.status_code == 400
-    assert len(res_400.content) > 0
-    data_400 = res_400.json()
-    assert "detail" in data_400
-    assert data_400["status_code"] == 400
+    # 404 Nonexistent resource ID
+    res_404_res = await test_client.post("/api/v1/controller/exceptions/nonexistent_id/decision", json={"action": "approve"})
+    assert res_404_res.status_code == 404
+    assert len(res_404_res.content) > 0
+    data_404_res = res_404_res.json()
+    assert "detail" in data_404_res
+    assert data_404_res["status_code"] == 404
+
+    # 405 Method Not Allowed
+    res_405 = await test_client.delete("/api/v1/controller/summary")
+    assert res_405.status_code == 405
+    assert len(res_405.content) > 0
+    data_405 = res_405.json()
+    assert "detail" in data_405
+    assert data_405["status_code"] == 405
 
 
 @pytest.mark.asyncio
