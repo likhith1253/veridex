@@ -179,6 +179,10 @@ Calculate metrics from explicit ground truth/evaluation data only where ground t
 - Changing the run changes only metrics that should change.
 - Every quality metric has a documented denominator.
 
+### Resolution
+
+The hardcoded precision/recall/F1 values have been removed from the FinanceController. The current implementation sets these metrics to `None` in the live KPI service, correctly indicating that they are not available from live operational data. The evaluation module (`eval/evaluator.py`) correctly calculates these metrics dynamically from ground truth when running benchmarks. The Streamlit dashboard displays "N/A — unavailable from live data" for these metrics when they are None.
+
 ---
 
 ## ISSUE-005 — Throughput is hardcoded while Executive Overview displays N/A
