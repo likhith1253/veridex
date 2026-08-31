@@ -48,14 +48,36 @@ class SettlementAccountingService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def calculate_settlement_accounting(self) -> SettlementAccountingSummary:
+    async def calculate_settlement_accounting(self, run_id: Optional[str] = None) -> SettlementAccountingSummary:
         """Compute the complete accounting equation over active transaction records."""
+        from app.database.models import ReconciliationRun as ReconciliationRunORM, ReconciliationItem as ReconciliationItemORM
+
+        # Scope transactions to run_id if provided
+        txn_filter = True
+        if run_id:
+            # Get the ORM run ID first
+            run_query = select(ReconciliationRunORM).where(
+                (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+            )
+            run_result = await self.session.execute(run_query)
+            run_obj = run_result.scalar_one_or_none()
+            if run_obj:
+                # Get transactions that are part of this run via reconciliation_items
+                item_stmt = select(ReconciliationItemORM.transaction_id).where(
+                    ReconciliationItemORM.run_id == run_obj.id
+                )
+                item_result = await self.session.execute(item_stmt)
+                txn_ids = item_result.scalars().all()
+                txn_filter = TransactionORM.id.in_(txn_ids)
+
         # 1. Gateway aggregates
         gw_stmt = select(
             func.sum(TransactionORM.amount),
             func.sum(TransactionORM.fee),
             func.sum(TransactionORM.tax),
-        ).where(TransactionORM.source == TransactionSource.GATEWAY.value)
+        ).where(
+            (TransactionORM.source == TransactionSource.GATEWAY.value) & txn_filter
+        )
         gw_res = await self.session.execute(gw_stmt)
         gw_amt, gw_fee, gw_tax = gw_res.first() or (0, 0, 0)
 
@@ -67,7 +89,9 @@ class SettlementAccountingService:
         expected_net = gross - fees - taxes - refunds
 
         # 2. Bank settled credits
-        bk_stmt = select(func.sum(TransactionORM.amount)).where(TransactionORM.source == TransactionSource.BANK.value)
+        bk_stmt = select(func.sum(TransactionORM.amount)).where(
+            (TransactionORM.source == TransactionSource.BANK.value) & txn_filter
+        )
         bk_res = await self.session.execute(bk_stmt)
         bk_amt = bk_res.scalar_one() or Decimal("0.00")
         actual_bank = Decimal(str(bk_amt))

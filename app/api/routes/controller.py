@@ -493,12 +493,13 @@ async def get_refund_audit(
 # 19. Unified Settlement Accounting
 @router.get("/settlement/accounting")
 async def get_settlement_accounting(
+    run_id: Optional[str] = Query(None, description="Reconciliation Run ID filter"),
     session: AsyncSession = Depends(get_db_session),
 ) -> dict[str, Any]:
     """Compute Gross - Fees - Taxes - Refunds = Expected Settlement vs Bank Credits."""
     from app.services.settlement_accounting_service import SettlementAccountingService
     service = SettlementAccountingService(session)
-    summary = await service.calculate_settlement_accounting()
+    summary = await service.calculate_settlement_accounting(run_id)
     return summary.to_dict()
 
 
