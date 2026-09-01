@@ -1651,12 +1651,12 @@ def run_evaluation():
     phys_bk_credits = sum(Decimal(str(r["amount"])) for r in bk)
     phys_variance = phys_bk_credits - phys_gw_net
 
-    sentinel_gross = Decimal(str(cash.get("gross_gateway_volume") or cash.get("expected_gross_settlement_inr") or 0))
+    sentinel_gross = Decimal(str(cash.get("expected_gross") or cash.get("expected_amount") or cash.get("gross_gateway_volume") or 0))
     sentinel_fees = Decimal(str(cash.get("total_deducted_fees") or 0))
     sentinel_taxes = Decimal(str(cash.get("total_deducted_taxes") or 0))
     sentinel_net = Decimal(str(cash.get("expected_net_settlement") or cash.get("expected_net_settlement_inr") or 0))
-    sentinel_bank = Decimal(str(cash.get("actual_bank_settled_credits") or cash.get("received_bank_credits_inr") or 0))
-    sentinel_var = Decimal(str(cash.get("net_settlement_variance") or cash.get("settlement_variance_inr") or 0))
+    sentinel_bank = Decimal(str(cash.get("received_bank_credits") or cash.get("received_amount") or cash.get("actual_bank_settled_credits") or 0))
+    sentinel_var = Decimal(str(cash.get("settlement_variance") or cash.get("net_settlement_variance") or 0))
 
     print("\n" + "=" * 70)
     print("FINANCIAL AGGREGATE RECONCILIATION PARITY:")
