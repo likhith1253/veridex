@@ -3,7 +3,9 @@ Payment Gateway Webhook & Integration Routes for Project Sentinel.
 
 Endpoints:
 - GET  /api/v1/integrations/razorpay/status          (Safe connectivity & metadata status)
+- POST /api/v1/integrations/razorpay/sync            (Unified sync for payments, orders, settlements)
 - POST /api/v1/integrations/razorpay/sync/payments   (Synchronize payments feed)
+- POST /api/v1/integrations/razorpay/sync/orders     (Synchronize orders feed)
 - POST /api/v1/integrations/razorpay/sync/settlements(Synchronize settlements feed)
 - POST /api/v1/integrations/razorpay/webhook         (Legacy / direct integration webhook)
 """
@@ -23,6 +25,7 @@ from app.integrations.razorpay import (
     RazorpayStatusResponse,
     RazorpaySyncRequest,
     RazorpaySyncResponse,
+    RazorpayUnifiedSyncResponse,
     RazorpayWebhookHandler,
     RazorpayWebhookResponse,
 )
@@ -44,6 +47,24 @@ async def get_razorpay_status(
     return await integration_service.get_status(session=session)
 
 
+@router.post("/razorpay/sync", response_model=RazorpayUnifiedSyncResponse)
+async def sync_razorpay_all(
+    request: RazorpaySyncRequest = RazorpaySyncRequest(),
+    session: AsyncSession = Depends(get_db_session),
+    investigation_service: InvestigationService = Depends(get_investigation_service),
+) -> RazorpayUnifiedSyncResponse:
+    """Unified synchronization across payments, orders, and settlements into Sentinel."""
+    try:
+        return await integration_service.sync_all(
+            session=session,
+            req=request,
+            investigation_service=investigation_service,
+        )
+    except Exception as e:
+        logger.error("Error during unified Razorpay sync: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed unified Razorpay sync: {str(e)}")
+
+
 @router.post("/razorpay/sync/payments", response_model=RazorpaySyncResponse)
 async def sync_razorpay_payments(
     request: RazorpaySyncRequest = RazorpaySyncRequest(),
@@ -60,6 +81,24 @@ async def sync_razorpay_payments(
     except Exception as e:
         logger.error("Error syncing Razorpay payments: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to sync payments: {str(e)}")
+
+
+@router.post("/razorpay/sync/orders", response_model=RazorpaySyncResponse)
+async def sync_razorpay_orders(
+    request: RazorpaySyncRequest = RazorpaySyncRequest(),
+    session: AsyncSession = Depends(get_db_session),
+    investigation_service: InvestigationService = Depends(get_investigation_service),
+) -> RazorpaySyncResponse:
+    """Synchronize orders from Razorpay Test/Live API into Sentinel internal ledger."""
+    try:
+        return await integration_service.sync_orders(
+            session=session,
+            req=request,
+            investigation_service=investigation_service,
+        )
+    except Exception as e:
+        logger.error("Error syncing Razorpay orders: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to sync orders: {str(e)}")
 
 
 @router.post("/razorpay/sync/settlements", response_model=RazorpaySyncResponse)

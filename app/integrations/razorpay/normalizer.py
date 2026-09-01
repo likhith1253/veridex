@@ -5,7 +5,7 @@ Transforms raw Razorpay API and Webhook payloads into canonical Sentinel Domain 
 - Converts paise integer amounts to Decimal INR values
 - Converts Unix epoch timestamps into UTC timezone-aware datetimes
 - Extracts and standardizes MDR fees, GST tax line items, UTRs, and RRNs
-- Accurately maps payment and settlement lifecycle statuses
+- Accurately maps payment, order, and settlement lifecycle statuses
 """
 
 from datetime import datetime, timezone
@@ -38,6 +38,12 @@ class RazorpayNormalizer:
         "created": TransactionStatus.PENDING,
         "pending": TransactionStatus.PENDING,
         "failed": TransactionStatus.FAILED,
+    }
+
+    ORDER_STATUS_MAP = {
+        "created": TransactionStatus.PENDING,
+        "attempted": TransactionStatus.PENDING,
+        "paid": TransactionStatus.COMPLETED,
     }
 
     @classmethod
@@ -75,6 +81,11 @@ class RazorpayNormalizer:
             p_entity = data["payment"].get("entity")
             if isinstance(p_entity, dict):
                 return p_entity
+        # If payload wraps with {"order": {"entity": {...}}}
+        if "order" in data and isinstance(data["order"], dict):
+            o_entity = data["order"].get("entity")
+            if isinstance(o_entity, dict):
+                return o_entity
         # If payload wraps with {"settlement": {"entity": {...}}}
         if "settlement" in data and isinstance(data["settlement"], dict):
             s_entity = data["settlement"].get("entity")
@@ -113,6 +124,7 @@ class RazorpayNormalizer:
 
         metadata = {
             "gateway": "razorpay",
+            "type": "payment",
             "method": method,
             "email": raw.get("email"),
             "contact": raw.get("contact"),
@@ -136,8 +148,51 @@ class RazorpayNormalizer:
         )
 
     @classmethod
+    def normalize_order(cls, order: dict[str, Any]) -> Transaction:
+        """Normalize a Razorpay Order entity into a canonical Sentinel Transaction (Ledger source)."""
+        raw = cls._extract_raw_entity(order)
+        order_id = str(raw.get("id") or "order_unknown")
+        amount = cls._paise_to_rupees(raw.get("amount", 0))
+        if amount <= 0:
+            amount = Decimal("1.00")
+
+        currency = str(raw.get("currency") or "INR").upper()
+        raw_status = str(raw.get("status") or "created").lower()
+        status = cls.ORDER_STATUS_MAP.get(raw_status, TransactionStatus.PENDING)
+        dt = cls._epoch_to_datetime(raw.get("created_at"))
+        receipt = raw.get("receipt") or order_id
+
+        metadata = {
+            "gateway": "razorpay",
+            "type": "order",
+            "receipt": str(receipt),
+            "attempts": raw.get("attempts", 0),
+            "notes": raw.get("notes") or {},
+            "raw_status": raw_status,
+        }
+
+        return Transaction(
+            txn_id=order_id,
+            source=TransactionSource.LEDGER,
+            reference_number=str(receipt),
+            amount=amount,
+            currency=currency,
+            timestamp=dt,
+            narration=f"Razorpay internal order {order_id} (receipt: {receipt})",
+            fee=None,
+            tax=None,
+            status=status,
+            order_id=order_id,
+            metadata=metadata,
+        )
+
+    @classmethod
     def normalize_settlement(cls, settlement: dict[str, Any]) -> Transaction:
-        """Normalize a Razorpay Settlement entity into a canonical Sentinel Transaction."""
+        """Normalize a Razorpay Settlement entity into a canonical Sentinel Transaction.
+        
+        Important: settlement.processed confirms Razorpay gateway payout execution.
+        Bank statement confirmation is verified separately during 3-way reconciliation.
+        """
         raw = cls._extract_raw_entity(settlement)
         settlement_id = str(raw.get("id") or "setl_unknown")
         amount = cls._paise_to_rupees(raw.get("amount", 0))
@@ -158,6 +213,7 @@ class RazorpayNormalizer:
             "type": "settlement",
             "utr": utr,
             "raw_status": raw_status,
+            "lifecycle_state": "RAZORPAY_PROCESSED",
         }
 
         return Transaction(

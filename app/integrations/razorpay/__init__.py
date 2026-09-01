@@ -19,6 +19,7 @@ from .schemas import (
     RazorpayStatusResponse,
     RazorpaySyncRequest,
     RazorpaySyncResponse,
+    RazorpayUnifiedSyncResponse,
     RazorpayWebhookResponse,
 )
 from .service import RazorpayIntegrationService
@@ -42,5 +43,6 @@ __all__ = [
     "RazorpayStatusResponse",
     "RazorpaySyncRequest",
     "RazorpaySyncResponse",
+    "RazorpayUnifiedSyncResponse",
     "RazorpayWebhookResponse",
 ]

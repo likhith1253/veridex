@@ -198,3 +198,45 @@ class RazorpayClient:
         """Retrieve combined settlement reconciliation details for a given date."""
         params = {"year": year, "month": month, "day": day, "count": count, "skip": skip}
         return await self._request("GET", "/settlements/recon/combined", params=params)
+
+    async def fetch_paginated_entities(
+        self,
+        endpoint: str,
+        limit: int = 100,
+        batch_size: int = 100,
+        from_ts: Optional[int] = None,
+        to_ts: Optional[int] = None,
+    ) -> list[dict[str, Any]]:
+        """Iteratively fetch multiple pages of entities up to `limit` without infinite loops."""
+        all_items: list[dict[str, Any]] = []
+        skip = 0
+        step = min(max(batch_size, 1), 100)
+        max_pages = max(1, (limit // step) + 2)
+
+        for _ in range(max_pages):
+            if len(all_items) >= limit:
+                break
+
+            count_to_fetch = min(step, limit - len(all_items))
+            params: dict[str, Any] = {"count": count_to_fetch, "skip": skip}
+            if from_ts:
+                params["from"] = from_ts
+            if to_ts:
+                params["to"] = to_ts
+
+            res = await self._request("GET", endpoint, params=params)
+            items = res.get("items", [])
+            if not items and "entity" in res:
+                items = [res]
+
+            if not items:
+                break
+
+            all_items.extend(items)
+            skip += len(items)
+
+            if len(items) < count_to_fetch:
+                break
+
+        return all_items[:limit]
+

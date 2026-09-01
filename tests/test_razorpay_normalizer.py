@@ -40,6 +40,32 @@ def test_normalize_payment_success():
     assert txn.metadata["method"] == "upi"
 
 
+def test_normalize_order_success():
+    raw_order = {
+        "id": "order_test_555",
+        "entity": "order",
+        "amount": 250000,  # 2,500.00 INR
+        "currency": "INR",
+        "status": "paid",
+        "receipt": "rcpt_ord_555",
+        "attempts": 1,
+        "created_at": 1725200000,
+        "notes": {"user_id": "usr_99"},
+    }
+
+    txn = RazorpayNormalizer.normalize_order(raw_order)
+    assert txn.txn_id == "order_test_555"
+    assert txn.source == TransactionSource.LEDGER
+    assert txn.amount == Decimal("2500.00")
+    assert txn.currency == "INR"
+    assert txn.status == TransactionStatus.COMPLETED
+    assert txn.order_id == "order_test_555"
+    assert txn.reference_number == "rcpt_ord_555"
+    assert txn.fee is None
+    assert txn.tax is None
+    assert txn.metadata["type"] == "order"
+
+
 def test_normalize_settlement_success():
     raw_settlement = {
         "id": "setl_test_777",
@@ -63,3 +89,4 @@ def test_normalize_settlement_success():
     assert txn.fee == Decimal("1000.00")
     assert txn.tax == Decimal("180.00")
     assert txn.metadata["type"] == "settlement"
+    assert txn.metadata["lifecycle_state"] == "RAZORPAY_PROCESSED"

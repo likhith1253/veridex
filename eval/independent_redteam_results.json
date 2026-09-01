@@ -2,25 +2,25 @@
   "throughput": {
     "10_logical_txns (30_records)": {
       "feed_records": 30,
-      "total_e2e_time_sec": 0.1569,
-      "records_per_sec": 191.17,
-      "server_processing_ms": 136.45,
+      "total_e2e_time_sec": 0.2872,
+      "records_per_sec": 104.47,
+      "server_processing_ms": 268.99,
       "auto_matched": 10,
       "unresolved": 0
     },
     "100_logical_txns (300_records)": {
       "feed_records": 300,
-      "total_e2e_time_sec": 1.0226,
-      "records_per_sec": 293.38,
-      "server_processing_ms": 1010.33,
+      "total_e2e_time_sec": 2.1585,
+      "records_per_sec": 138.98,
+      "server_processing_ms": 2118.62,
       "auto_matched": 100,
       "unresolved": 0
     },
     "1000_logical_txns (3000_records)": {
       "feed_records": 3000,
-      "total_e2e_time_sec": 9.9257,
-      "records_per_sec": 302.25,
-      "server_processing_ms": 9891.76,
+      "total_e2e_time_sec": 18.8014,
+      "records_per_sec": 159.56,
+      "server_processing_ms": 18675.43,
       "auto_matched": 1000,
       "unresolved": 0
     }
@@ -35,17 +35,17 @@
     "unexpected_exceptions": 0,
     "exception_coverage_pct": 100.0,
     "financial_parity_pass": true,
-    "run_id": "ADV_BATCH_1788291404"
+    "run_id": "ADV_BATCH_1788292017"
   },
   "fresh_data_generalization": {
     "total_scenarios": 75,
     "clean_matches_evaluated": 40,
     "clean_matches_passed": 40,
     "exceptions_evaluated": 35,
-    "exceptions_detected": 35,
-    "exception_recall_pct": 100.0,
+    "exceptions_detected": 0,
+    "exception_recall_pct": 0.0,
     "precision_pct": 100.0,
-    "run_id": "fresh_batch_999_1788291406"
+    "run_id": "fresh_batch_999_1788292021"
   },
   "multi_run_isolation": {
     "canonical_run_records": 296,
@@ -191,7 +191,7 @@
         "id": "Q08",
         "category": "Analytical",
         "question": "Which exception root-cause category contributes the most exposure?",
-        "answer_snippet": "The highest-priority exception is 5b4bd7fb-b95c-48d0-8b5e-f61287cd23d4 with a UNKNOWN risk profile and INR 80,000.00 in exposure.",
+        "answer_snippet": "The highest-priority exception is 87c99abc-46a5-4a9b-a8fe-f0e04b717fab with a UNKNOWN risk profile and INR 80,000.00 in exposure.",
         "expected_keywords": [
           "missing_source",
           "amount_mismatch",

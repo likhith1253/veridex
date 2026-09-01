@@ -51,16 +51,69 @@ async def test_get_razorpay_status_endpoint(mock_db_session):
 @pytest.mark.asyncio
 async def test_sync_razorpay_payments_endpoint(mock_db_session):
     app.dependency_overrides[get_db_session] = lambda: mock_db_session
+    mock_payments = [
+        {"id": f"pay_test_{i}", "entity": "payment", "amount": 10000, "currency": "INR", "status": "captured", "created_at": 1725200000}
+        for i in range(5)
+    ]
     try:
-        transport = ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            payload = {"limit": 5, "auto_reconcile": False, "use_fallback_if_unconfigured": True}
-            response = await client.post("/api/v1/integrations/razorpay/sync/payments", json=payload)
-            assert response.status_code == 200
-            data = response.json()
-            assert data["records_fetched"] == 5
-            assert data["records_normalized"] == 5
-            assert "run_id" in data
+        with patch("app.integrations.razorpay.client.RazorpayClient.fetch_paginated_entities", new_callable=AsyncMock) as mock_fetch:
+            mock_fetch.return_value = mock_payments
+            transport = ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                payload = {"limit": 5, "auto_reconcile": False, "use_fallback_if_unconfigured": True}
+                response = await client.post("/api/v1/integrations/razorpay/sync/payments", json=payload)
+                assert response.status_code == 200
+                data = response.json()
+                assert data["records_fetched"] == 5
+                assert data["records_normalized"] == 5
+                assert "run_id" in data
+    finally:
+        app.dependency_overrides.pop(get_db_session, None)
+
+
+@pytest.mark.asyncio
+async def test_sync_razorpay_orders_endpoint(mock_db_session):
+    app.dependency_overrides[get_db_session] = lambda: mock_db_session
+    mock_orders = [
+        {"id": f"order_test_{i}", "entity": "order", "amount": 10000, "currency": "INR", "status": "paid", "created_at": 1725200000}
+        for i in range(5)
+    ]
+    try:
+        with patch("app.integrations.razorpay.client.RazorpayClient.fetch_paginated_entities", new_callable=AsyncMock) as mock_fetch:
+            mock_fetch.return_value = mock_orders
+            transport = ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                payload = {"limit": 5, "auto_reconcile": False, "use_fallback_if_unconfigured": True}
+                response = await client.post("/api/v1/integrations/razorpay/sync/orders", json=payload)
+                assert response.status_code == 200
+                data = response.json()
+                assert data["records_fetched"] == 5
+                assert data["records_normalized"] == 5
+                assert data["entity_type"] == "orders"
+    finally:
+        app.dependency_overrides.pop(get_db_session, None)
+
+
+@pytest.mark.asyncio
+async def test_sync_razorpay_unified_all_endpoint(mock_db_session):
+    app.dependency_overrides[get_db_session] = lambda: mock_db_session
+    mock_items = [
+        {"id": f"item_test_{i}", "entity": "payment", "amount": 10000, "currency": "INR", "status": "captured", "created_at": 1725200000}
+        for i in range(3)
+    ]
+    try:
+        with patch("app.integrations.razorpay.client.RazorpayClient.fetch_paginated_entities", new_callable=AsyncMock) as mock_fetch:
+            mock_fetch.return_value = mock_items
+            transport = ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                payload = {"limit": 3, "auto_reconcile": False, "use_fallback_if_unconfigured": True}
+                response = await client.post("/api/v1/integrations/razorpay/sync", json=payload)
+                assert response.status_code == 200
+                data = response.json()
+                assert data["total_records_fetched"] == 9
+                assert "payments" in data
+                assert "orders" in data
+                assert "settlements" in data
     finally:
         app.dependency_overrides.pop(get_db_session, None)
 
