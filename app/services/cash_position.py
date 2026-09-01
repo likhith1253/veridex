@@ -25,6 +25,46 @@ from app.models.exception_record import ExceptionCategory
 from app.models.transaction import TransactionSource
 
 
+def _as_decimal(value: Any) -> Decimal:
+    if value is None:
+        return Decimal("0.00")
+    return Decimal(str(value))
+
+
+def _sum_refunds_for_transaction(txn: Any) -> Decimal:
+    metadata = getattr(txn, "meta_data", None) or getattr(txn, "metadata", None) or {}
+    if not isinstance(metadata, dict):
+        return Decimal("0.00")
+
+    refunds = metadata.get("refunds")
+    if isinstance(refunds, list):
+        total = Decimal("0.00")
+        for refund in refunds:
+            if isinstance(refund, dict):
+                total += _as_decimal(refund.get("amount", 0) or 0)
+            else:
+                total += _as_decimal(refund)
+        return total
+
+    if "refund_amount" in metadata:
+        return _as_decimal(metadata.get("refund_amount", 0) or 0)
+
+    if "refund" in metadata:
+        return _as_decimal(metadata.get("refund", 0) or 0)
+
+    return Decimal("0.00")
+
+
+def _resolve_authoritative_business_gross(by_source: dict[str, Decimal]) -> Decimal:
+    gateway_total = by_source.get(TransactionSource.GATEWAY.value, Decimal("0.00"))
+    ledger_total = by_source.get(TransactionSource.LEDGER.value, Decimal("0.00"))
+    if gateway_total > Decimal("0.00"):
+        return gateway_total
+    if ledger_total > Decimal("0.00"):
+        return ledger_total
+    return Decimal("0.00")
+
+
 @dataclass
 class CashPositionSummary:
     """Consolidated financial cash position summary."""
@@ -127,13 +167,13 @@ class CashPositionService:
                     fees += Decimal(str(t.fee))
                 if getattr(t, "tax", None) is not None:
                     taxes += Decimal(str(t.tax))
+                refunds += _sum_refunds_for_transaction(t)
             elif src == TransactionSource.BANK.value:
                 received += amt
 
-        # Authoritative gross volume (Gateway volume, fallback to Ledger volume)
-        gw_gross = by_source.get(TransactionSource.GATEWAY.value, Decimal("0.00"))
-        ld_gross = by_source.get(TransactionSource.LEDGER.value, Decimal("0.00"))
-        expected_gross = gw_gross if gw_gross > Decimal("0.00") else ld_gross
+        # Authoritative gross volume: prefer the gateway's business value when present,
+        # while preserving ledger totals as a separate accounting signal for disagreement analysis.
+        expected_gross = _resolve_authoritative_business_gross(by_source)
 
         expected_net = expected_gross - fees - taxes - refunds
         variance = (received - expected_net).quantize(Decimal("0.01"))

@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.models import Transaction as TransactionORM
 from app.models.transaction import TransactionSource
+from app.services.cash_position import _as_decimal, _resolve_authoritative_business_gross, _sum_refunds_for_transaction
 
 
 @dataclass
@@ -84,7 +85,31 @@ class SettlementAccountingService:
         gross = Decimal(str(gw_amt or 0))
         fees = Decimal(str(gw_fee or 0))
         taxes = Decimal(str(gw_tax or 0))
-        refunds = Decimal("0.00")  # Computed from refund records or meta
+        refunds = Decimal("0.00")
+
+        # Refunds are part of the authoritative settlement equation, but they are only
+        # materialized in gateway metadata and therefore require a scoped lookup when a
+        # run is provided. The unrestricted path keeps the common API contract stable.
+        if run_id is not None:
+            refund_stmt = select(TransactionORM).where(
+                (TransactionORM.source == TransactionSource.GATEWAY.value) & txn_filter
+            )
+            refund_res = await self.session.execute(refund_stmt)
+            refund_txns = refund_res.scalars().all()
+            refunds = sum(
+                (_sum_refunds_for_transaction(txn) for txn in refund_txns),
+                Decimal("0.00"),
+            )
+            by_source = {
+                TransactionSource.GATEWAY.value: Decimal("0.00"),
+                TransactionSource.LEDGER.value: Decimal("0.00"),
+                TransactionSource.BANK.value: Decimal("0.00"),
+            }
+            for txn in refund_txns:
+                src = getattr(txn, "source", None)
+                if src in by_source:
+                    by_source[src] += _as_decimal(getattr(txn, "amount", 0) or 0)
+            gross = _resolve_authoritative_business_gross(by_source)
 
         expected_net = gross - fees - taxes - refunds
 

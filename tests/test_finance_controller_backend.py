@@ -533,6 +533,50 @@ class TestRefundAndSettlementAccounting:
         assert cash_summary.settlement_variance == Decimal("54534.86")
         assert cash_summary.received_bank_credits == Decimal("2310799.00")
 
+    @pytest.mark.asyncio
+    async def test_cash_position_uses_gateway_business_value_and_refund_metadata(self):
+        from app.database.models import Transaction as TransactionORM
+        from app.models.transaction import TransactionSource
+        from app.services.cash_position import CashPositionService
+
+        session = AsyncMock()
+
+        gateway = MagicMock(spec=TransactionORM)
+        gateway.id = "gw-1"
+        gateway.amount = Decimal("1000.00")
+        gateway.fee = Decimal("20.00")
+        gateway.tax = Decimal("5.00")
+        gateway.source = TransactionSource.GATEWAY.value
+        gateway.meta_data = {"refunds": [{"amount": "30.00"}]}
+
+        ledger = MagicMock(spec=TransactionORM)
+        ledger.id = "ld-1"
+        ledger.amount = Decimal("950.00")
+        ledger.fee = None
+        ledger.tax = None
+        ledger.source = TransactionSource.LEDGER.value
+
+        bank = MagicMock(spec=TransactionORM)
+        bank.id = "bk-1"
+        bank.amount = Decimal("945.00")
+        bank.fee = None
+        bank.tax = None
+        bank.source = TransactionSource.BANK.value
+
+        res_txns = MagicMock()
+        res_txns.scalars.return_value.all.return_value = [gateway, ledger, bank]
+
+        res_excs = MagicMock()
+        res_excs.scalars.return_value.all.return_value = []
+
+        session.execute = AsyncMock(side_effect=[res_txns, res_excs])
+
+        cash = await CashPositionService(session).get_cash_position()
+
+        assert cash.expected_gross == Decimal("1000.00")
+        assert cash.total_refunded_amount == Decimal("30.00")
+        assert cash.expected_net_settlement == Decimal("945.00")
+        assert cash.settlement_variance == Decimal("0.00")
 
 
 class TestWebhookIntegration:
