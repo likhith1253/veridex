@@ -174,3 +174,14 @@ Status: COMPLETED
 - File/location: [app/api/main.py](/D:/sentinel/app/api/main.py), [ui/api_client.py](/D:/sentinel/ui/api_client.py)
 - Fix status: Fixed
 - Verification: The backend now serves both `/runs` and `/api/v1/runs`; the Streamlit client uses the live route and receives one persisted run after ingestion.
+
+## 2026-09-01 21:19 IST
+- Severity: HIGH
+- Subsystem: Adversarial evaluation / Exception tracing
+- Symptom: The current independent adversarial evaluator reports 0.0% exception coverage on the active run.
+- Reproduction: `python trace_exceptions_with_mapping.py`
+- Expected behavior: The evaluator should report the known fixed exception coverage, or at minimum a non-zero set of scenario-linked exceptions for the active run.
+- Actual behavior: `Expected exceptions: 46`, `Detected exceptions: 0`, `Missing exceptions: 46`, `Coverage: 0.0%`.
+- Suspected root cause: The active run currently exposes only 29 exceptions for the generated dataset, and the trace script is not finding scenario-linked exception categories for the evaluator run.
+- File/location: `trace_exceptions_with_mapping.py`, backend exception persistence / classification surfaces
+- Fix status: Open
