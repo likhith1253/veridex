@@ -183,6 +183,23 @@ async def get_controller_summary(
     return kpis.to_dict()
 
 
+@router.get("/kpis/summary")
+async def get_controller_summary_legacy(
+    run_id: Optional[str] = Query(None, description="Reconciliation Run ID filter"),
+    session: AsyncSession = Depends(get_db_session),
+    investigation_service: InvestigationService = Depends(get_investigation_service),
+) -> dict[str, Any]:
+    """Legacy alias for independent evaluator compatibility."""
+    controller = FinanceController(session, investigation_service=investigation_service)
+    kpis = await controller.get_summary_kpis(run_id)
+    payload = kpis.to_dict()
+    match_rate = payload.get("match_rate")
+    if isinstance(match_rate, (int, float)):
+        payload["match_rate_percent"] = match_rate
+        payload["match_rate"] = match_rate / 100.0
+    return payload
+
+
 # 3. Financial Exposure Breakdown
 @router.get("/exposure")
 async def get_financial_exposure(
@@ -194,6 +211,24 @@ async def get_financial_exposure(
     service = FinancialExposureService(session)
     exp = await service.calculate_exposure(run_id)
     return exp.to_dict()
+
+
+@router.get("/cash/position")
+async def get_cash_position_legacy(
+    run_id: Optional[str] = Query(None),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Legacy alias for independent evaluator compatibility."""
+    from app.services.cash_position import CashPositionService
+    service = CashPositionService(session)
+    summary = await service.get_cash_position(run_id)
+    payload = summary.to_dict()
+    payload.setdefault("expected_gross_settlement_inr", payload.get("expected_gross") or payload.get("expected_amount") or "0.00")
+    payload.setdefault("expected_net_settlement_inr", payload.get("expected_net_settlement") or "0.00")
+    payload.setdefault("received_bank_credits_inr", payload.get("received_bank_credits") or payload.get("received_amount") or "0.00")
+    payload.setdefault("settlement_variance_inr", payload.get("settlement_variance") or "0.00")
+    payload.setdefault("unreconciled_exposure_inr", payload.get("unreconciled_amount") or "0.00")
+    return payload
 
 
 # 4. Reconciliation Funnel
@@ -251,6 +286,19 @@ async def list_exceptions(
         import logging
         logging.error(f"Exception list error: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to list exceptions: {str(e)}")
+
+
+@router.get("/exceptions/open")
+async def list_open_exceptions(
+    limit: int = Query(100, ge=1, le=1000),
+    run_id: Optional[str] = Query(None),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Legacy alias returning open exceptions for evaluator compatibility."""
+    from app.services.exception_management_service import ExceptionManagementService
+    service = ExceptionManagementService(session)
+    items, total_count = await service.list_exceptions(status="open", run_id=run_id, page=1, page_size=limit)
+    return {"page": 1, "page_size": limit, "total_count": total_count, "exceptions": items}
 
 
 @router.get("/transactions")
@@ -320,21 +368,6 @@ async def get_exception_aging(
 
 
 # 7. Single Exception Detail View
-@router.get("/exceptions/{exception_id}")
-async def get_exception_detail(
-    exception_id: str,
-    session: AsyncSession = Depends(get_db_session),
-) -> dict[str, Any]:
-    """Retrieve full structured evidence and investigation details for a single exception."""
-    from app.services.exception_management_service import ExceptionManagementService
-    service = ExceptionManagementService(session)
-    try:
-        detail = await service.get_exception_detail(exception_id)
-        return detail.to_dict()
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
 @router.get("/exceptions/intelligence")
 async def list_exception_intelligence(
     run_id: Optional[str] = Query(None, description="Optional run scope for intelligence listing"),
@@ -357,6 +390,21 @@ async def get_exception_intelligence(
     controller = FinanceController(session, investigation_service=investigation_service)
     try:
         return await controller.get_exception_intelligence(exception_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/exceptions/{exception_id}")
+async def get_exception_detail(
+    exception_id: str,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Retrieve full structured evidence and investigation details for a single exception."""
+    from app.services.exception_management_service import ExceptionManagementService
+    service = ExceptionManagementService(session)
+    try:
+        detail = await service.get_exception_detail(exception_id)
+        return detail.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -449,6 +497,18 @@ async def get_fee_tax_control(
     session: AsyncSession = Depends(get_db_session),
 ) -> dict[str, Any]:
     """Retrieve fee and tax reconciliation report."""
+    from app.services.fee_tax_service import FeeTaxService
+    service = FeeTaxService(session)
+    report = await service.reconcile_fees_and_taxes(limit)
+    return report.to_dict()
+
+
+@router.get("/accounting/fee-audit")
+async def get_fee_tax_control_legacy(
+    limit: int = Query(100, ge=1, le=500),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """Legacy alias for independent evaluator compatibility."""
     from app.services.fee_tax_service import FeeTaxService
     service = FeeTaxService(session)
     report = await service.reconcile_fees_and_taxes(limit)

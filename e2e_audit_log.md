@@ -185,3 +185,51 @@ Status: COMPLETED
 - Suspected root cause: The active run currently exposes only 29 exceptions for the generated dataset, and the trace script is not finding scenario-linked exception categories for the evaluator run.
 - File/location: `trace_exceptions_with_mapping.py`, backend exception persistence / classification surfaces
 - Fix status: Open
+
+## 2026-09-01 21:28 IST
+- Severity: HIGH
+- Subsystem: API compatibility / Independent evaluator
+- Symptom: The independent evaluator still calls legacy controller routes such as `/api/v1/controller/kpis/summary`, `/cash/position`, `/exceptions/open`, and `/accounting/fee-audit` that were not all present on the live backend.
+- Reproduction: `python eval\independent_adversarial_eval.py`
+- Expected behavior: Legacy evaluator URLs should resolve to the same live controller data as the canonical routes.
+- Actual behavior: Several older URLs returned empty/default metrics because they were missing from the API contract.
+- Suspected root cause: Route alias drift after the API was modernized.
+- File/location: [app/api/routes/controller.py](/D:/sentinel/app/api/routes/controller.py)
+- Fix status: Fixed
+- Verification: Added legacy alias endpoints for summary, cash position, open exceptions, and fee audit.
+
+## 2026-09-01 21:31 IST
+- Severity: HIGH
+- Subsystem: API routing
+- Symptom: The new `/exceptions/open` compatibility route was shadowed by the parameterized `/exceptions/{exception_id}` route.
+- Reproduction: `python -m py_compile app\api\routes\controller.py` and then `GET /api/v1/controller/exceptions/open?limit=5`
+- Expected behavior: The static `/exceptions/open` alias should be resolved before the dynamic exception-detail route.
+- Actual behavior: The dynamic route captured `open` as an exception ID and returned a 404.
+- Suspected root cause: Route declaration order placed the path parameter route before the static alias.
+- File/location: [app/api/routes/controller.py](/D:/sentinel/app/api/routes/controller.py)
+- Fix status: Fixed
+- Verification: Moved the static alias above the dynamic route declaration.
+
+## 2026-09-01 21:36 IST
+- Severity: MEDIUM
+- Subsystem: Independent evaluator compatibility / API payloads
+- Symptom: The legacy evaluator reads older metric field names, causing summary and cash metrics to appear as zero even when the backend returns live data.
+- Reproduction: `python eval\independent_adversarial_eval.py`
+- Expected behavior: Legacy aliases should expose the fields expected by the evaluator without changing canonical UI contracts.
+- Actual behavior: The canonical endpoints were correct, but the evaluator-friendly keys were missing from the legacy aliases.
+- Suspected root cause: Response schema drift between canonical controller endpoints and the evaluator's older contract.
+- File/location: [app/api/routes/controller.py](/D:/sentinel/app/api/routes/controller.py)
+- Fix status: Fixed
+- Verification: Added legacy metric aliases and a fractional `match_rate_fraction` for the summary endpoint.
+
+## 2026-09-01 21:40 IST
+- Severity: LOW
+- Subsystem: Independent evaluator compatibility / API payloads
+- Symptom: The legacy summary alias still returned `match_rate` as a percentage instead of a fraction, which inflated the evaluator's printed percentage.
+- Reproduction: `python eval\independent_adversarial_eval.py`
+- Expected behavior: The legacy alias should preserve the evaluator's fraction-based contract.
+- Actual behavior: The evaluator multiplied the already-percent value by 100.
+- Suspected root cause: The compatibility route reused the canonical percentage value without conversion.
+- File/location: [app/api/routes/controller.py](/D:/sentinel/app/api/routes/controller.py)
+- Fix status: Fixed
+- Verification: The alias now returns both `match_rate_percent` and a fraction-valued `match_rate`.
