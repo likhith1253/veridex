@@ -204,4 +204,13 @@ Status: IN PROGRESS
 - Fix status: Blocked on benchmark acceptance gate alignment (46 vs 15).
 - Verification: `python trace_exceptions_with_mapping.py ADV_BATCH_1788285093` executed cleanly; financial physical model gross matches to 0.00 difference (INR 9,645,541.75).
 
-
+## 2026-09-02 00:15 IST
+- Severity: CRITICAL
+- Subsystem: Canonical adversarial benchmark unification & consolidation
+- Symptom: Multiplicity of adversarial data generators (`adversarial_evaluator.py`, `eval/independent_adversarial_eval.py`, `generate_independent_adversarial.py`) and divergence between the 46-scenario acceptance gate and 60-transaction cutdown generator.
+- Reproduction: Running `trace_exceptions_with_mapping.py` or comparing `private_ground_truth.json` with `eval/independent_adversarial_eval.py`.
+- Expected behavior: Exactly ONE canonical adversarial benchmark pipeline in `eval/independent_adversarial_eval.py` that implements the authoritative 100-logical-transaction / 46-exception Track 04 scenario set with strict `ADV_*` namespace, scenario-identity mapping, deterministic seed reproducibility, and exact accounting model parity (0.00 difference).
+- Actual behavior: Conflicting generators, obsolete trace scripts, and disjoint ground-truth definitions existed across root and `eval/`.
+- Root cause: Historical development artifacts remained in repo without consolidation.
+- File/location: `eval/independent_adversarial_eval.py`, `adversarial_evaluator.py`, `generate_independent_adversarial.py`, `trace_exceptions_with_mapping.py`, `final_verification.py`
+- Fix status: In Progress - Consolidating all scenario definitions into `eval/independent_adversarial_eval.py` with 100 logical transactions (54 clean, 46 exceptions), unified ground-truth generator, scenario-level evaluator, and removing obsolete generators.

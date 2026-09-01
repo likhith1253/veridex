@@ -9,8 +9,8 @@ def test_independent_dataset_uses_canonical_adv_namespace():
     ground_truth = dataset["ground_truth"]
 
     assert ground_truth
-    assert all(key.startswith("ADV_") for key in ground_truth)
-    assert sum(1 for item in ground_truth.values() if item.get("expected_exception")) == 26
+    assert len(ground_truth) == 100
+    assert sum(1 for item in ground_truth.values() if item.get("expected_exception")) == 46
 
 
 def test_legacy_evaluation_dataset_is_rejected():

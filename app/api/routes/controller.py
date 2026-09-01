@@ -479,6 +479,8 @@ async def explain_decision(
 
 # 10. Cash Position
 @router.get("/cash-position")
+@router.get("/cash/position")
+@router.get("/settlement-accounting")
 async def get_cash_position(
     run_id: Optional[str] = Query(None),
     session: AsyncSession = Depends(get_db_session),
@@ -560,6 +562,7 @@ async def answer_finance_query(
 
 
 @router.post("/copilot/query", response_model=CopilotQueryResponse)
+@router.post("/copilot", response_model=CopilotQueryResponse)
 async def ask_copilot_query(
     request: CopilotQueryRequest,
     session: AsyncSession = Depends(get_db_session),

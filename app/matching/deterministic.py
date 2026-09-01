@@ -668,7 +668,7 @@ class DeterministicMatcher:
                             }
                         )
             
-            # Pattern 3: Same source + same order_id + different amount
+            # Pattern 3: Same source + same order_id
             order_groups = defaultdict(list)
             for txn in txns:
                 if txn.order_id:
@@ -677,14 +677,17 @@ class DeterministicMatcher:
             
             for key, group in order_groups.items():
                 if len(group) > 1:
-                    amounts = {t.amount for t in group}
-                    if len(amounts) > 1:
+                    already_tracked = any(
+                        set(d.get("txn_ids", [])) == {t.txn_id for t in group}
+                        for d in self.duplicates_detected
+                    )
+                    if not already_tracked:
                         self.duplicates_detected.append(
                             {
-                                "type": "duplicate_order_amount_mismatch",
+                                "type": "duplicate_order",
                                 "source": key[0],
                                 "order_id": key[1],
-                                "amounts": [str(a) for a in amounts],
+                                "amount": group[0].amount,
                                 "count": len(group),
                                 "txn_ids": [t.txn_id for t in group],
                             }

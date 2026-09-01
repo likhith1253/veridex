@@ -1,8 +1,20 @@
 {
   "ADV_EXACT_01": {
+    "scenario_id": "ADV_EXACT_01",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (17.75 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_01"
+    ],
     "gross_amount": "17.75",
     "fee": "0.36",
     "tax": "0.06",
@@ -12,9 +24,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_02": {
+    "scenario_id": "ADV_EXACT_02",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (1775.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_02"
+    ],
     "gross_amount": "1775.00",
     "fee": "35.50",
     "tax": "6.39",
@@ -24,9 +48,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_03": {
+    "scenario_id": "ADV_EXACT_03",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (48750.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_03"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_03"
+    ],
     "gross_amount": "48750.00",
     "fee": "975.00",
     "tax": "175.50",
@@ -36,9 +72,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_04": {
+    "scenario_id": "ADV_EXACT_04",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (24.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_04"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_04"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_04"
+    ],
     "gross_amount": "24.50",
     "fee": "0.49",
     "tax": "0.09",
@@ -48,9 +96,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_05": {
+    "scenario_id": "ADV_EXACT_05",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (2187.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_05"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_05"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_05"
+    ],
     "gross_amount": "2187.50",
     "fee": "43.75",
     "tax": "7.88",
@@ -60,9 +120,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_06": {
+    "scenario_id": "ADV_EXACT_06",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (52500.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_06"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_06"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_06"
+    ],
     "gross_amount": "52500.00",
     "fee": "1050.00",
     "tax": "189.00",
@@ -72,9 +144,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_07": {
+    "scenario_id": "ADV_EXACT_07",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (31.25 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_07"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_07"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_07"
+    ],
     "gross_amount": "31.25",
     "fee": "0.63",
     "tax": "0.11",
@@ -84,9 +168,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_08": {
+    "scenario_id": "ADV_EXACT_08",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (2600.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_08"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_08"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_08"
+    ],
     "gross_amount": "2600.00",
     "fee": "52.00",
     "tax": "9.36",
@@ -96,9 +192,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_09": {
+    "scenario_id": "ADV_EXACT_09",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (56250.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_09"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_09"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_09"
+    ],
     "gross_amount": "56250.00",
     "fee": "1125.00",
     "tax": "202.50",
@@ -108,9 +216,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_10": {
+    "scenario_id": "ADV_EXACT_10",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (38.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_10"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_10"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_10"
+    ],
     "gross_amount": "38.00",
     "fee": "0.76",
     "tax": "0.14",
@@ -120,9 +240,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_11": {
+    "scenario_id": "ADV_EXACT_11",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (3012.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_11"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_11"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_11"
+    ],
     "gross_amount": "3012.50",
     "fee": "60.25",
     "tax": "10.85",
@@ -132,9 +264,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_12": {
+    "scenario_id": "ADV_EXACT_12",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (60000.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_12"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_12"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_12"
+    ],
     "gross_amount": "60000.00",
     "fee": "1200.00",
     "tax": "216.00",
@@ -144,9 +288,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_13": {
+    "scenario_id": "ADV_EXACT_13",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (44.75 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_13"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_13"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_13"
+    ],
     "gross_amount": "44.75",
     "fee": "0.90",
     "tax": "0.16",
@@ -156,9 +312,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_14": {
+    "scenario_id": "ADV_EXACT_14",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (3425.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_14"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_14"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_14"
+    ],
     "gross_amount": "3425.00",
     "fee": "68.50",
     "tax": "12.33",
@@ -168,9 +336,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_15": {
+    "scenario_id": "ADV_EXACT_15",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (63750.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_15"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_15"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_15"
+    ],
     "gross_amount": "63750.00",
     "fee": "1275.00",
     "tax": "229.50",
@@ -180,9 +360,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_16": {
+    "scenario_id": "ADV_EXACT_16",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (51.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_16"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_16"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_16"
+    ],
     "gross_amount": "51.50",
     "fee": "1.03",
     "tax": "0.19",
@@ -192,9 +384,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_17": {
+    "scenario_id": "ADV_EXACT_17",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (3837.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_17"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_17"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_17"
+    ],
     "gross_amount": "3837.50",
     "fee": "76.75",
     "tax": "13.82",
@@ -204,9 +408,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_18": {
+    "scenario_id": "ADV_EXACT_18",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (67500.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_18"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_18"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_18"
+    ],
     "gross_amount": "67500.00",
     "fee": "1350.00",
     "tax": "243.00",
@@ -216,9 +432,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_19": {
+    "scenario_id": "ADV_EXACT_19",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (58.25 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_19"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_19"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_19"
+    ],
     "gross_amount": "58.25",
     "fee": "1.17",
     "tax": "0.21",
@@ -228,9 +456,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_20": {
+    "scenario_id": "ADV_EXACT_20",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (4250.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_20"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_20"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_20"
+    ],
     "gross_amount": "4250.00",
     "fee": "85.00",
     "tax": "15.30",
@@ -240,9 +480,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_21": {
+    "scenario_id": "ADV_EXACT_21",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (71250.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_21"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_21"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_21"
+    ],
     "gross_amount": "71250.00",
     "fee": "1425.00",
     "tax": "256.50",
@@ -252,9 +504,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_22": {
+    "scenario_id": "ADV_EXACT_22",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (65.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_22"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_22"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_22"
+    ],
     "gross_amount": "65.00",
     "fee": "1.30",
     "tax": "0.23",
@@ -264,9 +528,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_23": {
+    "scenario_id": "ADV_EXACT_23",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (4662.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_23"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_23"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_23"
+    ],
     "gross_amount": "4662.50",
     "fee": "93.25",
     "tax": "16.79",
@@ -276,9 +552,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_24": {
+    "scenario_id": "ADV_EXACT_24",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (75000.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_24"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_24"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_24"
+    ],
     "gross_amount": "75000.00",
     "fee": "1500.00",
     "tax": "270.00",
@@ -288,9 +576,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_25": {
+    "scenario_id": "ADV_EXACT_25",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (71.75 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_25"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_25"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_25"
+    ],
     "gross_amount": "71.75",
     "fee": "1.44",
     "tax": "0.26",
@@ -300,9 +600,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_26": {
+    "scenario_id": "ADV_EXACT_26",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (5075.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_26"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_26"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_26"
+    ],
     "gross_amount": "5075.00",
     "fee": "101.50",
     "tax": "18.27",
@@ -312,9 +624,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_27": {
+    "scenario_id": "ADV_EXACT_27",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (78750.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_27"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_27"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_27"
+    ],
     "gross_amount": "78750.00",
     "fee": "1575.00",
     "tax": "283.50",
@@ -324,9 +648,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_28": {
+    "scenario_id": "ADV_EXACT_28",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (78.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_28"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_28"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_28"
+    ],
     "gross_amount": "78.50",
     "fee": "1.57",
     "tax": "0.28",
@@ -336,9 +672,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_29": {
+    "scenario_id": "ADV_EXACT_29",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (5487.50 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_29"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_29"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_29"
+    ],
     "gross_amount": "5487.50",
     "fee": "109.75",
     "tax": "19.76",
@@ -348,9 +696,21 @@
     "exposure": "0.00"
   },
   "ADV_EXACT_30": {
+    "scenario_id": "ADV_EXACT_30",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (82500.00 INR)",
     "expected_outcome": "MATCHED",
-    "expected_stage": "deterministic",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_30"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_30"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_30"
+    ],
     "gross_amount": "82500.00",
     "fee": "1650.00",
     "tax": "297.00",
@@ -359,346 +719,1352 @@
     "variance": "0.00",
     "exposure": "0.00"
   },
-  "ADV_DELAYED_31": {
-    "expected_outcome": "UNRESOLVED_OR_PENDING",
-    "expected_exception": true,
-    "expected_category": "delayed_settlement",
-    "gross_amount": "40500.00",
-    "fee": "810.00",
-    "tax": "145.80",
-    "expected_net": "39544.20",
-    "actual_bank": "0.00",
-    "variance": "-39544.20",
-    "exposure": "39544.20"
-  },
-  "ADV_DELAYED_32": {
-    "expected_outcome": "UNRESOLVED_OR_PENDING",
-    "expected_exception": true,
-    "expected_category": "delayed_settlement",
-    "gross_amount": "41000.00",
-    "fee": "820.00",
-    "tax": "147.60",
-    "expected_net": "40032.40",
-    "actual_bank": "0.00",
-    "variance": "-40032.40",
-    "exposure": "40032.40"
-  },
-  "ADV_DELAYED_33": {
-    "expected_outcome": "UNRESOLVED_OR_PENDING",
-    "expected_exception": true,
-    "expected_category": "delayed_settlement",
-    "gross_amount": "41500.00",
-    "fee": "830.00",
-    "tax": "149.40",
-    "expected_net": "40520.60",
-    "actual_bank": "0.00",
-    "variance": "-40520.60",
-    "exposure": "40520.60"
-  },
-  "ADV_DELAYED_34": {
-    "expected_outcome": "UNRESOLVED_OR_PENDING",
-    "expected_exception": true,
-    "expected_category": "delayed_settlement",
-    "gross_amount": "42000.00",
-    "fee": "840.00",
-    "tax": "151.20",
-    "expected_net": "41008.80",
-    "actual_bank": "0.00",
-    "variance": "-41008.80",
-    "exposure": "41008.80"
-  },
-  "ADV_DELAYED_35": {
-    "expected_outcome": "UNRESOLVED_OR_PENDING",
-    "expected_exception": true,
-    "expected_category": "delayed_settlement",
-    "gross_amount": "42500.00",
-    "fee": "850.00",
-    "tax": "153.00",
-    "expected_net": "41497.00",
-    "actual_bank": "0.00",
-    "variance": "-41497.00",
-    "exposure": "41497.00"
-  },
-  "ADV_DIRECT_36": {
-    "expected_outcome": "MISSING_GATEWAY",
-    "expected_exception": true,
-    "expected_category": "missing_source",
-    "gross_amount": "21000.00",
-    "fee": "0.00",
-    "tax": "0.00",
-    "expected_net": "21000.00",
-    "actual_bank": "21000.00",
+  "ADV_EXACT_31": {
+    "scenario_id": "ADV_EXACT_31",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (85.25 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_31"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_31"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_31"
+    ],
+    "gross_amount": "85.25",
+    "fee": "1.71",
+    "tax": "0.31",
+    "expected_net": "83.23",
+    "actual_bank": "83.23",
     "variance": "0.00",
-    "exposure": "21000.00"
+    "exposure": "0.00"
   },
-  "ADV_DIRECT_37": {
-    "expected_outcome": "MISSING_GATEWAY",
-    "expected_exception": true,
-    "expected_category": "missing_source",
-    "gross_amount": "21250.00",
-    "fee": "0.00",
-    "tax": "0.00",
-    "expected_net": "21250.00",
-    "actual_bank": "21250.00",
+  "ADV_EXACT_32": {
+    "scenario_id": "ADV_EXACT_32",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (5900.00 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_32"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_32"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_32"
+    ],
+    "gross_amount": "5900.00",
+    "fee": "118.00",
+    "tax": "21.24",
+    "expected_net": "5760.76",
+    "actual_bank": "5760.76",
     "variance": "0.00",
-    "exposure": "21250.00"
+    "exposure": "0.00"
   },
-  "ADV_DIRECT_38": {
-    "expected_outcome": "MISSING_GATEWAY",
-    "expected_exception": true,
-    "expected_category": "missing_source",
-    "gross_amount": "21500.00",
-    "fee": "0.00",
-    "tax": "0.00",
-    "expected_net": "21500.00",
-    "actual_bank": "21500.00",
+  "ADV_EXACT_33": {
+    "scenario_id": "ADV_EXACT_33",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (86250.00 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_33"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_33"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_33"
+    ],
+    "gross_amount": "86250.00",
+    "fee": "1725.00",
+    "tax": "310.50",
+    "expected_net": "84214.50",
+    "actual_bank": "84214.50",
     "variance": "0.00",
-    "exposure": "21500.00"
+    "exposure": "0.00"
   },
-  "ADV_DIRECT_39": {
-    "expected_outcome": "MISSING_GATEWAY",
-    "expected_exception": true,
-    "expected_category": "missing_source",
-    "gross_amount": "21750.00",
-    "fee": "0.00",
-    "tax": "0.00",
-    "expected_net": "21750.00",
-    "actual_bank": "21750.00",
+  "ADV_EXACT_34": {
+    "scenario_id": "ADV_EXACT_34",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (92.00 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_34"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_34"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_34"
+    ],
+    "gross_amount": "92.00",
+    "fee": "1.84",
+    "tax": "0.33",
+    "expected_net": "89.83",
+    "actual_bank": "89.83",
     "variance": "0.00",
-    "exposure": "21750.00"
+    "exposure": "0.00"
   },
-  "ADV_DIRECT_40": {
-    "expected_outcome": "MISSING_GATEWAY",
-    "expected_exception": true,
-    "expected_category": "missing_source",
-    "gross_amount": "22000.00",
-    "fee": "0.00",
-    "tax": "0.00",
-    "expected_net": "22000.00",
-    "actual_bank": "22000.00",
+  "ADV_EXACT_35": {
+    "scenario_id": "ADV_EXACT_35",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (6312.50 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_35"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_35"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_35"
+    ],
+    "gross_amount": "6312.50",
+    "fee": "126.25",
+    "tax": "22.73",
+    "expected_net": "6163.52",
+    "actual_bank": "6163.52",
     "variance": "0.00",
-    "exposure": "22000.00"
+    "exposure": "0.00"
   },
-  "ADV_UNREC_41": {
-    "expected_outcome": "UNRESOLVED_OR_EXCEPTION",
-    "expected_exception": true,
-    "expected_category": "missing_source_record",
-    "gross_amount": "12600.00",
-    "fee": "252.00",
-    "tax": "45.36",
-    "expected_net": "12302.64",
-    "actual_bank": "12302.64",
+  "ADV_EXACT_36": {
+    "scenario_id": "ADV_EXACT_36",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (90000.00 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_36"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_36"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_36"
+    ],
+    "gross_amount": "90000.00",
+    "fee": "1800.00",
+    "tax": "324.00",
+    "expected_net": "87876.00",
+    "actual_bank": "87876.00",
     "variance": "0.00",
-    "exposure": "12600.00"
+    "exposure": "0.00"
   },
-  "ADV_UNREC_42": {
-    "expected_outcome": "UNRESOLVED_OR_EXCEPTION",
-    "expected_exception": true,
-    "expected_category": "missing_source_record",
-    "gross_amount": "12700.00",
-    "fee": "254.00",
-    "tax": "45.72",
-    "expected_net": "12400.28",
-    "actual_bank": "12400.28",
+  "ADV_EXACT_37": {
+    "scenario_id": "ADV_EXACT_37",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (98.75 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_37"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_37"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_37"
+    ],
+    "gross_amount": "98.75",
+    "fee": "1.98",
+    "tax": "0.36",
+    "expected_net": "96.41",
+    "actual_bank": "96.41",
     "variance": "0.00",
-    "exposure": "12700.00"
+    "exposure": "0.00"
   },
-  "ADV_UNREC_43": {
-    "expected_outcome": "UNRESOLVED_OR_EXCEPTION",
-    "expected_exception": true,
-    "expected_category": "missing_source_record",
-    "gross_amount": "12800.00",
-    "fee": "256.00",
-    "tax": "46.08",
-    "expected_net": "12497.92",
-    "actual_bank": "12497.92",
+  "ADV_EXACT_38": {
+    "scenario_id": "ADV_EXACT_38",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (6725.00 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_38"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_38"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_38"
+    ],
+    "gross_amount": "6725.00",
+    "fee": "134.50",
+    "tax": "24.21",
+    "expected_net": "6566.29",
+    "actual_bank": "6566.29",
     "variance": "0.00",
-    "exposure": "12800.00"
+    "exposure": "0.00"
   },
-  "ADV_AMT_MISMATCH_44": {
+  "ADV_EXACT_39": {
+    "scenario_id": "ADV_EXACT_39",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (93750.00 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_39"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_39"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_39"
+    ],
+    "gross_amount": "93750.00",
+    "fee": "1875.00",
+    "tax": "337.50",
+    "expected_net": "91537.50",
+    "actual_bank": "91537.50",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EXACT_40": {
+    "scenario_id": "ADV_EXACT_40",
+    "scenario_type": "exact_match",
+    "description": "Standard 3-way exact match (105.50 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EXACT_40"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EXACT_40"
+    ],
+    "bank_ids": [
+      "BK_ADV_EXACT_40"
+    ],
+    "gross_amount": "105.50",
+    "fee": "2.11",
+    "tax": "0.38",
+    "expected_net": "103.01",
+    "actual_bank": "103.01",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_AMT_MISMATCH_01": {
+    "scenario_id": "ADV_AMT_MISMATCH_01",
+    "scenario_type": "amount_mismatch_gw_ledger",
+    "description": "Gateway amount 51500.00 differs from Ledger 54075.00",
     "expected_outcome": "EXCEPTION",
     "expected_exception": true,
-    "expected_category": "amount_mismatch",
-    "gross_amount": "94000.00",
-    "fee": "1880.00",
-    "tax": "338.40",
-    "expected_net": "91781.60",
-    "actual_bank": "84000.00",
-    "variance": "-7781.60",
-    "exposure": "7781.60"
-  },
-  "ADV_AMT_MISMATCH_45": {
-    "expected_outcome": "EXCEPTION",
-    "expected_exception": true,
-    "expected_category": "amount_mismatch",
-    "gross_amount": "95000.00",
-    "fee": "1900.00",
-    "tax": "342.00",
-    "expected_net": "92758.00",
-    "actual_bank": "85000.00",
-    "variance": "-7758.00",
-    "exposure": "7758.00"
-  },
-  "ADV_AMT_MISMATCH_46": {
-    "expected_outcome": "EXCEPTION",
-    "expected_exception": true,
-    "expected_category": "amount_mismatch",
-    "gross_amount": "96000.00",
-    "fee": "1920.00",
-    "tax": "345.60",
-    "expected_net": "93734.40",
-    "actual_bank": "86000.00",
-    "variance": "-7734.40",
-    "exposure": "7734.40"
-  },
-  "ADV_AMT_MISMATCH_47": {
-    "expected_outcome": "EXCEPTION",
-    "expected_exception": true,
-    "expected_category": "amount_mismatch",
-    "gross_amount": "97000.00",
-    "fee": "1940.00",
-    "tax": "349.20",
-    "expected_net": "94710.80",
-    "actual_bank": "87000.00",
-    "variance": "-7710.80",
-    "exposure": "7710.80"
-  },
-  "ADV_FEE_OVERCHARGE_48": {
-    "expected_outcome": "FEE_OVERCHARGE",
-    "expected_exception": true,
-    "expected_category": "fee_mismatch",
-    "expected_fee_discrepancy": true,
-    "gross_amount": "100000.00",
-    "fee": "4500.00",
-    "tax": "810.00",
-    "expected_net": "94690.00",
-    "actual_bank": "94690.00",
-    "variance": "0.00",
-    "exposure": "2950.00"
-  },
-  "ADV_FEE_OVERCHARGE_49": {
-    "expected_outcome": "FEE_OVERCHARGE",
-    "expected_exception": true,
-    "expected_category": "fee_mismatch",
-    "expected_fee_discrepancy": true,
-    "gross_amount": "100000.00",
-    "fee": "4500.00",
-    "tax": "810.00",
-    "expected_net": "94690.00",
-    "actual_bank": "94690.00",
-    "variance": "0.00",
-    "exposure": "2950.00"
-  },
-  "ADV_FEE_OVERCHARGE_50": {
-    "expected_outcome": "FEE_OVERCHARGE",
-    "expected_exception": true,
-    "expected_category": "fee_mismatch",
-    "expected_fee_discrepancy": true,
-    "gross_amount": "100000.00",
-    "fee": "4500.00",
-    "tax": "810.00",
-    "expected_net": "94690.00",
-    "actual_bank": "94690.00",
-    "variance": "0.00",
-    "exposure": "2950.00"
-  },
-  "ADV_DUP_51": {
-    "expected_outcome": "DUPLICATE_FLAGGED",
-    "expected_exception": true,
-    "expected_category": "duplicate",
-    "gross_amount": "28200.00",
-    "fee": "564.00",
-    "tax": "101.52",
-    "expected_net": "27534.48",
-    "actual_bank": "27534.48",
-    "variance": "0.00",
-    "exposure": "28200.00"
-  },
-  "ADV_DUP_52": {
-    "expected_outcome": "DUPLICATE_FLAGGED",
-    "expected_exception": true,
-    "expected_category": "duplicate",
-    "gross_amount": "28400.00",
-    "fee": "568.00",
-    "tax": "102.24",
-    "expected_net": "27729.76",
-    "actual_bank": "27729.76",
-    "variance": "0.00",
-    "exposure": "28400.00"
-  },
-  "ADV_DUP_53": {
-    "expected_outcome": "DUPLICATE_FLAGGED",
-    "expected_exception": true,
-    "expected_category": "duplicate",
-    "gross_amount": "28600.00",
-    "fee": "572.00",
-    "tax": "102.96",
-    "expected_net": "27925.04",
-    "actual_bank": "27925.04",
-    "variance": "0.00",
-    "exposure": "28600.00"
-  },
-  "ADV_CORRUPT_REF_54": {
-    "expected_outcome": "CORRUPTED_REFERENCE",
-    "expected_exception": true,
-    "expected_category": "missing_source",
-    "gross_amount": "51200.00",
-    "fee": "1024.00",
-    "tax": "184.32",
-    "expected_net": "49991.68",
-    "actual_bank": "49991.68",
-    "variance": "0.00",
-    "exposure": "51200.00"
-  },
-  "ADV_CORRUPT_REF_55": {
-    "expected_outcome": "CORRUPTED_REFERENCE",
-    "expected_exception": true,
-    "expected_category": "missing_source",
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_01"
+    ],
     "gross_amount": "51500.00",
     "fee": "1030.00",
     "tax": "185.40",
     "expected_net": "50284.60",
     "actual_bank": "50284.60",
     "variance": "0.00",
-    "exposure": "51500.00"
+    "exposure": "2575.00"
   },
-  "ADV_CORRUPT_REF_56": {
-    "expected_outcome": "CORRUPTED_REFERENCE",
+  "ADV_AMT_MISMATCH_02": {
+    "scenario_id": "ADV_AMT_MISMATCH_02",
+    "scenario_type": "amount_mismatch_gw_ledger",
+    "description": "Gateway amount 53000.00 differs from Ledger 55650.00",
+    "expected_outcome": "EXCEPTION",
     "expected_exception": true,
-    "expected_category": "missing_source",
-    "gross_amount": "51800.00",
-    "fee": "1036.00",
-    "tax": "186.48",
-    "expected_net": "50577.52",
-    "actual_bank": "50577.52",
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_02"
+    ],
+    "gross_amount": "53000.00",
+    "fee": "1060.00",
+    "tax": "190.80",
+    "expected_net": "51749.20",
+    "actual_bank": "51749.20",
     "variance": "0.00",
-    "exposure": "51800.00"
+    "exposure": "2650.00"
   },
-  "ADV_COLLISION_57": {
+  "ADV_AMT_MISMATCH_03": {
+    "scenario_id": "ADV_AMT_MISMATCH_03",
+    "scenario_type": "amount_mismatch_gw_ledger",
+    "description": "Gateway amount 54500.00 differs from Ledger 57225.00",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_03"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_03"
+    ],
+    "gross_amount": "54500.00",
+    "fee": "1090.00",
+    "tax": "196.20",
+    "expected_net": "53213.80",
+    "actual_bank": "53213.80",
+    "variance": "0.00",
+    "exposure": "2725.00"
+  },
+  "ADV_AMT_MISMATCH_04": {
+    "scenario_id": "ADV_AMT_MISMATCH_04",
+    "scenario_type": "amount_mismatch_gw_ledger",
+    "description": "Gateway amount 56000.00 differs from Ledger 58800.00",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_04"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_04"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_04"
+    ],
+    "gross_amount": "56000.00",
+    "fee": "1120.00",
+    "tax": "201.60",
+    "expected_net": "54678.40",
+    "actual_bank": "54678.40",
+    "variance": "0.00",
+    "exposure": "2800.00"
+  },
+  "ADV_AMT_MISMATCH_05": {
+    "scenario_id": "ADV_AMT_MISMATCH_05",
+    "scenario_type": "amount_mismatch_gw_ledger",
+    "description": "Gateway amount 57500.00 differs from Ledger 60375.00",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_05"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_05"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_05"
+    ],
+    "gross_amount": "57500.00",
+    "fee": "1150.00",
+    "tax": "207.00",
+    "expected_net": "56143.00",
+    "actual_bank": "56143.00",
+    "variance": "0.00",
+    "exposure": "2875.00"
+  },
+  "ADV_AMT_MISMATCH_06": {
+    "scenario_id": "ADV_AMT_MISMATCH_06",
+    "scenario_type": "amount_mismatch_gw_bank",
+    "description": "Gateway net 57607.60 differs from Bank credit 48966.46",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_06"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_06"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_06"
+    ],
+    "gross_amount": "59000.00",
+    "fee": "1180.00",
+    "tax": "212.40",
+    "expected_net": "57607.60",
+    "actual_bank": "48966.46",
+    "variance": "-8641.14",
+    "exposure": "8641.14"
+  },
+  "ADV_AMT_MISMATCH_07": {
+    "scenario_id": "ADV_AMT_MISMATCH_07",
+    "scenario_type": "amount_mismatch_gw_bank",
+    "description": "Gateway net 59072.20 differs from Bank credit 50211.37",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_07"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_07"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_07"
+    ],
+    "gross_amount": "60500.00",
+    "fee": "1210.00",
+    "tax": "217.80",
+    "expected_net": "59072.20",
+    "actual_bank": "50211.37",
+    "variance": "-8860.83",
+    "exposure": "8860.83"
+  },
+  "ADV_AMT_MISMATCH_08": {
+    "scenario_id": "ADV_AMT_MISMATCH_08",
+    "scenario_type": "amount_mismatch_gw_bank",
+    "description": "Gateway net 60536.80 differs from Bank credit 51456.28",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_08"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_08"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_08"
+    ],
+    "gross_amount": "62000.00",
+    "fee": "1240.00",
+    "tax": "223.20",
+    "expected_net": "60536.80",
+    "actual_bank": "51456.28",
+    "variance": "-9080.52",
+    "exposure": "9080.52"
+  },
+  "ADV_AMT_MISMATCH_09": {
+    "scenario_id": "ADV_AMT_MISMATCH_09",
+    "scenario_type": "amount_mismatch_gw_bank",
+    "description": "Gateway net 62001.40 differs from Bank credit 52701.19",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_09"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_09"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_09"
+    ],
+    "gross_amount": "63500.00",
+    "fee": "1270.00",
+    "tax": "228.60",
+    "expected_net": "62001.40",
+    "actual_bank": "52701.19",
+    "variance": "-9300.21",
+    "exposure": "9300.21"
+  },
+  "ADV_AMT_MISMATCH_10": {
+    "scenario_id": "ADV_AMT_MISMATCH_10",
+    "scenario_type": "amount_mismatch_gw_bank",
+    "description": "Gateway net 63466.00 differs from Bank credit 53946.10",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_AMT_MISMATCH_10"
+    ],
+    "ledger_ids": [
+      "LD_ADV_AMT_MISMATCH_10"
+    ],
+    "bank_ids": [
+      "BK_ADV_AMT_MISMATCH_10"
+    ],
+    "gross_amount": "65000.00",
+    "fee": "1300.00",
+    "tax": "234.00",
+    "expected_net": "63466.00",
+    "actual_bank": "53946.10",
+    "variance": "-9519.90",
+    "exposure": "9519.90"
+  },
+  "ADV_MISSING_SRC_01": {
+    "scenario_id": "ADV_MISSING_SRC_01",
+    "scenario_type": "missing_ledger",
+    "description": "Missing Ledger record for order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_SRC_01"
+    ],
+    "ledger_ids": [],
+    "bank_ids": [
+      "BK_ADV_MISSING_SRC_01"
+    ],
+    "gross_amount": "20800.00",
+    "fee": "416.00",
+    "tax": "74.88",
+    "expected_net": "20309.12",
+    "actual_bank": "20309.12",
+    "variance": "0.00",
+    "exposure": "20800.00"
+  },
+  "ADV_MISSING_SRC_02": {
+    "scenario_id": "ADV_MISSING_SRC_02",
+    "scenario_type": "missing_ledger",
+    "description": "Missing Ledger record for order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_SRC_02"
+    ],
+    "ledger_ids": [],
+    "bank_ids": [
+      "BK_ADV_MISSING_SRC_02"
+    ],
+    "gross_amount": "21600.00",
+    "fee": "432.00",
+    "tax": "77.76",
+    "expected_net": "21090.24",
+    "actual_bank": "21090.24",
+    "variance": "0.00",
+    "exposure": "21600.00"
+  },
+  "ADV_MISSING_SRC_03": {
+    "scenario_id": "ADV_MISSING_SRC_03",
+    "scenario_type": "missing_ledger",
+    "description": "Missing Ledger record for order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_SRC_03"
+    ],
+    "ledger_ids": [],
+    "bank_ids": [
+      "BK_ADV_MISSING_SRC_03"
+    ],
+    "gross_amount": "22400.00",
+    "fee": "448.00",
+    "tax": "80.64",
+    "expected_net": "21871.36",
+    "actual_bank": "21871.36",
+    "variance": "0.00",
+    "exposure": "22400.00"
+  },
+  "ADV_MISSING_SRC_04": {
+    "scenario_id": "ADV_MISSING_SRC_04",
+    "scenario_type": "missing_ledger",
+    "description": "Missing Ledger record for order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_SRC_04"
+    ],
+    "ledger_ids": [],
+    "bank_ids": [
+      "BK_ADV_MISSING_SRC_04"
+    ],
+    "gross_amount": "23200.00",
+    "fee": "464.00",
+    "tax": "83.52",
+    "expected_net": "22652.48",
+    "actual_bank": "22652.48",
+    "variance": "0.00",
+    "exposure": "23200.00"
+  },
+  "ADV_MISSING_SRC_05": {
+    "scenario_id": "ADV_MISSING_SRC_05",
+    "scenario_type": "missing_gateway",
+    "description": "Direct bank credit without Gateway settlement record",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [],
+    "ledger_ids": [
+      "LD_ADV_MISSING_SRC_05"
+    ],
+    "bank_ids": [
+      "BK_ADV_MISSING_SRC_05"
+    ],
+    "gross_amount": "24000.00",
+    "fee": "0.00",
+    "tax": "0.00",
+    "expected_net": "24000.00",
+    "actual_bank": "24000.00",
+    "variance": "0.00",
+    "exposure": "24000.00"
+  },
+  "ADV_MISSING_SRC_06": {
+    "scenario_id": "ADV_MISSING_SRC_06",
+    "scenario_type": "missing_gateway",
+    "description": "Direct bank credit without Gateway settlement record",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [],
+    "ledger_ids": [
+      "LD_ADV_MISSING_SRC_06"
+    ],
+    "bank_ids": [
+      "BK_ADV_MISSING_SRC_06"
+    ],
+    "gross_amount": "24800.00",
+    "fee": "0.00",
+    "tax": "0.00",
+    "expected_net": "24800.00",
+    "actual_bank": "24800.00",
+    "variance": "0.00",
+    "exposure": "24800.00"
+  },
+  "ADV_MISSING_SRC_07": {
+    "scenario_id": "ADV_MISSING_SRC_07",
+    "scenario_type": "missing_gateway",
+    "description": "Direct bank credit without Gateway settlement record",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [],
+    "ledger_ids": [
+      "LD_ADV_MISSING_SRC_07"
+    ],
+    "bank_ids": [
+      "BK_ADV_MISSING_SRC_07"
+    ],
+    "gross_amount": "25600.00",
+    "fee": "0.00",
+    "tax": "0.00",
+    "expected_net": "25600.00",
+    "actual_bank": "25600.00",
+    "variance": "0.00",
+    "exposure": "25600.00"
+  },
+  "ADV_MISSING_SRC_08": {
+    "scenario_id": "ADV_MISSING_SRC_08",
+    "scenario_type": "missing_bank",
+    "description": "Missing Bank settlement record",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_SRC_08"
+    ],
+    "ledger_ids": [
+      "LD_ADV_MISSING_SRC_08"
+    ],
+    "bank_ids": [],
+    "gross_amount": "26400.00",
+    "fee": "528.00",
+    "tax": "95.04",
+    "expected_net": "25776.96",
+    "actual_bank": "0.00",
+    "variance": "-25776.96",
+    "exposure": "25776.96"
+  },
+  "ADV_MISSING_SRC_09": {
+    "scenario_id": "ADV_MISSING_SRC_09",
+    "scenario_type": "missing_bank",
+    "description": "Missing Bank settlement record",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_SRC_09"
+    ],
+    "ledger_ids": [
+      "LD_ADV_MISSING_SRC_09"
+    ],
+    "bank_ids": [],
+    "gross_amount": "27200.00",
+    "fee": "544.00",
+    "tax": "97.92",
+    "expected_net": "26558.08",
+    "actual_bank": "0.00",
+    "variance": "-26558.08",
+    "exposure": "26558.08"
+  },
+  "ADV_MISSING_SRC_10": {
+    "scenario_id": "ADV_MISSING_SRC_10",
+    "scenario_type": "missing_bank",
+    "description": "Missing Bank settlement record",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_source_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_SRC_10"
+    ],
+    "ledger_ids": [
+      "LD_ADV_MISSING_SRC_10"
+    ],
+    "bank_ids": [],
+    "gross_amount": "28000.00",
+    "fee": "560.00",
+    "tax": "100.80",
+    "expected_net": "27339.20",
+    "actual_bank": "0.00",
+    "variance": "-27339.20",
+    "exposure": "27339.20"
+  },
+  "ADV_DUPLICATE_01": {
+    "scenario_id": "ADV_DUPLICATE_01",
+    "scenario_type": "duplicate_gateway",
+    "description": "Duplicate Gateway transaction record for single order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "duplicate_exception",
+    "gateway_ids": [
+      "GW_ADV_DUPLICATE_01_A",
+      "GW_ADV_DUPLICATE_01_B"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DUPLICATE_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_DUPLICATE_01"
+    ],
+    "gross_amount": "17200.00",
+    "fee": "344.00",
+    "tax": "61.92",
+    "expected_net": "16794.08",
+    "actual_bank": "16794.08",
+    "variance": "0.00",
+    "exposure": "17200.00"
+  },
+  "ADV_DUPLICATE_02": {
+    "scenario_id": "ADV_DUPLICATE_02",
+    "scenario_type": "duplicate_gateway",
+    "description": "Duplicate Gateway transaction record for single order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "duplicate_exception",
+    "gateway_ids": [
+      "GW_ADV_DUPLICATE_02_A",
+      "GW_ADV_DUPLICATE_02_B"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DUPLICATE_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_DUPLICATE_02"
+    ],
+    "gross_amount": "18400.00",
+    "fee": "368.00",
+    "tax": "66.24",
+    "expected_net": "17965.76",
+    "actual_bank": "17965.76",
+    "variance": "0.00",
+    "exposure": "18400.00"
+  },
+  "ADV_DUPLICATE_03": {
+    "scenario_id": "ADV_DUPLICATE_03",
+    "scenario_type": "duplicate_gateway",
+    "description": "Duplicate Gateway transaction record for single order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "duplicate_exception",
+    "gateway_ids": [
+      "GW_ADV_DUPLICATE_03_A",
+      "GW_ADV_DUPLICATE_03_B"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DUPLICATE_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_DUPLICATE_03"
+    ],
+    "gross_amount": "19600.00",
+    "fee": "392.00",
+    "tax": "70.56",
+    "expected_net": "19137.44",
+    "actual_bank": "19137.44",
+    "variance": "0.00",
+    "exposure": "19600.00"
+  },
+  "ADV_DUPLICATE_04": {
+    "scenario_id": "ADV_DUPLICATE_04",
+    "scenario_type": "duplicate_bank",
+    "description": "Duplicate Bank credit entry for single settlement reference",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "duplicate_exception",
+    "gateway_ids": [
+      "GW_ADV_DUPLICATE_04"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DUPLICATE_04"
+    ],
+    "bank_ids": [
+      "BK_ADV_DUPLICATE_04_A",
+      "BK_ADV_DUPLICATE_04_B"
+    ],
+    "gross_amount": "20800.00",
+    "fee": "416.00",
+    "tax": "74.88",
+    "expected_net": "20309.12",
+    "actual_bank": "40618.24",
+    "variance": "20309.12",
+    "exposure": "20309.12"
+  },
+  "ADV_DUPLICATE_05": {
+    "scenario_id": "ADV_DUPLICATE_05",
+    "scenario_type": "duplicate_bank",
+    "description": "Duplicate Bank credit entry for single settlement reference",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "duplicate_exception",
+    "gateway_ids": [
+      "GW_ADV_DUPLICATE_05"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DUPLICATE_05"
+    ],
+    "bank_ids": [
+      "BK_ADV_DUPLICATE_05_A",
+      "BK_ADV_DUPLICATE_05_B"
+    ],
+    "gross_amount": "22000.00",
+    "fee": "440.00",
+    "tax": "79.20",
+    "expected_net": "21480.80",
+    "actual_bank": "42961.60",
+    "variance": "21480.80",
+    "exposure": "21480.80"
+  },
+  "ADV_DUPLICATE_06": {
+    "scenario_id": "ADV_DUPLICATE_06",
+    "scenario_type": "duplicate_ledger",
+    "description": "Duplicate internal ledger record for single order",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "duplicate_exception",
+    "gateway_ids": [
+      "GW_ADV_DUPLICATE_06"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DUPLICATE_06_A",
+      "LD_ADV_DUPLICATE_06_B"
+    ],
+    "bank_ids": [
+      "BK_ADV_DUPLICATE_06"
+    ],
+    "gross_amount": "23200.00",
+    "fee": "464.00",
+    "tax": "83.52",
+    "expected_net": "22652.48",
+    "actual_bank": "22652.48",
+    "variance": "0.00",
+    "exposure": "23200.00"
+  },
+  "ADV_SETTLE_VAR_01": {
+    "scenario_id": "ADV_SETTLE_VAR_01",
+    "scenario_type": "same_order_diff_amount",
+    "description": "Same order ID with 50% discrepancy between Gateway (32000.00) and Ledger (48000.0000)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_SETTLE_VAR_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_SETTLE_VAR_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_SETTLE_VAR_01"
+    ],
+    "gross_amount": "32000.00",
+    "fee": "640.00",
+    "tax": "115.20",
+    "expected_net": "31244.80",
+    "actual_bank": "31244.80",
+    "variance": "0.00",
+    "exposure": "16000.0000"
+  },
+  "ADV_SETTLE_VAR_02": {
+    "scenario_id": "ADV_SETTLE_VAR_02",
+    "scenario_type": "same_order_diff_amount",
+    "description": "Same order ID with 50% discrepancy between Gateway (34000.00) and Ledger (51000.0000)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_SETTLE_VAR_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_SETTLE_VAR_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_SETTLE_VAR_02"
+    ],
+    "gross_amount": "34000.00",
+    "fee": "680.00",
+    "tax": "122.40",
+    "expected_net": "33197.60",
+    "actual_bank": "33197.60",
+    "variance": "0.00",
+    "exposure": "17000.0000"
+  },
+  "ADV_SETTLE_VAR_03": {
+    "scenario_id": "ADV_SETTLE_VAR_03",
+    "scenario_type": "same_order_diff_amount",
+    "description": "Same order ID with 50% discrepancy between Gateway (36000.00) and Ledger (54000.0000)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_SETTLE_VAR_03"
+    ],
+    "ledger_ids": [
+      "LD_ADV_SETTLE_VAR_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_SETTLE_VAR_03"
+    ],
+    "gross_amount": "36000.00",
+    "fee": "720.00",
+    "tax": "129.60",
+    "expected_net": "35150.40",
+    "actual_bank": "35150.40",
+    "variance": "0.00",
+    "exposure": "18000.0000"
+  },
+  "ADV_SETTLE_VAR_04": {
+    "scenario_id": "ADV_SETTLE_VAR_04",
+    "scenario_type": "same_ref_diff_amount",
+    "description": "Same reference number with 20% settlement variance in Bank (29682.56 vs 37103.20)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_SETTLE_VAR_04"
+    ],
+    "ledger_ids": [
+      "LD_ADV_SETTLE_VAR_04"
+    ],
+    "bank_ids": [
+      "BK_ADV_SETTLE_VAR_04"
+    ],
+    "gross_amount": "38000.00",
+    "fee": "760.00",
+    "tax": "136.80",
+    "expected_net": "37103.20",
+    "actual_bank": "29682.56",
+    "variance": "-7420.64",
+    "exposure": "7420.64"
+  },
+  "ADV_SETTLE_VAR_05": {
+    "scenario_id": "ADV_SETTLE_VAR_05",
+    "scenario_type": "same_ref_diff_amount",
+    "description": "Same reference number with 20% settlement variance in Bank (31244.80 vs 39056.00)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "amount_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_SETTLE_VAR_05"
+    ],
+    "ledger_ids": [
+      "LD_ADV_SETTLE_VAR_05"
+    ],
+    "bank_ids": [
+      "BK_ADV_SETTLE_VAR_05"
+    ],
+    "gross_amount": "40000.00",
+    "fee": "800.00",
+    "tax": "144.00",
+    "expected_net": "39056.00",
+    "actual_bank": "31244.80",
+    "variance": "-7811.20",
+    "exposure": "7811.20"
+  },
+  "ADV_FEE_MISMATCH_01": {
+    "scenario_id": "ADV_FEE_MISMATCH_01",
+    "scenario_type": "fee_mismatch",
+    "description": "Gateway fee overcharge: 4.5% (3600.00) vs standard 2.0% (1600.0000)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "fee_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_FEE_MISMATCH_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_FEE_MISMATCH_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_FEE_MISMATCH_01"
+    ],
+    "gross_amount": "80000.00",
+    "fee": "3600.00",
+    "tax": "648.00",
+    "expected_net": "75752.00",
+    "actual_bank": "75752.00",
+    "variance": "0.00",
+    "exposure": "2000.0000"
+  },
+  "ADV_FEE_MISMATCH_02": {
+    "scenario_id": "ADV_FEE_MISMATCH_02",
+    "scenario_type": "fee_mismatch",
+    "description": "Gateway fee overcharge: 4.5% (3600.00) vs standard 2.0% (1600.0000)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "fee_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_FEE_MISMATCH_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_FEE_MISMATCH_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_FEE_MISMATCH_02"
+    ],
+    "gross_amount": "80000.00",
+    "fee": "3600.00",
+    "tax": "648.00",
+    "expected_net": "75752.00",
+    "actual_bank": "75752.00",
+    "variance": "0.00",
+    "exposure": "2000.0000"
+  },
+  "ADV_FEE_MISMATCH_03": {
+    "scenario_id": "ADV_FEE_MISMATCH_03",
+    "scenario_type": "fee_mismatch",
+    "description": "Gateway fee overcharge: 4.5% (3600.00) vs standard 2.0% (1600.0000)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "fee_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_FEE_MISMATCH_03"
+    ],
+    "ledger_ids": [
+      "LD_ADV_FEE_MISMATCH_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_FEE_MISMATCH_03"
+    ],
+    "gross_amount": "80000.00",
+    "fee": "3600.00",
+    "tax": "648.00",
+    "expected_net": "75752.00",
+    "actual_bank": "75752.00",
+    "variance": "0.00",
+    "exposure": "2000.0000"
+  },
+  "ADV_TAX_MISMATCH_01": {
+    "scenario_id": "ADV_TAX_MISMATCH_01",
+    "scenario_type": "tax_mismatch",
+    "description": "Gateway GST tax mismatch: 300.00 vs expected 18% 216.0000",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "tax_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_TAX_MISMATCH_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_TAX_MISMATCH_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_TAX_MISMATCH_01"
+    ],
+    "gross_amount": "60000.00",
+    "fee": "1200.00",
+    "tax": "300.00",
+    "expected_net": "58500.00",
+    "actual_bank": "58500.00",
+    "variance": "0.00",
+    "exposure": "84.0000"
+  },
+  "ADV_TAX_MISMATCH_02": {
+    "scenario_id": "ADV_TAX_MISMATCH_02",
+    "scenario_type": "tax_mismatch",
+    "description": "Gateway GST tax mismatch: 300.00 vs expected 18% 216.0000",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "tax_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_TAX_MISMATCH_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_TAX_MISMATCH_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_TAX_MISMATCH_02"
+    ],
+    "gross_amount": "60000.00",
+    "fee": "1200.00",
+    "tax": "300.00",
+    "expected_net": "58500.00",
+    "actual_bank": "58500.00",
+    "variance": "0.00",
+    "exposure": "84.0000"
+  },
+  "ADV_DELAYED_01": {
+    "scenario_id": "ADV_DELAYED_01",
+    "scenario_type": "delayed_settlement",
+    "description": "Bank settlement occurred 8 days after transaction (exceeds 3-day SLA)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "delayed_settlement_exception",
+    "gateway_ids": [
+      "GW_ADV_DELAYED_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DELAYED_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_DELAYED_01"
+    ],
+    "gross_amount": "40000.00",
+    "fee": "800.00",
+    "tax": "144.00",
+    "expected_net": "39056.00",
+    "actual_bank": "39056.00",
+    "variance": "0.00",
+    "exposure": "39056.00"
+  },
+  "ADV_DELAYED_02": {
+    "scenario_id": "ADV_DELAYED_02",
+    "scenario_type": "delayed_settlement",
+    "description": "Bank settlement occurred 8 days after transaction (exceeds 3-day SLA)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "delayed_settlement_exception",
+    "gateway_ids": [
+      "GW_ADV_DELAYED_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DELAYED_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_DELAYED_02"
+    ],
+    "gross_amount": "45000.00",
+    "fee": "900.00",
+    "tax": "162.00",
+    "expected_net": "43938.00",
+    "actual_bank": "43938.00",
+    "variance": "0.00",
+    "exposure": "43938.00"
+  },
+  "ADV_DELAYED_03": {
+    "scenario_id": "ADV_DELAYED_03",
+    "scenario_type": "delayed_settlement",
+    "description": "Bank settlement occurred 8 days after transaction (exceeds 3-day SLA)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "delayed_settlement_exception",
+    "gateway_ids": [
+      "GW_ADV_DELAYED_03"
+    ],
+    "ledger_ids": [
+      "LD_ADV_DELAYED_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_DELAYED_03"
+    ],
+    "gross_amount": "50000.00",
+    "fee": "1000.00",
+    "tax": "180.00",
+    "expected_net": "48820.00",
+    "actual_bank": "48820.00",
+    "variance": "0.00",
+    "exposure": "48820.00"
+  },
+  "ADV_PARTIAL_01": {
+    "scenario_id": "ADV_PARTIAL_01",
+    "scenario_type": "partial_match",
+    "description": "Partial financial variance in bank settlement (47453.04 vs 43938.00)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "partial_match_exception",
+    "gateway_ids": [
+      "GW_ADV_PARTIAL_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_PARTIAL_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_PARTIAL_01"
+    ],
+    "gross_amount": "45000.00",
+    "fee": "900.00",
+    "tax": "162.00",
+    "expected_net": "43938.00",
+    "actual_bank": "47453.04",
+    "variance": "3515.04",
+    "exposure": "3515.04"
+  },
+  "ADV_PARTIAL_02": {
+    "scenario_id": "ADV_PARTIAL_02",
+    "scenario_type": "partial_match",
+    "description": "Partial financial variance in bank settlement (52725.60 vs 48820.00)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "partial_match_exception",
+    "gateway_ids": [
+      "GW_ADV_PARTIAL_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_PARTIAL_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_PARTIAL_02"
+    ],
+    "gross_amount": "50000.00",
+    "fee": "1000.00",
+    "tax": "180.00",
+    "expected_net": "48820.00",
+    "actual_bank": "52725.60",
+    "variance": "3905.60",
+    "exposure": "3905.60"
+  },
+  "ADV_PARTIAL_03": {
+    "scenario_id": "ADV_PARTIAL_03",
+    "scenario_type": "partial_match",
+    "description": "Partial financial variance in bank settlement (57998.16 vs 53702.00)",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "partial_match_exception",
+    "gateway_ids": [
+      "GW_ADV_PARTIAL_03"
+    ],
+    "ledger_ids": [
+      "LD_ADV_PARTIAL_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_PARTIAL_03"
+    ],
+    "gross_amount": "55000.00",
+    "fee": "1100.00",
+    "tax": "198.00",
+    "expected_net": "53702.00",
+    "actual_bank": "57998.16",
+    "variance": "4296.16",
+    "exposure": "4296.16"
+  },
+  "ADV_COMPLEX_01": {
+    "scenario_id": "ADV_COMPLEX_01",
+    "scenario_type": "complex_mismatch",
+    "description": "Multi-dimensional mismatch: conflicting order IDs and amount discrepancies",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "complex_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_COMPLEX_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_COMPLEX_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_COMPLEX_01"
+    ],
+    "gross_amount": "80000.00",
+    "fee": "1600.00",
+    "tax": "288.00",
+    "expected_net": "78112.00",
+    "actual_bank": "72000.00",
+    "variance": "-6112.00",
+    "exposure": "6112.00"
+  },
+  "ADV_COMPLEX_02": {
+    "scenario_id": "ADV_COMPLEX_02",
+    "scenario_type": "complex_mismatch",
+    "description": "Multi-dimensional mismatch: conflicting order IDs and amount discrepancies",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "complex_mismatch_exception",
+    "gateway_ids": [
+      "GW_ADV_COMPLEX_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_COMPLEX_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_COMPLEX_02"
+    ],
+    "gross_amount": "85000.00",
+    "fee": "1700.00",
+    "tax": "306.00",
+    "expected_net": "82994.00",
+    "actual_bank": "76500.00",
+    "variance": "-6494.00",
+    "exposure": "6494.00"
+  },
+  "ADV_MISSING_FLD_01": {
+    "scenario_id": "ADV_MISSING_FLD_01",
+    "scenario_type": "missing_optional_fields",
+    "description": "Missing fee/tax breakdown metadata on Gateway settlement",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_fields_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_FLD_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_MISSING_FLD_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_MISSING_FLD_01"
+    ],
+    "gross_amount": "27500.00",
+    "fee": "0.00",
+    "tax": "0.00",
+    "expected_net": "27500.00",
+    "actual_bank": "27500.00",
+    "variance": "0.00",
+    "exposure": "649.00"
+  },
+  "ADV_MISSING_FLD_02": {
+    "scenario_id": "ADV_MISSING_FLD_02",
+    "scenario_type": "missing_optional_fields",
+    "description": "Missing fee/tax breakdown metadata on Gateway settlement",
+    "expected_outcome": "EXCEPTION",
+    "expected_exception": true,
+    "expected_category": "missing_fields_exception",
+    "gateway_ids": [
+      "GW_ADV_MISSING_FLD_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_MISSING_FLD_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_MISSING_FLD_02"
+    ],
+    "gross_amount": "30000.00",
+    "fee": "0.00",
+    "tax": "0.00",
+    "expected_net": "30000.00",
+    "actual_bank": "30000.00",
+    "variance": "0.00",
+    "exposure": "708.00"
+  },
+  "ADV_EDGE_01": {
+    "scenario_id": "ADV_EDGE_01",
+    "scenario_type": "high_value_transaction",
+    "description": "Clean high-value multi-lakh transaction (2500000.00 INR)",
     "expected_outcome": "MATCHED",
     "expected_exception": false,
-    "gross_amount": "99999.00",
-    "fee": "1999.98",
-    "tax": "360.00",
-    "expected_net": "97639.02",
-    "actual_bank": "97639.02",
-    "variance": "0.00",
-    "exposure": "0.00"
-  },
-  "ADV_COLLISION_58": {
-    "expected_outcome": "MATCHED",
-    "expected_exception": false,
-    "gross_amount": "99999.00",
-    "fee": "1999.98",
-    "tax": "360.00",
-    "expected_net": "97639.02",
-    "actual_bank": "97639.02",
-    "variance": "0.00",
-    "exposure": "0.00"
-  },
-  "ADV_HIGHVAL_59": {
-    "expected_outcome": "MATCHED",
-    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_01"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_01"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_01"
+    ],
     "gross_amount": "2500000.00",
     "fee": "37500.00",
     "tax": "6750.00",
@@ -707,14 +2073,315 @@
     "variance": "0.00",
     "exposure": "0.00"
   },
-  "ADV_HIGHVAL_60": {
+  "ADV_EDGE_02": {
+    "scenario_id": "ADV_EDGE_02",
+    "scenario_type": "high_value_transaction",
+    "description": "Clean high-value multi-lakh transaction (5000000.00 INR)",
     "expected_outcome": "MATCHED",
     "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_02"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_02"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_02"
+    ],
     "gross_amount": "5000000.00",
     "fee": "75000.00",
     "tax": "13500.00",
     "expected_net": "4911500.00",
     "actual_bank": "4911500.00",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_03": {
+    "scenario_id": "ADV_EDGE_03",
+    "scenario_type": "very_small_transaction",
+    "description": "Clean micro transaction (1.50 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_03"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_03"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_03"
+    ],
+    "gross_amount": "1.50",
+    "fee": "0.03",
+    "tax": "0.01",
+    "expected_net": "1.46",
+    "actual_bank": "1.46",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_04": {
+    "scenario_id": "ADV_EDGE_04",
+    "scenario_type": "very_small_transaction",
+    "description": "Clean micro transaction (10.00 INR)",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_04"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_04"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_04"
+    ],
+    "gross_amount": "10.00",
+    "fee": "0.20",
+    "tax": "0.04",
+    "expected_net": "9.76",
+    "actual_bank": "9.76",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_05": {
+    "scenario_id": "ADV_EDGE_05",
+    "scenario_type": "rounding_edge_case",
+    "description": "Clean rounding edge case with fractional cents",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_05"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_05"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_05"
+    ],
+    "gross_amount": "123.45",
+    "fee": "2.47",
+    "tax": "0.44",
+    "expected_net": "120.54",
+    "actual_bank": "120.54",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_06": {
+    "scenario_id": "ADV_EDGE_06",
+    "scenario_type": "cross_date_boundary",
+    "description": "Clean transaction crossing midnight settlement boundary",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_06"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_06"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_06"
+    ],
+    "gross_amount": "14500.00",
+    "fee": "290.00",
+    "tax": "52.20",
+    "expected_net": "14157.80",
+    "actual_bank": "14157.80",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_07": {
+    "scenario_id": "ADV_EDGE_07",
+    "scenario_type": "cross_date_boundary",
+    "description": "Clean transaction crossing midnight settlement boundary",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_07"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_07"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_07"
+    ],
+    "gross_amount": "14500.00",
+    "fee": "290.00",
+    "tax": "52.20",
+    "expected_net": "14157.80",
+    "actual_bank": "14157.80",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_08": {
+    "scenario_id": "ADV_EDGE_08",
+    "scenario_type": "missing_optional_fields_valid",
+    "description": "Clean transaction with missing non-critical narration field",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_08"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_08"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_08"
+    ],
+    "gross_amount": "9200.00",
+    "fee": "184.00",
+    "tax": "33.12",
+    "expected_net": "8982.88",
+    "actual_bank": "8982.88",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_09": {
+    "scenario_id": "ADV_EDGE_09",
+    "scenario_type": "missing_optional_fields_valid",
+    "description": "Clean transaction with missing non-critical narration field",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_09"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_09"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_09"
+    ],
+    "gross_amount": "9200.00",
+    "fee": "184.00",
+    "tax": "33.12",
+    "expected_net": "8982.88",
+    "actual_bank": "8982.88",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_10": {
+    "scenario_id": "ADV_EDGE_10",
+    "scenario_type": "repeated_identifiers",
+    "description": "Clean transaction on distinct date window",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_10"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_10"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_10"
+    ],
+    "gross_amount": "18500.00",
+    "fee": "370.00",
+    "tax": "66.60",
+    "expected_net": "18063.40",
+    "actual_bank": "18063.40",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_11": {
+    "scenario_id": "ADV_EDGE_11",
+    "scenario_type": "repeated_identifiers",
+    "description": "Clean transaction on distinct date window",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_11"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_11"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_11"
+    ],
+    "gross_amount": "18500.00",
+    "fee": "370.00",
+    "tax": "66.60",
+    "expected_net": "18063.40",
+    "actual_bank": "18063.40",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_12": {
+    "scenario_id": "ADV_EDGE_12",
+    "scenario_type": "near_duplicate_amounts",
+    "description": "Clean match with unique order ID alongside similar amounts",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_12"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_12"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_12"
+    ],
+    "gross_amount": "499.00",
+    "fee": "9.98",
+    "tax": "1.80",
+    "expected_net": "487.22",
+    "actual_bank": "487.22",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_13": {
+    "scenario_id": "ADV_EDGE_13",
+    "scenario_type": "false_positive_risk",
+    "description": "Clean match verifying immunity to false positive cross-order collisions",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_13"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_13"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_13"
+    ],
+    "gross_amount": "32000.00",
+    "fee": "640.00",
+    "tax": "115.20",
+    "expected_net": "31244.80",
+    "actual_bank": "31244.80",
+    "variance": "0.00",
+    "exposure": "0.00"
+  },
+  "ADV_EDGE_14": {
+    "scenario_id": "ADV_EDGE_14",
+    "scenario_type": "false_positive_risk",
+    "description": "Clean match verifying immunity to false positive cross-order collisions",
+    "expected_outcome": "MATCHED",
+    "expected_exception": false,
+    "expected_category": null,
+    "gateway_ids": [
+      "GW_ADV_EDGE_14"
+    ],
+    "ledger_ids": [
+      "LD_ADV_EDGE_14"
+    ],
+    "bank_ids": [
+      "BK_ADV_EDGE_14"
+    ],
+    "gross_amount": "32300.00",
+    "fee": "646.00",
+    "tax": "116.28",
+    "expected_net": "31537.72",
+    "actual_bank": "31537.72",
     "variance": "0.00",
     "exposure": "0.00"
   }
