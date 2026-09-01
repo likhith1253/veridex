@@ -1,0 +1,1810 @@
+{
+  "run_id": "adversarial_eval_1595",
+  "ground_truth_count": 100,
+  "orm_transaction_count": 296,
+  "api_exception_count": 45,
+  "orm_exception_count": 45,
+  "successfully_mapped_transactions": 100,
+  "successfully_mapped_exceptions": 25,
+  "true_expected_exceptions": 50,
+  "true_detected_exceptions": 25,
+  "true_coverage": 50.0,
+  "evaluator_defects": [],
+  "application_defects": [
+    "Missed exceptions with valid mapping: 25"
+  ],
+  "orm_mapping_failures": 0,
+  "missed_exceptions_with_valid_mapping": 25,
+  "detailed_mapping_results": [
+    {
+      "logical_id": "EVAL_TXN_0000",
+      "source_ids": [
+        "EVAL_GW_0000",
+        "EVAL_LD_0000",
+        "EVAL_BK_0000"
+      ],
+      "orm_uuids": [
+        "2d22f73f-eddd-4b83-a832-998f6d09e4ce",
+        "29f546fa-6402-45fb-81fe-b04b1065fe23",
+        "967d2ea7-28d5-49ed-b42b-331622c0040a"
+      ],
+      "orm_uuid": "2d22f73f-eddd-4b83-a832-998f6d09e4ce",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0001",
+      "source_ids": [
+        "EVAL_GW_0001",
+        "EVAL_LD_0001",
+        "EVAL_BK_0001"
+      ],
+      "orm_uuids": [
+        "3f3c91a9-7005-4eba-bcde-3459d543def6",
+        "bb94e78f-de12-414f-8569-5f9b7442d764",
+        "7b5b59ad-e5aa-41d4-848c-3f3913c1b99c"
+      ],
+      "orm_uuid": "3f3c91a9-7005-4eba-bcde-3459d543def6",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0002",
+      "source_ids": [
+        "EVAL_GW_0002",
+        "EVAL_LD_0002",
+        "EVAL_BK_0002"
+      ],
+      "orm_uuids": [
+        "f72d04bf-8739-44dc-9169-560babd7dd73",
+        "5b77eaa3-8c13-4cf7-953f-4044550356d3",
+        "223e160c-7829-46e8-9587-6946dfa3c607"
+      ],
+      "orm_uuid": "f72d04bf-8739-44dc-9169-560babd7dd73",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "repeated_identifiers"
+    },
+    {
+      "logical_id": "EVAL_TXN_0003",
+      "source_ids": [
+        "EVAL_GW_0003",
+        "EVAL_LD_0003",
+        "EVAL_BK_0003"
+      ],
+      "orm_uuids": [
+        "0c854e94-3541-4e48-8863-def530f267e5",
+        "0dc64518-836c-4b80-a6b5-57e1dc40c8a0",
+        "c12e8031-4b22-4aa6-9ca9-889599f75b61"
+      ],
+      "orm_uuid": "0c854e94-3541-4e48-8863-def530f267e5",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "false_positive_risk",
+      "scenario": "false_positive_risk"
+    },
+    {
+      "logical_id": "EVAL_TXN_0004",
+      "source_ids": [
+        "EVAL_GW_0004",
+        "EVAL_LD_0004",
+        "EVAL_BK_0004"
+      ],
+      "orm_uuids": [
+        "428d5c57-1f49-45f1-a973-a7e637773e8b",
+        "e3f1d56d-b027-473d-b44b-3e30e556fc5d",
+        "46909c47-54ea-42c2-aa9c-6b4e428234d2"
+      ],
+      "orm_uuid": "428d5c57-1f49-45f1-a973-a7e637773e8b",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "duplicate_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0005",
+      "source_ids": [
+        "EVAL_GW_0005",
+        "EVAL_LD_0005",
+        "EVAL_BK_0005"
+      ],
+      "orm_uuids": [
+        "a957f0fa-2641-4918-9d44-857429f5a9d5",
+        "871d55c1-869a-4509-bfb9-96d4d8915a52",
+        "43a09063-7923-40a5-9155-fa58bf2a2659"
+      ],
+      "orm_uuid": "a957f0fa-2641-4918-9d44-857429f5a9d5",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "rounding_edge_case",
+      "scenario": "very_small_transaction"
+    },
+    {
+      "logical_id": "EVAL_TXN_0006",
+      "source_ids": [
+        "EVAL_GW_0006",
+        "EVAL_LD_0006",
+        "EVAL_BK_0006"
+      ],
+      "orm_uuids": [
+        "4e2b15dd-bcbc-47af-8b42-e7bd88e19913",
+        "7b6fd30a-62c1-42e7-abbe-8cff301b1a70",
+        "2e36c2db-381c-4148-9adc-c96d04b0f80f"
+      ],
+      "orm_uuid": "4e2b15dd-bcbc-47af-8b42-e7bd88e19913",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "high_value_review_required",
+      "scenario": "high_value_transaction"
+    },
+    {
+      "logical_id": "EVAL_TXN_0007",
+      "source_ids": [
+        "EVAL_GW_0007",
+        "EVAL_LD_0007",
+        "EVAL_BK_0007"
+      ],
+      "orm_uuids": [
+        "5b2fa53b-943e-4f50-a005-41e4d7b7f084",
+        "370230aa-e544-47a5-9a6b-07bcea08b701",
+        "59190b6d-06fe-4fba-ab6a-673be40e185f"
+      ],
+      "orm_uuid": "5b2fa53b-943e-4f50-a005-41e4d7b7f084",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "partial_match_exception",
+      "scenario": "partial_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0008",
+      "source_ids": [
+        "EVAL_GW_0008",
+        "EVAL_LD_0008",
+        "EVAL_BK_0008"
+      ],
+      "orm_uuids": [
+        "0749a7d1-b2d1-451d-8664-1a7a957742bd",
+        "ed0a9649-abc5-400b-b12d-ba70e50a1156",
+        "dfe6305c-df63-4581-bf0f-d53d963cc32e"
+      ],
+      "orm_uuid": "0749a7d1-b2d1-451d-8664-1a7a957742bd",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "amount_mismatch_gw_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0009",
+      "source_ids": [
+        "EVAL_GW_0009",
+        "EVAL_LD_0009",
+        "EVAL_BK_0009"
+      ],
+      "orm_uuids": [
+        "ac1c7189-3d4b-4c3b-a0cf-560f34cdc831",
+        "9ef4548f-6b09-493a-87c8-0d5fec2b09ab"
+      ],
+      "orm_uuid": "ac1c7189-3d4b-4c3b-a0cf-560f34cdc831",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_gateway"
+    },
+    {
+      "logical_id": "EVAL_TXN_0010",
+      "source_ids": [
+        "EVAL_GW_0010",
+        "EVAL_LD_0010",
+        "EVAL_BK_0010"
+      ],
+      "orm_uuids": [
+        "21279a13-cebd-44d3-abd5-61da26f72684",
+        "817fe21a-a148-4cb7-8496-184762d43b65",
+        "821f4107-29eb-4f4d-8e9a-d6ada19e2734"
+      ],
+      "orm_uuid": "21279a13-cebd-44d3-abd5-61da26f72684",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0011",
+      "source_ids": [
+        "EVAL_GW_0011",
+        "EVAL_LD_0011",
+        "EVAL_BK_0011"
+      ],
+      "orm_uuids": [
+        "8a485e96-9aba-4592-a7ba-08e5556d4dfa",
+        "63b97860-8f76-4690-8c55-0e923fc16c7c",
+        "8b1d9005-7eb9-4cc3-950c-c50004e8b8a8"
+      ],
+      "orm_uuid": "8a485e96-9aba-4592-a7ba-08e5556d4dfa",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "cross_date_boundary"
+    },
+    {
+      "logical_id": "EVAL_TXN_0012",
+      "source_ids": [
+        "EVAL_GW_0012",
+        "EVAL_LD_0012",
+        "EVAL_BK_0012"
+      ],
+      "orm_uuids": [
+        "7b98910f-76db-4c43-b4a6-52e8af13c8a8",
+        "0aa8169e-f1e3-415c-aeb8-08edb9dd3759",
+        "bb841480-17a4-4446-8254-14d2a20687f2"
+      ],
+      "orm_uuid": "7b98910f-76db-4c43-b4a6-52e8af13c8a8",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0013",
+      "source_ids": [
+        "EVAL_GW_0013",
+        "EVAL_LD_0013",
+        "EVAL_BK_0013"
+      ],
+      "orm_uuids": [
+        "6ceba651-5e32-4806-999e-d45f6ab213c4",
+        "d5cef43b-a390-4fee-b0a8-a333532bbfa0",
+        "b49a7a9a-1149-4763-a20b-c664f2b76cb7"
+      ],
+      "orm_uuid": "6ceba651-5e32-4806-999e-d45f6ab213c4",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0014",
+      "source_ids": [
+        "EVAL_GW_0014",
+        "EVAL_LD_0014",
+        "EVAL_BK_0014"
+      ],
+      "orm_uuids": [
+        "2ebcfa76-6bb2-4f98-9193-7e0434008fb9",
+        "4d25ce3b-4f82-4659-a534-7a746319d895",
+        "e30d362b-2cbf-45cb-9e8e-7ea501ecf8ac"
+      ],
+      "orm_uuid": "2ebcfa76-6bb2-4f98-9193-7e0434008fb9",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "partial_match_exception",
+      "scenario": "partial_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0015",
+      "source_ids": [
+        "EVAL_GW_0015",
+        "EVAL_LD_0015",
+        "EVAL_BK_0015"
+      ],
+      "orm_uuids": [
+        "a9f1cc16-0341-4066-95ac-16fd00c1bd39",
+        "7401dd9e-73fc-44bc-829e-13cebdd81158",
+        "1f40a3e7-6405-4a5b-8651-4c0a954afd48"
+      ],
+      "orm_uuid": "a9f1cc16-0341-4066-95ac-16fd00c1bd39",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0016",
+      "source_ids": [
+        "EVAL_GW_0016",
+        "EVAL_LD_0016",
+        "EVAL_BK_0016"
+      ],
+      "orm_uuids": [
+        "e71d73da-6334-40a1-9a63-81c032f66fe9",
+        "81fad2a9-9623-4869-b8dd-d60774969145",
+        "3df09c69-e753-423b-b2f6-0e320ac9bc3f"
+      ],
+      "orm_uuid": "e71d73da-6334-40a1-9a63-81c032f66fe9",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0017",
+      "source_ids": [
+        "EVAL_GW_0017",
+        "EVAL_LD_0017",
+        "EVAL_BK_0017"
+      ],
+      "orm_uuids": [
+        "f71c237f-e4f3-4190-97e8-0cba6231dc44",
+        "8354355f-d4d3-4d0e-b151-f6d944c89bdb",
+        "4670a0a8-d9eb-452b-8897-0cc7cad9a575"
+      ],
+      "orm_uuid": "f71c237f-e4f3-4190-97e8-0cba6231dc44",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "settlement_variance_exception",
+      "scenario": "amount_mismatch_gw_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0018",
+      "source_ids": [
+        "EVAL_GW_0018",
+        "EVAL_LD_0018",
+        "EVAL_BK_0018"
+      ],
+      "orm_uuids": [
+        "ea94b74a-5fe4-41f5-baa5-ad0991e4f46c",
+        "c74f1d1f-686c-460f-bc3c-7f191b3f3aef"
+      ],
+      "orm_uuid": "ea94b74a-5fe4-41f5-baa5-ad0991e4f46c",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0019",
+      "source_ids": [
+        "EVAL_GW_0019",
+        "EVAL_LD_0019",
+        "EVAL_BK_0019"
+      ],
+      "orm_uuids": [
+        "548387b3-894e-4b78-8f6d-df98c712f98f",
+        "c6ba7018-1351-42ea-b3ac-f6a76540da90",
+        "0813fed3-4c6f-467d-92fc-786e6c24efc3"
+      ],
+      "orm_uuid": "548387b3-894e-4b78-8f6d-df98c712f98f",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "same_order_diff_amount"
+    },
+    {
+      "logical_id": "EVAL_TXN_0020",
+      "source_ids": [
+        "EVAL_GW_0020",
+        "EVAL_LD_0020",
+        "EVAL_BK_0020"
+      ],
+      "orm_uuids": [
+        "c7d3d6ae-bcdb-405b-aa1b-d7a0f3892fc1",
+        "dd949753-33b6-4084-b92e-6b3823b7c197",
+        "e10c7143-61e1-4fb4-8ca2-29f28ca3fbe9"
+      ],
+      "orm_uuid": "c7d3d6ae-bcdb-405b-aa1b-d7a0f3892fc1",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0021",
+      "source_ids": [
+        "EVAL_GW_0021",
+        "EVAL_LD_0021",
+        "EVAL_BK_0021"
+      ],
+      "orm_uuids": [
+        "95f7632f-e726-45c7-9164-94ab2b44f4a7",
+        "bd496d74-bb43-444f-9b3a-0fdfe86447ee",
+        "b9016c52-8cfb-4766-b331-efd7bff4428d"
+      ],
+      "orm_uuid": "95f7632f-e726-45c7-9164-94ab2b44f4a7",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0022",
+      "source_ids": [
+        "EVAL_GW_0022",
+        "EVAL_LD_0022",
+        "EVAL_BK_0022"
+      ],
+      "orm_uuids": [
+        "ac806d4d-0876-403a-9442-f0b0fa55bb93",
+        "287038a7-1b58-4aea-878d-fde4391e0c26",
+        "4580cc8b-c020-4d75-b7a3-1b679dbe8154"
+      ],
+      "orm_uuid": "ac806d4d-0876-403a-9442-f0b0fa55bb93",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0023",
+      "source_ids": [
+        "EVAL_GW_0023",
+        "EVAL_LD_0023",
+        "EVAL_BK_0023"
+      ],
+      "orm_uuids": [
+        "3bab1d2c-6c7e-4cd1-a1c0-db812572e0bd",
+        "74199afa-1821-4acc-bf45-1b3f77728225",
+        "c8059409-c28a-464e-b65f-942594cc5409"
+      ],
+      "orm_uuid": "3bab1d2c-6c7e-4cd1-a1c0-db812572e0bd",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0024",
+      "source_ids": [
+        "EVAL_GW_0024",
+        "EVAL_LD_0024",
+        "EVAL_BK_0024"
+      ],
+      "orm_uuids": [
+        "c7d86d39-e7d3-4c60-aa20-12931f47cccf",
+        "7ebc02f6-26d5-4493-8a41-1a672c114797",
+        "8455ee36-5bc5-43fe-aacb-c50efd1120d0"
+      ],
+      "orm_uuid": "c7d86d39-e7d3-4c60-aa20-12931f47cccf",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "duplicate_exception",
+      "scenario": "duplicate_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0025",
+      "source_ids": [
+        "EVAL_GW_0025",
+        "EVAL_LD_0025",
+        "EVAL_BK_0025"
+      ],
+      "orm_uuids": [
+        "e4397bc8-adc4-455c-bb69-08d5cc08999c",
+        "e5d9c7af-5ab8-4484-af5f-bf0a249fba2f",
+        "a2777ff4-169e-468f-8cf4-c4c6c1ad225a"
+      ],
+      "orm_uuid": "e4397bc8-adc4-455c-bb69-08d5cc08999c",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0026",
+      "source_ids": [
+        "EVAL_GW_0026",
+        "EVAL_LD_0026",
+        "EVAL_BK_0026"
+      ],
+      "orm_uuids": [
+        "a7ab1786-fe0e-4b4b-8f5c-25b2b0393ae4",
+        "266bda8d-d8ac-471a-aefc-c776c7172ca9",
+        "4236ffbd-9709-4d9d-a689-9e4e5524e58b"
+      ],
+      "orm_uuid": "a7ab1786-fe0e-4b4b-8f5c-25b2b0393ae4",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "duplicate_exception",
+      "scenario": "duplicate_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0027",
+      "source_ids": [
+        "EVAL_GW_0027",
+        "EVAL_LD_0027",
+        "EVAL_BK_0027"
+      ],
+      "orm_uuids": [
+        "5880c560-b96d-4a36-8531-bc9c62c6223a",
+        "6f5c1a75-69ad-4b99-9c0a-b9704e86a458",
+        "9f699d8c-f7d4-4da4-ac96-82ec0061b03e"
+      ],
+      "orm_uuid": "5880c560-b96d-4a36-8531-bc9c62c6223a",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0028",
+      "source_ids": [
+        "EVAL_GW_0028",
+        "EVAL_LD_0028",
+        "EVAL_BK_0028"
+      ],
+      "orm_uuids": [
+        "f3408344-3c50-4235-b59b-d79c30ec43fd",
+        "48741172-8eda-408d-a8b6-7d06069bc0d8",
+        "4047c56b-a68d-4e84-bb60-de796659dd81"
+      ],
+      "orm_uuid": "f3408344-3c50-4235-b59b-d79c30ec43fd",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "duplicate_exception",
+      "scenario": "duplicate_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0029",
+      "source_ids": [
+        "EVAL_GW_0029",
+        "EVAL_LD_0029",
+        "EVAL_BK_0029"
+      ],
+      "orm_uuids": [
+        "cecf1dcd-c655-405b-8474-3dc064b15671",
+        "1e4c6eca-e1a5-4fa7-9caf-fd482436f331"
+      ],
+      "orm_uuid": "cecf1dcd-c655-405b-8474-3dc064b15671",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0030",
+      "source_ids": [
+        "EVAL_GW_0030",
+        "EVAL_LD_0030",
+        "EVAL_BK_0030"
+      ],
+      "orm_uuids": [
+        "8b5fbf0c-d88a-4eea-8c69-60d01c86cb7e",
+        "9e88f777-32a7-43b1-9f17-6e3c44227366",
+        "5197ebcd-abfc-4627-bbb7-a97c93a45654"
+      ],
+      "orm_uuid": "8b5fbf0c-d88a-4eea-8c69-60d01c86cb7e",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "delayed_settlement_exception",
+      "scenario": "delayed_settlement"
+    },
+    {
+      "logical_id": "EVAL_TXN_0031",
+      "source_ids": [
+        "EVAL_GW_0031",
+        "EVAL_LD_0031",
+        "EVAL_BK_0031"
+      ],
+      "orm_uuids": [
+        "784ad0d8-a2fe-4a31-a7f4-44b6bcd910aa",
+        "d0ca09dd-67d2-4ceb-b53d-42597ed2e692",
+        "016c5664-6f75-4e6f-9b48-64e8a37967ec"
+      ],
+      "orm_uuid": "784ad0d8-a2fe-4a31-a7f4-44b6bcd910aa",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "amount_mismatch_gw_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0032",
+      "source_ids": [
+        "EVAL_GW_0032",
+        "EVAL_LD_0032",
+        "EVAL_BK_0032"
+      ],
+      "orm_uuids": [
+        "f2005c07-e225-4811-8b7b-f25e4663cd82",
+        "72d51fba-8be4-4fb9-9be0-8519d9b48202",
+        "57fbcc04-6dd4-4ac9-a439-6fc5a4d6ac82"
+      ],
+      "orm_uuid": "f2005c07-e225-4811-8b7b-f25e4663cd82",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "amount_mismatch_gw_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0033",
+      "source_ids": [
+        "EVAL_GW_0033",
+        "EVAL_LD_0033",
+        "EVAL_BK_0033"
+      ],
+      "orm_uuids": [
+        "5111989f-fa50-4bce-a769-a7576fc275cc",
+        "1af8ee89-1f1b-44c7-96e5-a693a4a5772a",
+        "014c9eea-0973-4244-8870-b1ffcac02c42"
+      ],
+      "orm_uuid": "5111989f-fa50-4bce-a769-a7576fc275cc",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0034",
+      "source_ids": [
+        "EVAL_GW_0034",
+        "EVAL_LD_0034",
+        "EVAL_BK_0034"
+      ],
+      "orm_uuids": [
+        "eef319aa-7216-4e49-853e-9a153a328b58",
+        "b55cf57c-619e-4812-b982-433bef6b5366",
+        "e55f2341-09fc-41d4-ac75-30a733444efa"
+      ],
+      "orm_uuid": "eef319aa-7216-4e49-853e-9a153a328b58",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0035",
+      "source_ids": [
+        "EVAL_GW_0035",
+        "EVAL_LD_0035",
+        "EVAL_BK_0035"
+      ],
+      "orm_uuids": [
+        "bcc37a09-3aa2-49fb-8bea-5e5fd45f69f3",
+        "90db9029-f53f-4f48-ac8b-898c121145af",
+        "7e018678-4887-474d-876b-35489be5451d"
+      ],
+      "orm_uuid": "bcc37a09-3aa2-49fb-8bea-5e5fd45f69f3",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0036",
+      "source_ids": [
+        "EVAL_GW_0036",
+        "EVAL_LD_0036",
+        "EVAL_BK_0036"
+      ],
+      "orm_uuids": [
+        "09493239-7187-4218-ab0c-499d3e4a26fe",
+        "920403a2-dcc0-4daa-809f-3e41cadded56",
+        "eca3ad72-fc2f-4494-9ca7-5801b5cf7a08"
+      ],
+      "orm_uuid": "09493239-7187-4218-ab0c-499d3e4a26fe",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "rounding_edge_case"
+    },
+    {
+      "logical_id": "EVAL_TXN_0037",
+      "source_ids": [
+        "EVAL_GW_0037",
+        "EVAL_LD_0037",
+        "EVAL_BK_0037"
+      ],
+      "orm_uuids": [
+        "f0f050f7-7924-48f7-823d-aa5035f2b40e",
+        "cd94de29-6678-4ae7-b28a-b0fa18a7300c",
+        "4218f6a7-5702-4eff-a720-049d1fb9c2cd"
+      ],
+      "orm_uuid": "f0f050f7-7924-48f7-823d-aa5035f2b40e",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "settlement_variance_exception",
+      "scenario": "amount_mismatch_gw_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0038",
+      "source_ids": [
+        "EVAL_GW_0038",
+        "EVAL_LD_0038",
+        "EVAL_BK_0038"
+      ],
+      "orm_uuids": [
+        "1c0c4a5f-6aa7-4bce-9c2e-fca16ca0bd54",
+        "9ebc2d79-fe5d-47dd-af04-03fa36b6b32a",
+        "7525946b-025e-4d48-941c-a53360d43f95"
+      ],
+      "orm_uuid": "1c0c4a5f-6aa7-4bce-9c2e-fca16ca0bd54",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "tax_mismatch_exception",
+      "scenario": "tax_mismatch"
+    },
+    {
+      "logical_id": "EVAL_TXN_0039",
+      "source_ids": [
+        "EVAL_GW_0039",
+        "EVAL_LD_0039",
+        "EVAL_BK_0039"
+      ],
+      "orm_uuids": [
+        "0adddf41-8a5b-46e3-92ef-9c670809571f",
+        "ab85f1a6-ec73-4ff5-b45b-83fd8dfe54ac"
+      ],
+      "orm_uuid": "0adddf41-8a5b-46e3-92ef-9c670809571f",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_gateway"
+    },
+    {
+      "logical_id": "EVAL_TXN_0040",
+      "source_ids": [
+        "EVAL_GW_0040",
+        "EVAL_LD_0040",
+        "EVAL_BK_0040"
+      ],
+      "orm_uuids": [
+        "2b556a83-ceb4-4c5f-80f0-b124433e3e87",
+        "65010901-9ece-4eef-a082-9788bc99f307",
+        "5c2f99a4-a62d-4da7-a4f6-d3195b2e6117"
+      ],
+      "orm_uuid": "2b556a83-ceb4-4c5f-80f0-b124433e3e87",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "duplicate_exception",
+      "scenario": "duplicate_gateway"
+    },
+    {
+      "logical_id": "EVAL_TXN_0041",
+      "source_ids": [
+        "EVAL_GW_0041",
+        "EVAL_LD_0041",
+        "EVAL_BK_0041"
+      ],
+      "orm_uuids": [
+        "9b4d0cc9-21bb-43fc-bf9d-b54cf2f6061c",
+        "b5f05d27-d769-4a3c-8d49-f409e158406f",
+        "1ec67dcd-88fe-4a73-8af4-a70d315114bf"
+      ],
+      "orm_uuid": "9b4d0cc9-21bb-43fc-bf9d-b54cf2f6061c",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "complex_mismatch_exception",
+      "scenario": "complex_mismatch"
+    },
+    {
+      "logical_id": "EVAL_TXN_0042",
+      "source_ids": [
+        "EVAL_GW_0042",
+        "EVAL_LD_0042",
+        "EVAL_BK_0042"
+      ],
+      "orm_uuids": [
+        "b38c14cf-625c-43ae-99a7-3019cf998d85",
+        "2c9542ee-3808-4892-b29c-d5e9bb2f5e84",
+        "4545db68-9c81-4622-ae42-f375c46539b9"
+      ],
+      "orm_uuid": "b38c14cf-625c-43ae-99a7-3019cf998d85",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0043",
+      "source_ids": [
+        "EVAL_GW_0043",
+        "EVAL_LD_0043",
+        "EVAL_BK_0043"
+      ],
+      "orm_uuids": [
+        "926d8ce5-192d-46ea-8c4e-261b64053f1b",
+        "c554e944-1522-45bd-a390-1d4757889a38",
+        "f26aac89-100b-452c-aba5-d9928aa0c2e4"
+      ],
+      "orm_uuid": "926d8ce5-192d-46ea-8c4e-261b64053f1b",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_fields_exception",
+      "scenario": "missing_optional_fields"
+    },
+    {
+      "logical_id": "EVAL_TXN_0044",
+      "source_ids": [
+        "EVAL_GW_0044",
+        "EVAL_LD_0044",
+        "EVAL_BK_0044"
+      ],
+      "orm_uuids": [
+        "28b7b0dd-0b72-44a1-bea4-b53b3a37f8dc",
+        "028ace2d-e858-4134-91b2-5705669c8c58"
+      ],
+      "orm_uuid": "28b7b0dd-0b72-44a1-bea4-b53b3a37f8dc",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0045",
+      "source_ids": [
+        "EVAL_GW_0045",
+        "EVAL_LD_0045",
+        "EVAL_BK_0045"
+      ],
+      "orm_uuids": [
+        "edbf3e42-f54d-4e71-a75a-bb07e7f24424",
+        "dce88c22-9b90-4ec0-82de-dc5b591a2861",
+        "07c55fd7-8bd6-44c7-90e9-7e2f2f1aef4c"
+      ],
+      "orm_uuid": "edbf3e42-f54d-4e71-a75a-bb07e7f24424",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0046",
+      "source_ids": [
+        "EVAL_GW_0046",
+        "EVAL_LD_0046",
+        "EVAL_BK_0046"
+      ],
+      "orm_uuids": [
+        "f5e673a6-2a63-4104-89d1-f1180ca32a03",
+        "eb630157-5e63-4500-82f2-981b4a1e3685",
+        "a9aa07c0-666b-4864-9f23-9d4ae154bf25"
+      ],
+      "orm_uuid": "f5e673a6-2a63-4104-89d1-f1180ca32a03",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0047",
+      "source_ids": [
+        "EVAL_GW_0047",
+        "EVAL_LD_0047",
+        "EVAL_BK_0047"
+      ],
+      "orm_uuids": [
+        "7b0af072-f694-44d0-b6a3-2b101dc34f6d",
+        "a4140867-8fd6-4e22-a321-a77ca01f6398",
+        "c422080f-481b-41d9-8ee0-0fd0f5a50c9a"
+      ],
+      "orm_uuid": "7b0af072-f694-44d0-b6a3-2b101dc34f6d",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "amount_mismatch_gw_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0048",
+      "source_ids": [
+        "EVAL_GW_0048",
+        "EVAL_LD_0048",
+        "EVAL_BK_0048"
+      ],
+      "orm_uuids": [
+        "8fc1d806-b991-49b1-b022-5c7898fcb587",
+        "188ad1ee-90b0-4404-b9d5-b1d0fb44fd0f",
+        "6e91d2c6-e953-4a87-b0c4-1fed89f2c53e"
+      ],
+      "orm_uuid": "8fc1d806-b991-49b1-b022-5c7898fcb587",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "false_positive_risk",
+      "scenario": "false_positive_risk"
+    },
+    {
+      "logical_id": "EVAL_TXN_0049",
+      "source_ids": [
+        "EVAL_GW_0049",
+        "EVAL_LD_0049",
+        "EVAL_BK_0049"
+      ],
+      "orm_uuids": [
+        "028a2108-641a-4066-8c0f-cee14296639f",
+        "8fadf469-c600-458b-84d2-bacced9e9e33",
+        "7a343483-523e-462b-bbb6-67952912aaa1"
+      ],
+      "orm_uuid": "028a2108-641a-4066-8c0f-cee14296639f",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0050",
+      "source_ids": [
+        "EVAL_GW_0050",
+        "EVAL_LD_0050",
+        "EVAL_BK_0050"
+      ],
+      "orm_uuids": [
+        "5a99104c-9684-4b2f-a97c-adc471c531e5",
+        "4244c51c-3059-4ddd-a50e-be2faa27846e",
+        "7d41066d-b0fc-43f0-9cc0-8bdc8da5d092"
+      ],
+      "orm_uuid": "5a99104c-9684-4b2f-a97c-adc471c531e5",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0051",
+      "source_ids": [
+        "EVAL_GW_0051",
+        "EVAL_LD_0051",
+        "EVAL_BK_0051"
+      ],
+      "orm_uuids": [
+        "5e8d0093-5609-4bf4-af1b-acb0ed00655c",
+        "672dd234-9287-416d-bdff-a59b1b2ff1ad",
+        "32a7adc4-42fe-4025-afc4-15ae18317e79"
+      ],
+      "orm_uuid": "5e8d0093-5609-4bf4-af1b-acb0ed00655c",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "delayed_settlement_exception",
+      "scenario": "delayed_settlement"
+    },
+    {
+      "logical_id": "EVAL_TXN_0052",
+      "source_ids": [
+        "EVAL_GW_0052",
+        "EVAL_LD_0052",
+        "EVAL_BK_0052"
+      ],
+      "orm_uuids": [
+        "5d3a82fa-1f29-486d-a3fd-73a33461730a",
+        "f801c704-6426-4a54-801e-2d534e1766d4"
+      ],
+      "orm_uuid": "5d3a82fa-1f29-486d-a3fd-73a33461730a",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_gateway"
+    },
+    {
+      "logical_id": "EVAL_TXN_0053",
+      "source_ids": [
+        "EVAL_GW_0053",
+        "EVAL_LD_0053",
+        "EVAL_BK_0053"
+      ],
+      "orm_uuids": [
+        "af96e04e-d4af-422e-9bad-92e37bef7880",
+        "609bb9a5-3d6e-4d7d-9064-e084060c292a",
+        "282b43d0-6c3a-4be4-b858-d86874b75b11"
+      ],
+      "orm_uuid": "af96e04e-d4af-422e-9bad-92e37bef7880",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0054",
+      "source_ids": [
+        "EVAL_GW_0054",
+        "EVAL_LD_0054",
+        "EVAL_BK_0054"
+      ],
+      "orm_uuids": [
+        "45028916-0a94-4a99-8d3e-0c24377deaaa",
+        "f70632cf-a064-43b8-b21a-ff0119513ef6",
+        "4bb68290-a1f9-4b29-a30e-e66f11581233"
+      ],
+      "orm_uuid": "45028916-0a94-4a99-8d3e-0c24377deaaa",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "fee_mismatch_exception",
+      "scenario": "fee_mismatch"
+    },
+    {
+      "logical_id": "EVAL_TXN_0055",
+      "source_ids": [
+        "EVAL_GW_0055",
+        "EVAL_LD_0055",
+        "EVAL_BK_0055"
+      ],
+      "orm_uuids": [
+        "7a3ffd3a-6791-4629-95f7-da6fcd1296a4",
+        "900698b5-b7a1-4943-82ec-227c029c1c77",
+        "fe55a44f-18d9-4b9d-8b3f-231af586430a"
+      ],
+      "orm_uuid": "7a3ffd3a-6791-4629-95f7-da6fcd1296a4",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "same_order_diff_amount"
+    },
+    {
+      "logical_id": "EVAL_TXN_0056",
+      "source_ids": [
+        "EVAL_GW_0056",
+        "EVAL_LD_0056",
+        "EVAL_BK_0056"
+      ],
+      "orm_uuids": [
+        "9e09b5bc-c9cb-4651-8d88-8d22189cdad6",
+        "0fc9879d-7790-45c1-b99a-692b02804fa1",
+        "64825b50-ac70-4e56-8ee2-5a3542819e57"
+      ],
+      "orm_uuid": "9e09b5bc-c9cb-4651-8d88-8d22189cdad6",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "rounding_edge_case",
+      "scenario": "very_small_transaction"
+    },
+    {
+      "logical_id": "EVAL_TXN_0057",
+      "source_ids": [
+        "EVAL_GW_0057",
+        "EVAL_LD_0057",
+        "EVAL_BK_0057"
+      ],
+      "orm_uuids": [
+        "eebba98a-2b1f-4909-98a9-af583ed96076",
+        "e856d795-4d97-4276-824b-ef4f7a65f2fa",
+        "46b53e5c-3d8c-4ae0-8407-acfc66845cff"
+      ],
+      "orm_uuid": "eebba98a-2b1f-4909-98a9-af583ed96076",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0058",
+      "source_ids": [
+        "EVAL_GW_0058",
+        "EVAL_LD_0058",
+        "EVAL_BK_0058"
+      ],
+      "orm_uuids": [
+        "f323d4a6-37fb-4963-a19e-33d658aa6392",
+        "bcd72986-43ff-4bf4-b484-a17d6b455bc3"
+      ],
+      "orm_uuid": "f323d4a6-37fb-4963-a19e-33d658aa6392",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0059",
+      "source_ids": [
+        "EVAL_GW_0059",
+        "EVAL_LD_0059",
+        "EVAL_BK_0059"
+      ],
+      "orm_uuids": [
+        "afe32215-3c4b-47f1-93a6-ee13f35dd7d4",
+        "86c1aa1b-f163-4ac1-af6d-d64af9fb08ee",
+        "401d289d-edd3-45d4-80ed-e373499e854a"
+      ],
+      "orm_uuid": "afe32215-3c4b-47f1-93a6-ee13f35dd7d4",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "same_order_diff_amount"
+    },
+    {
+      "logical_id": "EVAL_TXN_0060",
+      "source_ids": [
+        "EVAL_GW_0060",
+        "EVAL_LD_0060",
+        "EVAL_BK_0060"
+      ],
+      "orm_uuids": [
+        "582f035d-d74a-4a3b-866a-f2715c1e488e",
+        "fd0b6e8a-b0cb-471d-820d-40d2f5e2c1d4",
+        "fc270375-7f0e-42be-8c72-f1eac312a4d9"
+      ],
+      "orm_uuid": "582f035d-d74a-4a3b-866a-f2715c1e488e",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "partial_match_exception",
+      "scenario": "partial_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0061",
+      "source_ids": [
+        "EVAL_GW_0061",
+        "EVAL_LD_0061",
+        "EVAL_BK_0061"
+      ],
+      "orm_uuids": [
+        "66ff54f2-d228-4af5-a67c-9b35cc7303ac",
+        "3d3195b6-5a6e-456b-8858-5cb72a4166c3",
+        "f4534618-c76c-4354-beea-5ecdc02a4bea"
+      ],
+      "orm_uuid": "66ff54f2-d228-4af5-a67c-9b35cc7303ac",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "high_value_review_required",
+      "scenario": "high_value_transaction"
+    },
+    {
+      "logical_id": "EVAL_TXN_0062",
+      "source_ids": [
+        "EVAL_GW_0062",
+        "EVAL_LD_0062",
+        "EVAL_BK_0062"
+      ],
+      "orm_uuids": [
+        "72230dff-c089-4bea-a59f-f1fe7919d1c5",
+        "4016fd6c-335f-4b76-be68-f36df17e94dd",
+        "72c28089-ce1c-427a-97ce-630d754096f9"
+      ],
+      "orm_uuid": "72230dff-c089-4bea-a59f-f1fe7919d1c5",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0063",
+      "source_ids": [
+        "EVAL_GW_0063",
+        "EVAL_LD_0063",
+        "EVAL_BK_0063"
+      ],
+      "orm_uuids": [
+        "1acc37ed-2c98-4c3a-ba96-cb5e71bd48e8",
+        "4e4a7e96-5f1a-4661-9957-c24a196e051d",
+        "94549fed-7b3d-401e-b0ec-e0e531e397f8"
+      ],
+      "orm_uuid": "1acc37ed-2c98-4c3a-ba96-cb5e71bd48e8",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "complex_mismatch_exception",
+      "scenario": "complex_mismatch"
+    },
+    {
+      "logical_id": "EVAL_TXN_0064",
+      "source_ids": [
+        "EVAL_GW_0064",
+        "EVAL_LD_0064",
+        "EVAL_BK_0064"
+      ],
+      "orm_uuids": [
+        "7f45fa41-4d65-4559-bf9d-b94cde817a9b",
+        "0f08d506-ceb7-4282-8316-24343953f9b9",
+        "47f16b4b-663c-4060-b258-259852f0267c"
+      ],
+      "orm_uuid": "7f45fa41-4d65-4559-bf9d-b94cde817a9b",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "duplicate_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0065",
+      "source_ids": [
+        "EVAL_GW_0065",
+        "EVAL_LD_0065",
+        "EVAL_BK_0065"
+      ],
+      "orm_uuids": [
+        "f0b3b90d-7d5c-428c-8599-a1c511a0d861",
+        "5219d49c-02b8-4aff-beaf-89224573efa7",
+        "3501290d-2fa0-4b7d-a184-61152d0e5e53"
+      ],
+      "orm_uuid": "f0b3b90d-7d5c-428c-8599-a1c511a0d861",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "tax_mismatch_exception",
+      "scenario": "tax_mismatch"
+    },
+    {
+      "logical_id": "EVAL_TXN_0066",
+      "source_ids": [
+        "EVAL_GW_0066",
+        "EVAL_LD_0066",
+        "EVAL_BK_0066"
+      ],
+      "orm_uuids": [
+        "3727d37b-f391-40b6-8c54-99229550c03e",
+        "34051f57-2d4e-4bec-98c3-622a68c35702"
+      ],
+      "orm_uuid": "3727d37b-f391-40b6-8c54-99229550c03e",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0067",
+      "source_ids": [
+        "EVAL_GW_0067",
+        "EVAL_LD_0067",
+        "EVAL_BK_0067"
+      ],
+      "orm_uuids": [
+        "13bc983c-6b30-48f3-8454-294bf074eb49",
+        "03f80d1d-7e89-4999-900d-9a10d5f9a762",
+        "1f01b088-dcff-44da-a55b-1df214387195"
+      ],
+      "orm_uuid": "13bc983c-6b30-48f3-8454-294bf074eb49",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0068",
+      "source_ids": [
+        "EVAL_GW_0068",
+        "EVAL_LD_0068",
+        "EVAL_BK_0068"
+      ],
+      "orm_uuids": [
+        "0e752dbe-6046-49fb-9bd7-9fdafdfcd286",
+        "a5501286-63b9-47e8-99b7-fa19f7a168c9",
+        "f296d45b-cb2b-40ac-874c-218a74de7fed"
+      ],
+      "orm_uuid": "0e752dbe-6046-49fb-9bd7-9fdafdfcd286",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "fee_mismatch_exception",
+      "scenario": "fee_mismatch"
+    },
+    {
+      "logical_id": "EVAL_TXN_0069",
+      "source_ids": [
+        "EVAL_GW_0069",
+        "EVAL_LD_0069",
+        "EVAL_BK_0069"
+      ],
+      "orm_uuids": [
+        "cbe94102-ddbe-4dd2-ae5f-b8eaeb8dac1b",
+        "2345d4bd-aac7-4a1a-9eeb-31fe60abe967",
+        "39f0dc39-4d5e-4ea1-97d4-7076c7b98941"
+      ],
+      "orm_uuid": "cbe94102-ddbe-4dd2-ae5f-b8eaeb8dac1b",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_fields_exception",
+      "scenario": "missing_optional_fields"
+    },
+    {
+      "logical_id": "EVAL_TXN_0070",
+      "source_ids": [
+        "EVAL_GW_0070",
+        "EVAL_LD_0070",
+        "EVAL_BK_0070"
+      ],
+      "orm_uuids": [
+        "7c3aa8f9-f9e1-4233-848e-5a3f56a96c21",
+        "30dbd067-c999-453f-b4ec-10e3b8071271",
+        "85226c42-b2b2-401a-8d0b-f0d26fe6d6e2"
+      ],
+      "orm_uuid": "7c3aa8f9-f9e1-4233-848e-5a3f56a96c21",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "cross_date_boundary"
+    },
+    {
+      "logical_id": "EVAL_TXN_0071",
+      "source_ids": [
+        "EVAL_GW_0071",
+        "EVAL_LD_0071",
+        "EVAL_BK_0071"
+      ],
+      "orm_uuids": [
+        "a9bf8366-9741-48b2-a379-69ed0289c309",
+        "12164860-6981-4ede-93b3-85bca1d87ee7",
+        "b38ad83f-f1be-4dfd-bf41-df05164abf42"
+      ],
+      "orm_uuid": "a9bf8366-9741-48b2-a379-69ed0289c309",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "fee_mismatch_exception",
+      "scenario": "fee_mismatch"
+    },
+    {
+      "logical_id": "EVAL_TXN_0072",
+      "source_ids": [
+        "EVAL_GW_0072",
+        "EVAL_LD_0072",
+        "EVAL_BK_0072"
+      ],
+      "orm_uuids": [
+        "dc166e12-b025-4ba3-b1d0-86b8e40a5519",
+        "8a53d8e7-9e10-40e4-b393-cce2ad65d201",
+        "2faf5d9d-e874-44a2-8d7a-49559a813136"
+      ],
+      "orm_uuid": "dc166e12-b025-4ba3-b1d0-86b8e40a5519",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0073",
+      "source_ids": [
+        "EVAL_GW_0073",
+        "EVAL_LD_0073",
+        "EVAL_BK_0073"
+      ],
+      "orm_uuids": [
+        "fae5a599-f46a-44c4-b8ee-12e6f4cafb37",
+        "92141dbc-b879-4dd9-ab3c-f307659e63fb",
+        "a0c0c89c-38c8-457a-a8ad-197f0f899520"
+      ],
+      "orm_uuid": "fae5a599-f46a-44c4-b8ee-12e6f4cafb37",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0074",
+      "source_ids": [
+        "EVAL_GW_0074",
+        "EVAL_LD_0074",
+        "EVAL_BK_0074"
+      ],
+      "orm_uuids": [
+        "69b7cb88-b602-46b5-a7fd-6db53fc6c2f7",
+        "7f469e51-5299-47be-b15a-0ca7e4b13bc4",
+        "b942921c-fbbe-4ca6-b5f3-1671caba4cdd"
+      ],
+      "orm_uuid": "69b7cb88-b602-46b5-a7fd-6db53fc6c2f7",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "settlement_variance_exception",
+      "scenario": "amount_mismatch_gw_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0075",
+      "source_ids": [
+        "EVAL_GW_0075",
+        "EVAL_LD_0075",
+        "EVAL_BK_0075"
+      ],
+      "orm_uuids": [
+        "33cc25a5-fb83-4b4b-a7bb-7d98458958cc",
+        "7830820c-49ae-44d1-bdd1-34900fea0ee0",
+        "fa7a3aac-7554-4b63-a015-a34edb13de56"
+      ],
+      "orm_uuid": "33cc25a5-fb83-4b4b-a7bb-7d98458958cc",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0076",
+      "source_ids": [
+        "EVAL_GW_0076",
+        "EVAL_LD_0076",
+        "EVAL_BK_0076"
+      ],
+      "orm_uuids": [
+        "45242508-9037-4f11-9361-277fa9856df1",
+        "96b8c22b-5800-44b4-8c52-b0f350eabf94"
+      ],
+      "orm_uuid": "45242508-9037-4f11-9361-277fa9856df1",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0077",
+      "source_ids": [
+        "EVAL_GW_0077",
+        "EVAL_LD_0077",
+        "EVAL_BK_0077"
+      ],
+      "orm_uuids": [
+        "68996bfa-6f27-40d0-aaf5-fcffa217f75f",
+        "d5b680fb-c73a-4a13-b79d-c869a755d6e6",
+        "5952ef71-fa14-486e-8142-33e48285d0e5"
+      ],
+      "orm_uuid": "68996bfa-6f27-40d0-aaf5-fcffa217f75f",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "duplicate_exception",
+      "scenario": "duplicate_gateway"
+    },
+    {
+      "logical_id": "EVAL_TXN_0078",
+      "source_ids": [
+        "EVAL_GW_0078",
+        "EVAL_LD_0078",
+        "EVAL_BK_0078"
+      ],
+      "orm_uuids": [
+        "316eb27c-ec49-4f7c-97d7-6df07fe42eea",
+        "29d274a0-bb00-4818-91c7-04e8e8c8546a",
+        "198f7ece-4203-49a3-a516-fb0e15e9157f"
+      ],
+      "orm_uuid": "316eb27c-ec49-4f7c-97d7-6df07fe42eea",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "duplicate_exception",
+      "scenario": "duplicate_gateway"
+    },
+    {
+      "logical_id": "EVAL_TXN_0079",
+      "source_ids": [
+        "EVAL_GW_0079",
+        "EVAL_LD_0079",
+        "EVAL_BK_0079"
+      ],
+      "orm_uuids": [
+        "0e0c80e3-0f77-40c7-b762-173465787fe4",
+        "3ecd8b9d-af38-4504-8d6e-0abbbd77ac48",
+        "1aedf24c-5f37-4454-b506-db65599ccf83"
+      ],
+      "orm_uuid": "0e0c80e3-0f77-40c7-b762-173465787fe4",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "same_ref_diff_amount"
+    },
+    {
+      "logical_id": "EVAL_TXN_0080",
+      "source_ids": [
+        "EVAL_GW_0080",
+        "EVAL_LD_0080",
+        "EVAL_BK_0080"
+      ],
+      "orm_uuids": [
+        "5400b649-b7fb-439b-9d11-032889cce66c",
+        "ffe1ac88-8a8d-4538-a88b-1ef49b05748b",
+        "7f511283-7aeb-4ece-8ec5-9f1177437216"
+      ],
+      "orm_uuid": "5400b649-b7fb-439b-9d11-032889cce66c",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0081",
+      "source_ids": [
+        "EVAL_GW_0081",
+        "EVAL_LD_0081",
+        "EVAL_BK_0081"
+      ],
+      "orm_uuids": [
+        "b65bcbf3-16ef-4f45-882d-dc4a0750fb18",
+        "0b5cc30f-20d2-4210-8b84-c06fb4313433",
+        "626ab2bf-c5bd-4f00-b323-6942ccac3a34"
+      ],
+      "orm_uuid": "b65bcbf3-16ef-4f45-882d-dc4a0750fb18",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0082",
+      "source_ids": [
+        "EVAL_GW_0082",
+        "EVAL_LD_0082",
+        "EVAL_BK_0082"
+      ],
+      "orm_uuids": [
+        "ac16f13a-1194-47f6-b4ae-ed0583af739e",
+        "790d06fb-48d2-40b9-9515-3a1d64358372",
+        "132779d7-c3c3-49e2-ac2e-cdfe102adbad"
+      ],
+      "orm_uuid": "ac16f13a-1194-47f6-b4ae-ed0583af739e",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0083",
+      "source_ids": [
+        "EVAL_GW_0083",
+        "EVAL_LD_0083",
+        "EVAL_BK_0083"
+      ],
+      "orm_uuids": [
+        "516a60b4-a57d-4e0e-8251-db0fc9ebbd0f",
+        "1c780e6c-c0c4-4a0e-844a-71774b64893b",
+        "412e62fa-6942-42a5-b3d8-7e49c34a0d65"
+      ],
+      "orm_uuid": "516a60b4-a57d-4e0e-8251-db0fc9ebbd0f",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0084",
+      "source_ids": [
+        "EVAL_GW_0084",
+        "EVAL_LD_0084",
+        "EVAL_BK_0084"
+      ],
+      "orm_uuids": [
+        "27a1bba4-3782-4528-a13d-4fa1483f1d11",
+        "5627733b-ed85-4c05-a39a-15e4e7f00259",
+        "c76f9da1-0618-4d27-83d8-30aa2aa95cc1"
+      ],
+      "orm_uuid": "27a1bba4-3782-4528-a13d-4fa1483f1d11",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "near_duplicate_amounts"
+    },
+    {
+      "logical_id": "EVAL_TXN_0085",
+      "source_ids": [
+        "EVAL_GW_0085",
+        "EVAL_LD_0085",
+        "EVAL_BK_0085"
+      ],
+      "orm_uuids": [
+        "4008fe3f-655e-469d-a896-07831c5c8c1d",
+        "87b64ace-18fa-4a16-aca5-5ea4ac19acb0",
+        "cf5e0abd-8d4b-4508-8ad7-29641b2fd86e"
+      ],
+      "orm_uuid": "4008fe3f-655e-469d-a896-07831c5c8c1d",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "repeated_identifiers"
+    },
+    {
+      "logical_id": "EVAL_TXN_0086",
+      "source_ids": [
+        "EVAL_GW_0086",
+        "EVAL_LD_0086",
+        "EVAL_BK_0086"
+      ],
+      "orm_uuids": [
+        "6f64aa70-0552-464f-90fa-ec5bf3fca64f",
+        "cb9c4520-79fd-41f3-b1ba-3cb850d452d9",
+        "32b8ceee-d363-4414-8c24-bbe729a2b1a5"
+      ],
+      "orm_uuid": "6f64aa70-0552-464f-90fa-ec5bf3fca64f",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0087",
+      "source_ids": [
+        "EVAL_GW_0087",
+        "EVAL_LD_0087",
+        "EVAL_BK_0087"
+      ],
+      "orm_uuids": [
+        "0a57de10-52f4-4d81-aacd-66c743439851",
+        "b2c6d21d-cf96-419e-80e2-c856a1d89bab",
+        "5475b17d-02c1-4bca-896d-41630b86440f"
+      ],
+      "orm_uuid": "0a57de10-52f4-4d81-aacd-66c743439851",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "settlement_variance_exception",
+      "scenario": "amount_mismatch_gw_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0088",
+      "source_ids": [
+        "EVAL_GW_0088",
+        "EVAL_LD_0088",
+        "EVAL_BK_0088"
+      ],
+      "orm_uuids": [
+        "e2ed0f36-f1a4-41a8-94f5-9deea8181ccd",
+        "6b2935a5-01a7-49fd-a48c-56f16cf64e83",
+        "480c8bb1-558d-4942-af74-cf6cbf2750d8"
+      ],
+      "orm_uuid": "e2ed0f36-f1a4-41a8-94f5-9deea8181ccd",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "same_ref_diff_amount"
+    },
+    {
+      "logical_id": "EVAL_TXN_0089",
+      "source_ids": [
+        "EVAL_GW_0089",
+        "EVAL_LD_0089",
+        "EVAL_BK_0089"
+      ],
+      "orm_uuids": [
+        "5b5daecf-7f5b-4109-873d-b4744bfba385",
+        "f7812645-7ec0-4545-91a9-fa8d4d5f4b86",
+        "94bc7944-8902-4543-8735-91e88bb36659"
+      ],
+      "orm_uuid": "5b5daecf-7f5b-4109-873d-b4744bfba385",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "delayed_settlement_exception",
+      "scenario": "delayed_settlement"
+    },
+    {
+      "logical_id": "EVAL_TXN_0090",
+      "source_ids": [
+        "EVAL_GW_0090",
+        "EVAL_LD_0090",
+        "EVAL_BK_0090"
+      ],
+      "orm_uuids": [
+        "5c6a68ad-3734-49a5-ac47-a05056e4b46d",
+        "bc6f89e8-738c-439f-b9fa-d83e860390ba",
+        "9ff9e60c-6447-4c2c-a107-32de72668a3d"
+      ],
+      "orm_uuid": "5c6a68ad-3734-49a5-ac47-a05056e4b46d",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0091",
+      "source_ids": [
+        "EVAL_GW_0091",
+        "EVAL_LD_0091",
+        "EVAL_BK_0091"
+      ],
+      "orm_uuids": [
+        "0d8076d2-72fc-475c-a05f-54278d0cd195",
+        "2354fe15-53bf-4398-94f7-26d0839eb46f",
+        "96a66aa0-9bbf-48bf-9917-3bbb1666827a"
+      ],
+      "orm_uuid": "0d8076d2-72fc-475c-a05f-54278d0cd195",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0092",
+      "source_ids": [
+        "EVAL_GW_0092",
+        "EVAL_LD_0092",
+        "EVAL_BK_0092"
+      ],
+      "orm_uuids": [
+        "9abf880f-730b-4e9a-b183-2f6f46d1e13a",
+        "30718117-4a05-4d38-a663-0937cff65bd9",
+        "7c73bc96-668e-491c-892a-0090d8680723"
+      ],
+      "orm_uuid": "9abf880f-730b-4e9a-b183-2f6f46d1e13a",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0093",
+      "source_ids": [
+        "EVAL_GW_0093",
+        "EVAL_LD_0093",
+        "EVAL_BK_0093"
+      ],
+      "orm_uuids": [
+        "3d0e1340-04c4-41f0-b814-83a88f269039",
+        "7393d94c-7379-422d-b985-6d7a96b9e4ac",
+        "23f17111-54ab-4079-849a-e2682af14278"
+      ],
+      "orm_uuid": "3d0e1340-04c4-41f0-b814-83a88f269039",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "settlement_variance_exception",
+      "scenario": "amount_mismatch_gw_bank"
+    },
+    {
+      "logical_id": "EVAL_TXN_0094",
+      "source_ids": [
+        "EVAL_GW_0094",
+        "EVAL_LD_0094",
+        "EVAL_BK_0094"
+      ],
+      "orm_uuids": [
+        "53b2cbe7-9405-480f-a3d8-b570cea611c0",
+        "7979cfb2-1a78-471e-8a06-31077f094c5f",
+        "3947656c-1535-4e66-9b03-b720f63aff6e"
+      ],
+      "orm_uuid": "53b2cbe7-9405-480f-a3d8-b570cea611c0",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0095",
+      "source_ids": [
+        "EVAL_GW_0095",
+        "EVAL_LD_0095",
+        "EVAL_BK_0095"
+      ],
+      "orm_uuids": [
+        "85608518-8d68-4e53-96a1-9077ff13a58e",
+        "a2a4234f-83d6-4e6b-b453-fe11e07a882b"
+      ],
+      "orm_uuid": "85608518-8d68-4e53-96a1-9077ff13a58e",
+      "has_exception": false,
+      "should_except": true,
+      "expected_outcome": "missing_source_exception",
+      "scenario": "missing_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0096",
+      "source_ids": [
+        "EVAL_GW_0096",
+        "EVAL_LD_0096",
+        "EVAL_BK_0096"
+      ],
+      "orm_uuids": [
+        "ba1aca2b-a17a-4af4-8f66-02db41755f4f",
+        "3f936159-7b00-4d32-a890-bacb0d87b727",
+        "fc1c573c-cc0b-4a9e-be2a-6954ca662fd4"
+      ],
+      "orm_uuid": "ba1aca2b-a17a-4af4-8f66-02db41755f4f",
+      "has_exception": true,
+      "should_except": true,
+      "expected_outcome": "amount_mismatch_exception",
+      "scenario": "amount_mismatch_gw_ledger"
+    },
+    {
+      "logical_id": "EVAL_TXN_0097",
+      "source_ids": [
+        "EVAL_GW_0097",
+        "EVAL_LD_0097",
+        "EVAL_BK_0097"
+      ],
+      "orm_uuids": [
+        "7b9092ac-c35a-4af8-bd7e-635973b26e50",
+        "9a8022c9-4d34-4097-89aa-679023913189",
+        "5532a518-2d8d-4179-9ce7-52f8ac664950"
+      ],
+      "orm_uuid": "7b9092ac-c35a-4af8-bd7e-635973b26e50",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0098",
+      "source_ids": [
+        "EVAL_GW_0098",
+        "EVAL_LD_0098",
+        "EVAL_BK_0098"
+      ],
+      "orm_uuids": [
+        "5319ab68-f0a2-4693-9aca-d645bc48e798",
+        "4b116201-416c-4d29-b62b-95221910e2ff",
+        "9f551255-eb08-4bf7-b78f-ceebefd0d75e"
+      ],
+      "orm_uuid": "5319ab68-f0a2-4693-9aca-d645bc48e798",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    },
+    {
+      "logical_id": "EVAL_TXN_0099",
+      "source_ids": [
+        "EVAL_GW_0099",
+        "EVAL_LD_0099",
+        "EVAL_BK_0099"
+      ],
+      "orm_uuids": [
+        "05a108eb-5214-40a0-9ec9-97573d48a8a7",
+        "b36b6a99-d2c2-4309-9872-6f0d1f21d17d",
+        "020e2431-0b78-4334-9a70-3b642a36291a"
+      ],
+      "orm_uuid": "05a108eb-5214-40a0-9ec9-97573d48a8a7",
+      "has_exception": false,
+      "should_except": false,
+      "expected_outcome": "exact_match",
+      "scenario": "exact_match"
+    }
+  ]
+}
