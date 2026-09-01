@@ -1,10 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 
 from app.api.dependencies import get_reconciliation_repository
+from app.database.models import ReconciliationRun as ReconciliationRunORM
 from app.api.schemas.run import RunSummaryResponse
 from app.database.repositories.reconciliation_repository import ReconciliationRepository
 
 router = APIRouter(prefix="/runs", tags=["Runs"])
+
+
+@router.get("")
+async def list_runs(
+    limit: int = Query(20, ge=1, le=100),
+    repo: ReconciliationRepository = Depends(get_reconciliation_repository),
+) -> dict[str, object]:
+    """List the most recent reconciliation runs for UI scoping."""
+    result = await repo.session.execute(
+        select(ReconciliationRunORM).order_by(ReconciliationRunORM.created_at.desc()).limit(limit)
+    )
+    runs = result.scalars().all()
+    return {
+        "total_count": len(runs),
+        "runs": [
+            {
+                "id": r.id,
+                "run_id": r.run_id,
+                "status": r.status.value if hasattr(r.status, "value") else str(r.status),
+                "started_at": r.started_at.isoformat() if r.started_at else None,
+                "completed_at": r.completed_at.isoformat() if r.completed_at else None,
+                "gateway_count": r.gateway_count,
+                "ledger_count": r.ledger_count,
+                "bank_count": r.bank_count,
+                "match_count": r.match_count,
+                "exception_count": r.exception_count,
+            }
+            for r in runs
+        ],
+    }
 
 
 @router.get("/{run_id}/summary", response_model=RunSummaryResponse)

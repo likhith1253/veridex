@@ -46,6 +46,10 @@ st.markdown(FINTECH_CSS, unsafe_allow_html=True)
 api = FinanceControllerAPIClient()
 
 
+def get_selected_run_id() -> str | None:
+    return st.session_state.get("selected_run_id") or None
+
+
 def format_money(value, *, fallback="N/A — unavailable from live data"):
     if value is None:
         return fallback
@@ -107,19 +111,39 @@ def render_sidebar():
 
     st.sidebar.divider()
 
+    try:
+        runs_payload = api.list_runs(limit=20)
+        run_options = runs_payload.get("runs", [])
+    except Exception:
+        run_options = []
+
+    if run_options:
+        labels = [f"{r.get('run_id')} | {r.get('status')} | {r.get('gateway_count', 0)+r.get('ledger_count', 0)+r.get('bank_count', 0)} txns" for r in run_options]
+        default_idx = 0
+        if st.session_state.get("selected_run_id"):
+            for idx, run in enumerate(run_options):
+                if run.get("run_id") == st.session_state.get("selected_run_id"):
+                    default_idx = idx
+                    break
+        selected_idx = st.sidebar.selectbox("Run Scope", list(range(len(run_options))), format_func=lambda i: labels[i], index=default_idx)
+        st.session_state["selected_run_id"] = run_options[selected_idx].get("run_id")
+    else:
+        st.sidebar.caption("No reconciliation runs found yet.")
+
     navigation_options = [
         "1. Executive Overview",
         "2. Reconciliation Operations",
         "3. Exception Queue",
         "4. Exception Workspace & Actions",
-        "5. Settlement & Accounting",
-        "6. Refunds & Duplicates",
-        "7. Cash Position & Forecast",
-        "8. Source Health",
-        "9. Finance AI Q&A",
-        "10. AI Finance Copilot",
-        "11. Audit Trail & Ingestion",
-        "12. Benchmark & Model Evaluation",
+        "5. Transactions",
+        "6. Settlement & Accounting",
+        "7. Refunds & Duplicates",
+        "8. Cash Position & Forecast",
+        "9. Source Health",
+        "10. Finance AI Q&A",
+        "11. AI Finance Copilot",
+        "12. Audit Trail & Ingestion",
+        "13. Benchmark & Model Evaluation",
     ]
 
     selected_view = st.sidebar.radio("Navigation", navigation_options)
@@ -133,10 +157,11 @@ def view_overview():
     st.title("📊 Executive Finance Controller Overview")
     st.caption("Authoritative multi-feed reconciliation KPIs, cash exposure, and throughput metrics.")
 
+    run_id = get_selected_run_id()
     try:
-        kpis = api.get_summary()
-        funnel = api.get_funnel()
-        cash = api.get_cash_position()
+        kpis = api.get_summary(run_id=run_id)
+        funnel = api.get_funnel(run_id=run_id)
+        cash = api.get_cash_position(run_id=run_id)
         health = api.get_source_health()
     except Exception as e:
         st.error(f"Failed to load executive metrics: {e}")
@@ -231,9 +256,10 @@ def view_reconciliation():
     st.title("🔀 Reconciliation Operations")
     st.caption("Detailed deterministic rule evaluation, ML candidate recovery, and matching metrics.")
 
+    run_id = get_selected_run_id()
     try:
-        kpis = api.get_summary()
-        funnel = api.get_funnel()
+        kpis = api.get_summary(run_id=run_id)
+        funnel = api.get_funnel(run_id=run_id)
     except Exception as e:
         st.error(f"Failed to load reconciliation data: {e}")
         return
@@ -282,6 +308,7 @@ def view_exception_queue():
     st.title("⚠️ Honest Exception Queue")
     st.caption("Transparent, honest list of unresolved financial discrepancies requiring controller attention.")
 
+    run_id = get_selected_run_id()
     # Filter Toolbar
     with st.expander("Filter Exception Queue", expanded=True):
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
@@ -315,9 +342,9 @@ def view_exception_queue():
 
     try:
         exc_data = api.list_exceptions(
-            status=stat_val, category=cat_val, min_exposure=min_val, page=page_num, page_size=25
+            status=stat_val, category=cat_val, min_exposure=min_val, run_id=run_id, page=page_num, page_size=25
         )
-        aging = api.get_exception_aging()
+        aging = api.get_exception_aging(run_id=run_id)
     except Exception as e:
         st.error(f"Failed to fetch exceptions: {e}")
         return
@@ -370,8 +397,9 @@ def view_exception_workspace():
     st.title("🔍 Exception Investigation Workspace")
     st.caption("Complete investigation workflow: understand why, assess impact, and decide.")
 
+    run_id = get_selected_run_id()
     try:
-        exc_list = api.list_exceptions(page_size=50).get("exceptions", [])
+        exc_list = api.list_exceptions(run_id=run_id, page_size=50).get("exceptions", [])
     except Exception as e:
         st.error(f"Error fetching exception list: {e}")
         return
@@ -568,6 +596,44 @@ def view_exception_workspace():
                 st.error(f"Note attachment failed: {e}")
 
 
+# 5. Transactions
+def view_transactions():
+    st.title("📄 Transaction Ledger")
+    st.caption("Run-scoped transaction rows exactly as persisted by the backend.")
+
+    current_run = get_selected_run_id() or ""
+    run_id = st.text_input("Run ID", value=current_run)
+    limit = st.number_input("Limit", min_value=1, max_value=1000, value=100, step=10)
+
+    try:
+        payload = api.list_transactions(run_id=run_id or None, limit=int(limit))
+    except Exception as e:
+        st.error(f"Failed to fetch transactions: {e}")
+        return
+
+    txns = payload.get("transactions", [])
+    st.metric("Transactions", f"{payload.get('total_count', len(txns)):,}")
+    if txns:
+        df = pd.DataFrame(txns)
+        cols = [
+            c
+            for c in [
+                "domain_transaction_id",
+                "source",
+                "order_id",
+                "reference_number",
+                "amount",
+                "currency",
+                "timestamp",
+                "status",
+            ]
+            if c in df.columns
+        ]
+        st.dataframe(df[cols], width="stretch", height=450)
+    else:
+        render_empty_state("Transactions", "No transactions are available for the selected run.")
+
+
 # 5. Settlement & Accounting Control
 def view_settlement_accounting():
     st.title("⚖️ Unified Settlement & Accounting Control")
@@ -679,8 +745,9 @@ def view_cash_position_and_forecast():
     st.title("💰 Cash Position & 7-Day Settlement Forecast")
     st.caption("Current multi-source liquidity position and transparent forward settlement projections.")
 
+    run_id = get_selected_run_id()
     try:
-        cash = api.get_cash_position()
+        cash = api.get_cash_position(run_id=run_id)
         forecast = api.get_forecast()
     except Exception as e:
         st.error(f"Failed to load cash data: {e}")
@@ -775,6 +842,7 @@ def view_finance_ai_qa():
     st.title("💬 Grounded Finance Controller AI Q&A")
     st.caption("Ask natural language treasury and reconciliation questions grounded strictly in PostgreSQL state (zero hallucinations).")
 
+    run_id = get_selected_run_id()
     prompts = [
         "What is the total unresolved financial exposure?",
         "How much money was recovered by ML candidate scoring?",
@@ -791,7 +859,7 @@ def view_finance_ai_qa():
     if st.button("Analyze with Controller AI", type="primary") and question.strip():
         with st.spinner("Executing verifiable SQL metric aggregation and reasoning..."):
             try:
-                qa_res = api.ask_qa(question.strip())
+                qa_res = api.ask_qa(question.strip(), run_id=run_id)
                 st.markdown(
                     f"<div class='qa-answer-box'><strong>Direct Controller Answer:</strong><br>{qa_res.get('direct_answer')}</div>",
                     unsafe_allow_html=True,
@@ -895,7 +963,7 @@ def view_ai_finance_copilot():
 
     st.divider()
     try:
-        exception_payload = api.list_exceptions(page_size=20)
+        exception_payload = api.list_exceptions(run_id=run_id, page_size=20)
         exception_rows = exception_payload.get("exceptions", [])
     except Exception:
         exception_rows = []
@@ -1104,21 +1172,23 @@ def main():
         view_exception_queue()
     elif selected_view == "4. Exception Workspace & Actions":
         view_exception_workspace()
-    elif selected_view == "5. Settlement & Accounting":
+    elif selected_view == "5. Transactions":
+        view_transactions()
+    elif selected_view == "6. Settlement & Accounting":
         view_settlement_accounting()
-    elif selected_view == "6. Refunds & Duplicates":
+    elif selected_view == "7. Refunds & Duplicates":
         view_refunds_and_duplicates()
-    elif selected_view == "7. Cash Position & Forecast":
+    elif selected_view == "8. Cash Position & Forecast":
         view_cash_position_and_forecast()
-    elif selected_view == "8. Source Health":
+    elif selected_view == "9. Source Health":
         view_source_health()
-    elif selected_view == "9. Finance AI Q&A":
+    elif selected_view == "10. Finance AI Q&A":
         view_finance_ai_qa()
-    elif selected_view == "10. AI Finance Copilot":
+    elif selected_view == "11. AI Finance Copilot":
         view_ai_finance_copilot()
-    elif selected_view == "11. Audit Trail & Ingestion":
+    elif selected_view == "12. Audit Trail & Ingestion":
         view_audit_trail_and_ingestion()
-    elif selected_view == "12. Benchmark & Model Evaluation":
+    elif selected_view == "13. Benchmark & Model Evaluation":
         view_benchmark_evaluation()
 
 

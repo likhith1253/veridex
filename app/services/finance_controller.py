@@ -203,7 +203,25 @@ class FinanceController:
         """Compute live controller KPIs directly from PostgreSQL state."""
         exp = await self.exposure_service.calculate_exposure(run_id)
 
+        # FIX: Scope transactions to the specified run_id for proper batch isolation
         all_txns_stmt = select(TransactionORM)
+        if run_id:
+            # Get the ORM run ID first
+            run_query = select(ReconciliationRunORM).where(
+                (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+            )
+            run_result = await self.session.execute(run_query)
+            run_obj = run_result.scalar_one_or_none()
+            if run_obj:
+                # Get transactions that are part of this run via reconciliation_items
+                from app.database.models import ReconciliationItem as ReconciliationItemORM
+                item_stmt = select(ReconciliationItemORM.transaction_id).where(
+                    ReconciliationItemORM.run_id == run_obj.id
+                )
+                item_result = await self.session.execute(item_stmt)
+                txn_ids = item_result.scalars().all()
+                all_txns_stmt = select(TransactionORM).where(TransactionORM.id.in_(txn_ids))
+        
         res = await self.session.execute(all_txns_stmt)
         all_txns = res.scalars().all()
         total_records = len(all_txns)

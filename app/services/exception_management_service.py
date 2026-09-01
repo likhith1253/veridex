@@ -128,7 +128,17 @@ class ExceptionManagementService:
                 )
             )
         if run_id:
-            conditions.append(ExceptionORM.run_id == run_id)
+            # FIX: Handle both ORM ID and run_id string for proper batch isolation
+            from app.database.models import ReconciliationRun as ReconciliationRunORM
+            r_stmt = select(ReconciliationRunORM).where(
+                (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+            )
+            r_res = await self.session.execute(r_stmt)
+            r_obj = r_res.scalar_one_or_none()
+            if r_obj:
+                conditions.append(ExceptionORM.run_id == r_obj.id)
+            else:
+                conditions.append(ExceptionORM.run_id == run_id)
 
         if conditions:
             stmt = stmt.where(and_(*conditions))

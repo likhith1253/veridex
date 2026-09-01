@@ -76,8 +76,33 @@ class CashPositionService:
 
     async def get_cash_position(self, run_id: Optional[str] = None) -> CashPositionSummary:
         """Calculate live cash position across all transactions or scoped to a run."""
-        # 1. Query transactions
+        # FIX: Scope transactions to the specified run_id for proper batch isolation
+        from app.database.models import ReconciliationItem as ReconciliationItemORM, ReconciliationRun as ReconciliationRunORM
+        
+        # Resolve run ORM ID if provided
+        run_orm_id = None
+        if run_id:
+            r_stmt = select(ReconciliationRunORM).where(
+                (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+            )
+            r_res = await self.session.execute(r_stmt)
+            r_obj = r_res.scalar_one_or_none()
+            if r_obj:
+                run_orm_id = r_obj.id
+            else:
+                run_orm_id = run_id
+        
+        # 1. Query transactions scoped to the run
         stmt = select(TransactionORM)
+        if run_orm_id:
+            # Get transactions that are part of this run via reconciliation_items
+            item_stmt = select(ReconciliationItemORM.transaction_id).where(
+                ReconciliationItemORM.run_id == run_orm_id
+            )
+            item_result = await self.session.execute(item_stmt)
+            txn_ids = item_result.scalars().all()
+            stmt = select(TransactionORM).where(TransactionORM.id.in_(txn_ids))
+        
         res = await self.session.execute(stmt)
         txns = res.scalars().all()
 

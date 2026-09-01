@@ -48,6 +48,33 @@ from app.services.human_decision_service import HumanAction
 
 router = APIRouter(prefix="/api/v1/controller", tags=["Finance Controller"])
 
+_VALID_EXCEPTION_CATEGORIES = {
+    "amount_mismatch",
+    "amount_mismatch_exception",
+    "missing_ledger",
+    "missing_bank",
+    "missing_gateway",
+    "missing_source",
+    "missing_source_exception",
+    "delayed_settlement",
+    "delayed_settlement_exception",
+    "duplicate_transaction",
+    "duplicate_entry",
+    "duplicate_exception",
+    "fee_discrepancy",
+    "fee_mismatch",
+    "fee_mismatch_exception",
+    "tax_mismatch_exception",
+    "settlement_variance_exception",
+    "partial_match_exception",
+    "complex_mismatch_exception",
+    "missing_fields_exception",
+    "unmatched_settlement",
+    "currency_mismatch",
+    "unrecognized",
+    "unexplained",
+}
+
 
 class QAQueryRequest(BaseModel):
     question: str = Field(..., description="Finance Controller question")
@@ -198,6 +225,8 @@ async def list_exceptions(
     import traceback
     from app.services.exception_management_service import ExceptionManagementService
     try:
+        if category and category not in _VALID_EXCEPTION_CATEGORIES:
+            raise HTTPException(status_code=422, detail=f"Invalid category filter: {category}")
         service = ExceptionManagementService(session)
 
         items, total_count = await service.list_exceptions(
@@ -216,6 +245,8 @@ async def list_exceptions(
             "total_count": total_count,
             "exceptions": items,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         import logging
         logging.error(f"Exception list error: {str(e)}\n{traceback.format_exc()}")

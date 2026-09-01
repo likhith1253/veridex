@@ -58,6 +58,7 @@ def create_app() -> FastAPI:
     app.include_router(integrations_router, dependencies=[Depends(verify_api_key)])
     app.include_router(investigations_router, dependencies=[Depends(verify_api_key)])
     app.include_router(runs_router, dependencies=[Depends(verify_api_key)])
+    app.include_router(runs_router, prefix="/api/v1", dependencies=[Depends(verify_api_key)])
     app.include_router(reconciliation_router, dependencies=[Depends(verify_api_key)])
 
     # 4. Structured error handlers (AUD-004, AUD-049, AUD-060, AUD-064)

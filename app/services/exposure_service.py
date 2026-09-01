@@ -87,8 +87,18 @@ class FinancialExposureService:
             else:
                 run_orm_id = run_id
 
-        # 1. Transactions Total across ALL feeds (Gateway, Ledger, Bank)
+        # 1. Transactions Total scoped to the run (FIX for batch isolation)
+        from app.database.models import ReconciliationItem as ReconciliationItemORM
         txn_stmt = select(TransactionORM)
+        if run_orm_id:
+            # Get transactions that are part of this run via reconciliation_items
+            item_stmt = select(ReconciliationItemORM.transaction_id).where(
+                ReconciliationItemORM.run_id == run_orm_id
+            )
+            item_result = await self.session.execute(item_stmt)
+            txn_ids = item_result.scalars().all()
+            txn_stmt = select(TransactionORM).where(TransactionORM.id.in_(txn_ids))
+        
         txn_res = await self.session.execute(txn_stmt)
         txns = txn_res.scalars().all()
         txn_map = {getattr(t, "id", None): t for t in txns if hasattr(t, "id")}

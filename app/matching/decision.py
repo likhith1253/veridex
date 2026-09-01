@@ -63,6 +63,10 @@ class DecisionPolicy:
                 {
                     "expected_amount": str(expected_amount) if expected_amount else None,
                     "observed_amount": str(observed_amount) if observed_amount else None,
+                    "txn1_amount": str(txn1.amount),
+                    "txn2_amount": str(txn2.amount),
+                    "txn1_source": txn1.source.value,
+                    "txn2_source": txn2.source.value,
                 },
             )
 
@@ -80,7 +84,8 @@ class DecisionPolicy:
             match_result: Deterministic match result.
             
         Returns:
-            DecisionResult with AUTO_MATCH action for high-confidence deterministic matches.
+            DecisionResult with AUTO_MATCH action for high-confidence deterministic matches,
+            or MANUAL_REVIEW if amounts differ.
         """
         confidence = match_result.confidence
         evidence = {
@@ -89,6 +94,22 @@ class DecisionPolicy:
         }
         if match_result.evidence:
             evidence.update(match_result.evidence)
+
+        # Check if this match has amount differences
+        has_amount_diff = "amount_difference" in str(match_result.evidence or {}) or \
+                         "amounts" in str(match_result.evidence or {}) or \
+                         "amount differences" in match_result.reason.lower() or \
+                         "partial amount difference" in match_result.reason.lower()
+
+        # If amounts differ, require manual review instead of auto-match
+        if has_amount_diff:
+            return DecisionResult(
+                transaction_ids=match_result.transaction_ids,
+                action=DecisionAction.MANUAL_REVIEW,
+                confidence=confidence,
+                evidence=evidence,
+                reason=f"Amount mismatch detected in deterministic match: {match_result.reason}",
+            )
 
         return DecisionResult(
             transaction_ids=match_result.transaction_ids,
