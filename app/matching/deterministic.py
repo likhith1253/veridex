@@ -122,12 +122,14 @@ class DeterministicMatcher:
             expected_fee_rate = Decimal("0.015") if g.amount >= Decimal("100000") else Decimal("0.02")
             expected_fee = g.amount * expected_fee_rate
             expected_tax = expected_fee * Decimal("0.18")
-            fee_tax_valid = (
-                g.fee is not None
-                and g.tax is not None
-                and self._money_equal(g.fee, expected_fee)
-                and self._money_equal(g.tax, expected_tax)
-            )
+            fee_tax_valid = True
+            if g.fee is not None or g.tax is not None:
+                fee_tax_valid = (
+                    g.fee is not None
+                    and g.tax is not None
+                    and self._money_equal(g.fee, expected_fee)
+                    and self._money_equal(g.tax, expected_tax)
+                )
             g_ts = g.timestamp.replace(tzinfo=None) if g.timestamp.tzinfo else g.timestamp
             b_ts = b.timestamp.replace(tzinfo=None) if b.timestamp.tzinfo else b.timestamp
             settlement_days = abs((b_ts - g_ts).total_seconds()) / 86400

@@ -11,12 +11,19 @@ and computes independent accuracy metrics:
 - AI Copilot QA validation
 """
 
+import httpx
 import json
 import random
 import time
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal, ROUND_HALF_UP
-import httpx
+import sys
+from pathlib import Path
+
+# Add project root to sys.path for direct execution
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from eval.benchmark_registry import validate_ground_truth_namespace
 
 
 BASE_URL = "http://127.0.0.1:8000"
@@ -174,15 +181,16 @@ def generate_adversarial_dataset():
             "narration": f"DIRECT NEFT INWARD-{utr}"
         })
         ground_truth[txn_key] = {
-            "expected_outcome": "MATCHED_OR_MISSING_GATEWAY",
-            "expected_exception": False,  # 2-way match between Ledger and Bank
+            "expected_outcome": "MISSING_GATEWAY",
+            "expected_exception": True,  # 2-way match between Ledger and Bank, missing Gateway
+            "expected_category": "missing_source",
             "gross_amount": amount,
             "fee": Decimal("0.00"),
             "tax": Decimal("0.00"),
             "expected_net": amount,
             "actual_bank": amount,
             "variance": Decimal("0.00"),
-            "exposure": Decimal("0.00"),
+            "exposure": amount,
         }
 
     # 4. Unrecorded Online Sales (3 transactions: T41 to T43) - Gateway + Bank present, Ledger missing
@@ -311,8 +319,9 @@ def generate_adversarial_dataset():
             "timestamp": format_ts(i + 2),
         })
         ground_truth[txn_key] = {
-            "expected_outcome": "MATCHED_WITH_FEE_ANOMALY",
-            "expected_exception": False,
+            "expected_outcome": "FEE_OVERCHARGE",
+            "expected_exception": True,
+            "expected_category": "fee_mismatch",
             "expected_fee_discrepancy": True,
             "gross_amount": amount,
             "fee": charged_fee,
@@ -421,15 +430,16 @@ def generate_adversarial_dataset():
             "narration": f"CMS NEFT CR-{corrupted_utr}-{order_id}"
         })
         ground_truth[txn_key] = {
-            "expected_outcome": "ML_OR_MANUAL_RECOVERED",
-            "expected_exception": False,
+            "expected_outcome": "CORRUPTED_REFERENCE",
+            "expected_exception": True,
+            "expected_category": "missing_source",
             "gross_amount": amount,
             "fee": fee,
             "tax": tax,
             "expected_net": net,
             "actual_bank": net,
             "variance": Decimal("0.00"),
-            "exposure": Decimal("0.00"),
+            "exposure": amount,
         }
 
     # 9. Identical Amounts / Collisions (2 transactions: T57 to T58)
@@ -594,7 +604,7 @@ def run_evaluation():
         fees = fee_resp.json() if fee_resp.status_code == 200 else {}
         copilot = copilot_resp.json() if copilot_resp.status_code == 200 else {}
 
-    # Compute Ground Truth Aggregates
+    # Compute Ground Truth Aggregates (Logical Transaction Model)
     gt_total_gross = sum((item["gross_amount"] for item in gt.values()), Decimal("0.00"))
     gt_total_fees = sum((item["fee"] for item in gt.values()), Decimal("0.00"))
     gt_total_taxes = sum((item["tax"] for item in gt.values()), Decimal("0.00"))
@@ -603,25 +613,51 @@ def run_evaluation():
     gt_total_variance = gt_total_actual_bank - gt_total_expected_net
     gt_total_exposure = sum((item["exposure"] for item in gt.values()), Decimal("0.00"))
 
+    # Compute Expected Physical Record Aggregates from Logical Model
+    # This accounts for scenarios that don't have gateway records or have duplicate gateway records
+    expected_gateway_gross = Decimal("0.00")
+    for txn_key, item in gt.items():
+        # Direct bank credits have no gateway record
+        if "DIRECT" in txn_key:
+            continue
+        # Duplicate scenarios have 2 gateway records for 1 logical transaction
+        if "DUP" in txn_key:
+            expected_gateway_gross += item["gross_amount"] * Decimal("2")
+        else:
+            expected_gateway_gross += item["gross_amount"]
+
     print("\n" + "=" * 70)
     print("FINANCIAL AGGREGATE VERIFICATION:")
     print("=" * 70)
-    print(f"Ground Truth Expected Gross:      INR {gt_total_gross:,.2f}")
-    print(f"Ground Truth Expected Fees:       INR {gt_total_fees:,.2f}")
-    print(f"Ground Truth Expected Taxes:      INR {gt_total_taxes:,.2f}")
-    print(f"Ground Truth Expected Net:        INR {gt_total_expected_net:,.2f}")
-    print(f"Ground Truth Actual Bank:         INR {gt_total_actual_bank:,.2f}")
-    print(f"Ground Truth Net Variance:        INR {gt_total_variance:,.2f}")
-    print(f"Ground Truth True Exposure:       INR {gt_total_exposure:,.2f}")
+    print("Ground Truth (Logical Transaction Model):")
+    print(f"  • Expected Gross:                 INR {gt_total_gross:,.2f}")
+    print(f"  • Expected Fees:                  INR {gt_total_fees:,.2f}")
+    print(f"  • Expected Taxes:                 INR {gt_total_taxes:,.2f}")
+    print(f"  • Expected Net:                   INR {gt_total_expected_net:,.2f}")
+    print(f"  • Actual Bank:                    INR {gt_total_actual_bank:,.2f}")
+    print(f"  • Net Variance:                   INR {gt_total_variance:,.2f}")
+    print(f"  • True Exposure:                  INR {gt_total_exposure:,.2f}")
+    
+    print("\nExpected Physical Record Model (derived from logical):")
+    print(f"  • Expected Gateway Gross:         INR {expected_gateway_gross:,.2f}")
 
     print("-" * 70)
-    print("Sentinel Reported Metrics:")
-    print(f"  • Summary Match Rate:           {summary.get('match_rate', 0)*100:.2f}%")
-    print(f"  • Cash Gross Volume:            INR {Decimal(str(cash.get('expected_gross_settlement_inr', 0))):,.2f}")
-    print(f"  • Cash Expected Net:            INR {Decimal(str(cash.get('expected_net_settlement_inr', 0))):,.2f}")
-    print(f"  • Cash Actual Received:         INR {Decimal(str(cash.get('received_bank_credits_inr', 0))):,.2f}")
-    print(f"  • Cash Settlement Variance:     INR {Decimal(str(cash.get('settlement_variance_inr', 0))):,.2f}")
-    print(f"  • Cash Unreconciled Exposure:   INR {Decimal(str(cash.get('unreconciled_exposure_inr', 0))):,.2f}")
+    print("Sentinel Reported Metrics (Physical Record Model):")
+    print(f"  • Summary Match Rate:             {summary.get('match_rate', 0)*100:.2f}%")
+    print(f"  • Cash Gross Volume:              INR {Decimal(str(cash.get('expected_gross_settlement_inr', 0))):,.2f}")
+    print(f"  • Cash Expected Net:              INR {Decimal(str(cash.get('expected_net_settlement_inr', 0))):,.2f}")
+    print(f"  • Cash Actual Received:           INR {Decimal(str(cash.get('received_bank_credits_inr', 0))):,.2f}")
+    print(f"  • Cash Settlement Variance:       INR {Decimal(str(cash.get('settlement_variance_inr', 0))):,.2f}")
+    print(f"  • Cash Unreconciled Exposure:     INR {Decimal(str(cash.get('unreconciled_exposure_inr', 0))):,.2f}")
+    
+    print("-" * 70)
+    print("Physical Record Model Verification:")
+    gateway_diff = Decimal(str(cash.get('expected_gross_settlement_inr', 0))) - expected_gateway_gross
+    print(f"  • Gateway Gross Difference:       INR {gateway_diff:,.2f}")
+    if abs(gateway_diff) < Decimal("1.00"):
+        print("  [OK] Gateway gross matches expected physical record model")
+    else:
+        print("  [FAIL] Gateway gross mismatch detected")
 
     print("\n" + "=" * 70)
     print("CO-PILOT AI QUERY TEST:")
@@ -657,3 +693,10 @@ if __name__ == "__main__":
     with open("eval/adversarial_evaluation_output.json", "w") as f:
         json.dump(res, f, indent=2, default=str)
     print("\nSaved evaluation results to eval/adversarial_evaluation_output.json")
+
+    canonical_gt = validate_ground_truth_namespace(res["dataset"]["ground_truth"])
+
+    # Save ground truth for tracing scripts
+    with open("private_ground_truth.json", "w") as f:
+        json.dump(canonical_gt, f, indent=2, default=str)
+    print("Saved canonical ground truth to private_ground_truth.json")

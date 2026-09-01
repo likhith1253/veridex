@@ -5,6 +5,16 @@ from app.database.models import AuditEvent as AuditEventORM
 from app.models.audit_event import AuditEvent as AuditDomain
 
 
+def _sanitize_for_json(obj):
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_sanitize_for_json(v) for v in obj]
+    elif isinstance(obj, float) and (obj == float("inf") or obj == float("-inf") or obj != obj):
+        return None
+    return obj
+
+
 def domain_to_orm_audit(domain: AuditDomain, id: str, created_at: datetime) -> AuditEventORM:
     """Convert domain AuditEvent to ORM AuditEvent."""
     ts = domain.timestamp
@@ -20,8 +30,8 @@ def domain_to_orm_audit(domain: AuditDomain, id: str, created_at: datetime) -> A
         stage=domain.stage,
         action=domain.event,
         timestamp=ts,
-        meta_data=domain.evidence,
-        decision=domain.decision,
+        meta_data=_sanitize_for_json(domain.evidence),
+        decision=_sanitize_for_json(domain.decision),
     )
 
 

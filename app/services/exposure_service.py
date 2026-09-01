@@ -97,7 +97,8 @@ class FinancialExposureService:
             )
             item_result = await self.session.execute(item_stmt)
             txn_ids = item_result.scalars().all()
-            txn_stmt = select(TransactionORM).where(TransactionORM.id.in_(txn_ids))
+            if txn_ids:
+                txn_stmt = select(TransactionORM).where(TransactionORM.id.in_(txn_ids))
         
         txn_res = await self.session.execute(txn_stmt)
         txns = txn_res.scalars().all()

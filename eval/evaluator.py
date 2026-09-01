@@ -383,7 +383,9 @@ class ReconciliationEvaluator:
     def _classify_rule(self, match: MatchResult) -> str:
         """Classify a match result into its governing rule category."""
         reason_lower = match.reason.lower()
-        if "utr" in reason_lower:
+        if "ml" in reason_lower:
+            return "ml_scored"
+        elif "utr" in reason_lower:
             return "exact_utr"
         elif "order id" in reason_lower:
             return "exact_order_id"
@@ -391,7 +393,7 @@ class ReconciliationEvaluator:
             return "exact_txn_reference"
         elif "amount + date" in reason_lower or "amount_date" in reason_lower:
             return "amount_date"
-        elif "ml" in reason_lower or match.match_type == MatchType.PROBABLE:
+        elif match.match_type == MatchType.PROBABLE:
             return "ml_scored"
         return "other"
 

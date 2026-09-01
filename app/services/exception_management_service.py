@@ -92,11 +92,13 @@ class ExceptionManagementService:
             conditions.append(ExceptionORM.status == status)
         if category:
             # Match both raw string and mapped domain/ORM representations
-            cat_candidates = {category}
+            cat_str = category.value if hasattr(category, "value") else str(category)
+            cat_candidates = {category, cat_str}
             for d_cat, o_cat in _DOMAIN_TO_ORM_CATEGORY.items():
-                if d_cat.value == category or o_cat.value == category:
-                    cat_candidates.add(d_cat.value)
-                    cat_candidates.add(o_cat.value)
+                d_val = d_cat.value if hasattr(d_cat, "value") else str(d_cat)
+                o_val = o_cat.value if hasattr(o_cat, "value") else str(o_cat)
+                if cat_str in (d_val, o_val, str(d_cat), str(o_cat)):
+                    cat_candidates.update({d_cat, o_cat, d_val, o_val})
             conditions.append(ExceptionORM.exception_category.in_(list(cat_candidates)))
 
         if min_exposure is not None:

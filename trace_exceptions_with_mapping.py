@@ -4,9 +4,11 @@ import json
 import sys
 from collections import Counter, defaultdict
 
+from eval.benchmark_registry import validate_ground_truth_namespace
+
 # Load ground truth
 with open('private_ground_truth.json', 'r') as f:
-    ground_truth = json.load(f)
+    ground_truth = validate_ground_truth_namespace(json.load(f))
 
 async def resolve_run_id(client: httpx.AsyncClient) -> str:
     if len(sys.argv) > 1:
@@ -57,6 +59,92 @@ async def main():
     
     # Build set of exception transaction IDs (ORM UUIDs)
     exception_txn_ids = {e.get('transaction_id') for e in exceptions if e.get('transaction_id')}
+    
+    # Check ground truth format to determine schema
+    sample_key = list(ground_truth.keys())[0] if ground_truth else None
+    sample_data = ground_truth[sample_key] if sample_key else {}
+    
+    # Determine if this is the new format (from independent_adversarial_eval.py) or old format
+    is_new_format = 'expected_exception' in sample_data and 'gross_amount' in sample_data
+    
+    if is_new_format:
+        print("Using canonical ADV_* ground truth format (independent_adversarial_eval.py)")
+        
+        # Build inverted mapping: ORM UUID -> domain_transaction_id
+        orm_to_domain = {v: k for k, v in txn_mapping.items()}
+        
+        # Group exceptions by domain transaction ID
+        domain_to_excs = defaultdict(list)
+        for exc in exceptions:
+            t_id = exc.get("transaction_id")
+            domain_id = orm_to_domain.get(t_id, "UNKNOWN")
+            domain_to_excs[domain_id].append(exc)
+            
+        print("\n=== SCENARIO-BY-SCENARIO TRACE MAPPING ===")
+        total_expected = 0
+        detected_count = 0
+        missing_count = 0
+        unexpected_count = 0
+        
+        scenario_results = []
+        
+        for scenario_id, gt in ground_truth.items():
+            exp_exc = gt.get("expected_exception", False)
+            exp_cat = gt.get("expected_category", gt.get("expected_outcome", "MATCHED"))
+            
+            if exp_exc:
+                total_expected += 1
+                
+            possible_domains = [
+                f"GW_{scenario_id}",
+                f"LD_{scenario_id}",
+                f"BK_{scenario_id}",
+                f"GW_{scenario_id}_A",
+                f"GW_{scenario_id}_B",
+            ]
+            
+            attached_excs = []
+            for d in possible_domains:
+                if d in domain_to_excs:
+                    for exc in domain_to_excs[d]:
+                        attached_excs.append((d, exc))
+                        
+            detected_cats = [e.get("category") or e.get("exception_category") for _, e in attached_excs]
+            detected_ids = [str(e.get("exception_id") or e.get("id"))[:8] for _, e in attached_excs]
+            membership = [d for d, _ in attached_excs]
+            
+            if exp_exc:
+                if attached_excs:
+                    status = "PASS"
+                    detected_count += 1
+                else:
+                    status = "FAIL (MISSING)"
+                    missing_count += 1
+            else:
+                if not attached_excs:
+                    status = "PASS"
+                else:
+                    status = "FAIL (UNEXPECTED)"
+                    unexpected_count += 1
+                    
+            res_str = f"{scenario_id} -> exp_cat: {exp_cat} | det_ids: {detected_ids or 'None'} | det_cats: {detected_cats or 'None'} | txn_members: {membership or 'None'} | {status}"
+            print(res_str)
+            scenario_results.append((scenario_id, exp_exc, exp_cat, detected_ids, detected_cats, membership, status))
+            
+        print("\n=== SUMMARY ===")
+        print(f"Total Logical Transactions: {len(ground_truth)}")
+        print(f"Total Physical Records:     {len(txn_mapping)}")
+        print(f"Expected Exception Scenarios: {total_expected}")
+        print(f"Detected Exception Scenarios: {detected_count}")
+        print(f"Missing Exception Scenarios:  {missing_count}")
+        print(f"Unexpected Exception Scenarios: {unexpected_count}")
+        print(f"Total Raw Exceptions in DB:   {len(exceptions)}")
+        coverage = (detected_count / total_expected * 100.0) if total_expected > 0 else 0.0
+        print(f"Coverage: {coverage:.1f}%")
+        return
+    
+    # Old format handling (from adversarial_evaluator.py)
+    print("Using old ground truth format (adversarial_evaluator.py)")
     
     # Analyze by scenario
     scenario_counts = Counter()
@@ -116,6 +204,7 @@ async def main():
     print(f"Expected exceptions: {total_expected}")
     print(f"Detected exceptions: {total_detected}")
     print(f"Missing exceptions: {total_expected - total_detected}")
-    print(f"Coverage: {total_detected / total_expected * 100:.1f}%")
+    if total_expected > 0:
+        print(f"Coverage: {total_detected / total_expected * 100:.1f}%")
 
 asyncio.run(main())

@@ -125,13 +125,16 @@ class ReconciliationService:
             matcher = DeterministicMatcher(transactions_by_source)
             deterministic_matches = matcher.match_all()
             
-            # Deterministic identity groups are reserved before ML scoring.
-            # Their confidence describes identity certainty, not financial validity.
+            # Only HIGH-CONFIDENCE deterministic matches (confidence >= 0.90) bypass ML scoring.
             matched_txn_ids = set()
             high_conf_deterministic_matches = []
+            low_conf_deterministic_matches = []
             for match in deterministic_matches:
-                matched_txn_ids.update(match.transaction_ids)
-                high_conf_deterministic_matches.append(match)
+                if match.confidence >= Decimal("0.90"):
+                    matched_txn_ids.update(match.transaction_ids)
+                    high_conf_deterministic_matches.append(match)
+                else:
+                    low_conf_deterministic_matches.append(match)
             
             # For unresolved transactions, run CandidateGenerator + MLScorer
             unresolved_txns = self._get_unresolved_transactions(persisted_txns, matched_txn_ids)
@@ -139,11 +142,15 @@ class ReconciliationService:
             if unresolved_txns and self.ml_scorer:
                 ml_matches = await self._run_ml_scoring(unresolved_txns, transactions_by_source)
             
-            # Combine all matches (high-confidence deterministic + ML matches + remaining fallback)
+            # Combine all matches (high-confidence deterministic + ML matches + low-confidence fallback)
             if self.ml_scorer:
+                ml_matched_tids = {tid for m in ml_matches for tid in m.transaction_ids}
                 raw_all_matches = high_conf_deterministic_matches + [
                     m for m in ml_matches
                     if not any(tid in matched_txn_ids for tid in m.transaction_ids)
+                ] + [
+                    m for m in low_conf_deterministic_matches
+                    if not any(tid in matched_txn_ids or tid in ml_matched_tids for tid in m.transaction_ids)
                 ]
             else:
                 raw_all_matches = deterministic_matches

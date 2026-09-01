@@ -163,3 +163,45 @@ Status: IN PROGRESS
 - Fix status: Fixed
 - Verification: python -m pytest tests/test_finance_controller_backend.py -q; result: 15 passed in 2.82s
 
+## 2026-09-01 22:30 IST
+- Severity: CRITICAL
+- Subsystem: Benchmark source-of-truth / ground-truth namespace validation
+- Symptom: Legacy dataset files using EVAL_TXN_* IDs were still accepted as if they were the canonical benchmark, creating silent benchmark drift across evaluation scripts.
+- Reproduction: Importing `eval.benchmark_registry.validate_ground_truth_namespace` with a legacy EVAL_TXN_* dict raised a validation error once the guard was in place; before the fix, the codebase implicitly trusted whichever `private_ground_truth.json` happened to be on disk.
+- Expected behavior: The authoritative benchmark must be the canonical `ADV_*` dataset produced by `eval/independent_adversarial_eval.py`.
+- Actual behavior: The repository permitted multiple ground-truth namespaces to coexist and be treated as interchangeable.
+- Root cause: No namespace validation existed to reject legacy `EVAL_TXN_*` datasets before they were used by tracing and evaluation tooling.
+- File/location: `eval/benchmark_registry.py`, `eval/independent_adversarial_eval.py`, `trace_exceptions_with_mapping.py`
+- Fix status: Fixed - Added canonical benchmark validation and a regression test to reject legacy datasets.
+- Verification: `python -m pytest tests/test_benchmark_canonical.py -q` -> 2 passed in 1.55s
+
+## 2026-09-01 22:45 IST
+- Severity: CRITICAL
+- Subsystem: Canonical benchmark acceptance gate / live verification
+- Symptom: The live canonical benchmark still fails the repository's required 46/46 acceptance gate because the current `ADV_*` generator defines only 15 expected exceptions and the real reconciler produces 29 detected exceptions, not 46.
+- Reproduction:
+  - `python clear_database.py`
+  - `python -c "from eval.independent_adversarial_eval import generate_adversarial_dataset; d = generate_adversarial_dataset(); print(len(d['ground_truth'])); print(sum(1 for v in d['ground_truth'].values() if v.get('expected_exception'))); print({k: sum(1 for v in d['ground_truth'].values() if v.get('expected_category') == k) for k in sorted({v.get('expected_category') for v in d['ground_truth'].values() if v.get('expected_category')} )})"` -> `logical_transactions=60`, `expected_exception_count=15`
+  - `python trace_exceptions_with_mapping.py ADV_BATCH_1788283776` -> `Expected exceptions: 15`, `Detected exceptions: 29`, `Coverage: 193.3%`
+- Expected behavior: The benchmark should meet the pass gate: `Expected exceptions = 46`, `Detected exceptions = 46`, `Missing = 0`, `Unexpected = 0`, `Coverage = 100.0%`.
+- Actual behavior: The current repo's canonical generator yields a 15-exception benchmark. The system then over-detects with 29 exceptions, so the target gate is not satisfied by the current implementation.
+- Root cause: The repository still contains an older benchmark expectation (46/46) from a different benchmark definition, while the active canonical generator in `eval/independent_adversarial_eval.py` intentionally models a smaller 60-transaction / 15-exception scenario set. This is not a namespace bug anymore; it is a benchmark-definition mismatch between the repository's claimed acceptance target and the actual canonical dataset in code.
+- File/location: `eval/independent_adversarial_eval.py`, `trace_exceptions_with_mapping.py`, `private_ground_truth.json`, `e2e_audit_log.md`
+- Fix status: Remaining blocker - do not weaken the acceptance gate. The repo's intended benchmark target is different from the current canonical generator and therefore still needs an authoritative definition update or dataset re-baseline before the 46/46 gate can be claimed.
+
+## 2026-09-01 23:22 IST
+- Severity: CRITICAL
+- Subsystem: Live canonical benchmark verification / Acceptance gate comparison
+- Symptom: Canonical benchmark run `ADV_BATCH_1788285093` verified from a clean database state produces 15 expected exceptions and 29 detected exceptions across 60 logical transactions and 170 physical records.
+- Reproduction:
+  - `python clear_database.py`
+  - `python eval/independent_adversarial_eval.py` -> Run ID: `ADV_BATCH_1788285093`
+  - `python trace_exceptions_with_mapping.py ADV_BATCH_1788285093`
+- Expected behavior (Pass Gate): Expected = 46, Detected = 46, Missing = 0, Unexpected = 0, Coverage = 100.0%.
+- Actual behavior: Expected = 15, Detected = 29, Missing = 0, Unexpected = 11 scenario groups (Direct bank credits, fee overcharges, corrupt UTRs), Coverage = 100.0% of expected (193.3% raw ratio).
+- Root cause: The 46-exception scenario expectation originated in `adversarial_evaluator.py` (which had 100 logical transactions and 46 exceptions), whereas the authoritative canonical generator `eval/independent_adversarial_eval.py` intentionally models a 60-transaction / 15-expected-exception dataset. The reconciliation engine correctly detects all 15 expected exceptions, but additionally flags 11 other non-standard scenario groups (5 direct credits without gateway, 3 fee overcharges, 3 corrupted UTRs without fuzzy recovery) as exceptions in the database.
+- File/location: `eval/independent_adversarial_eval.py`, `eval/benchmark_registry.py`, `trace_exceptions_with_mapping.py`
+- Fix status: Blocked on benchmark acceptance gate alignment (46 vs 15).
+- Verification: `python trace_exceptions_with_mapping.py ADV_BATCH_1788285093` executed cleanly; financial physical model gross matches to 0.00 difference (INR 9,645,541.75).
+
+

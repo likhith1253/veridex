@@ -141,7 +141,8 @@ class CashPositionService:
             )
             item_result = await self.session.execute(item_stmt)
             txn_ids = item_result.scalars().all()
-            stmt = select(TransactionORM).where(TransactionORM.id.in_(txn_ids))
+            if txn_ids:
+                stmt = select(TransactionORM).where(TransactionORM.id.in_(txn_ids))
         
         res = await self.session.execute(stmt)
         txns = res.scalars().all()

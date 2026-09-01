@@ -7,7 +7,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0001",
         "reference_number": "UTR_EX_000001",
-        "timestamp": "2026-08-30T15:42:06.213551+00:00",
+        "timestamp": "2026-08-30T19:32:21.966362+00:00",
         "fee": "0.36",
         "tax": "0.06",
         "narration": "PG Settlement ORD_EX_0001"
@@ -18,7 +18,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0002",
         "reference_number": "UTR_EX_000002",
-        "timestamp": "2026-08-30T16:42:06.213551+00:00",
+        "timestamp": "2026-08-30T20:32:21.966362+00:00",
         "fee": "35.50",
         "tax": "6.39",
         "narration": "PG Settlement ORD_EX_0002"
@@ -29,7 +29,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0003",
         "reference_number": "UTR_EX_000003",
-        "timestamp": "2026-08-30T17:42:06.213551+00:00",
+        "timestamp": "2026-08-30T21:32:21.966362+00:00",
         "fee": "975.00",
         "tax": "175.50",
         "narration": "PG Settlement ORD_EX_0003"
@@ -40,7 +40,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0004",
         "reference_number": "UTR_EX_000004",
-        "timestamp": "2026-08-30T18:42:06.213551+00:00",
+        "timestamp": "2026-08-30T22:32:21.966362+00:00",
         "fee": "0.49",
         "tax": "0.09",
         "narration": "PG Settlement ORD_EX_0004"
@@ -51,7 +51,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0005",
         "reference_number": "UTR_EX_000005",
-        "timestamp": "2026-08-30T19:42:06.213551+00:00",
+        "timestamp": "2026-08-30T23:32:21.966362+00:00",
         "fee": "43.75",
         "tax": "7.88",
         "narration": "PG Settlement ORD_EX_0005"
@@ -62,7 +62,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0006",
         "reference_number": "UTR_EX_000006",
-        "timestamp": "2026-08-30T20:42:06.213551+00:00",
+        "timestamp": "2026-08-31T00:32:21.966362+00:00",
         "fee": "1050.00",
         "tax": "189.00",
         "narration": "PG Settlement ORD_EX_0006"
@@ -73,7 +73,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0007",
         "reference_number": "UTR_EX_000007",
-        "timestamp": "2026-08-30T21:42:06.213551+00:00",
+        "timestamp": "2026-08-31T01:32:21.966362+00:00",
         "fee": "0.63",
         "tax": "0.11",
         "narration": "PG Settlement ORD_EX_0007"
@@ -84,7 +84,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0008",
         "reference_number": "UTR_EX_000008",
-        "timestamp": "2026-08-30T22:42:06.213551+00:00",
+        "timestamp": "2026-08-31T02:32:21.966362+00:00",
         "fee": "52.00",
         "tax": "9.36",
         "narration": "PG Settlement ORD_EX_0008"
@@ -95,7 +95,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0009",
         "reference_number": "UTR_EX_000009",
-        "timestamp": "2026-08-30T23:42:06.213551+00:00",
+        "timestamp": "2026-08-31T03:32:21.966362+00:00",
         "fee": "1125.00",
         "tax": "202.50",
         "narration": "PG Settlement ORD_EX_0009"
@@ -106,7 +106,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0010",
         "reference_number": "UTR_EX_000010",
-        "timestamp": "2026-08-31T00:42:06.213551+00:00",
+        "timestamp": "2026-08-31T04:32:21.966362+00:00",
         "fee": "0.76",
         "tax": "0.14",
         "narration": "PG Settlement ORD_EX_0010"
@@ -117,7 +117,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0011",
         "reference_number": "UTR_EX_000011",
-        "timestamp": "2026-08-31T01:42:06.213551+00:00",
+        "timestamp": "2026-08-31T05:32:21.966362+00:00",
         "fee": "60.25",
         "tax": "10.85",
         "narration": "PG Settlement ORD_EX_0011"
@@ -128,7 +128,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0012",
         "reference_number": "UTR_EX_000012",
-        "timestamp": "2026-08-31T02:42:06.213551+00:00",
+        "timestamp": "2026-08-31T06:32:21.966362+00:00",
         "fee": "1200.00",
         "tax": "216.00",
         "narration": "PG Settlement ORD_EX_0012"
@@ -139,7 +139,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0013",
         "reference_number": "UTR_EX_000013",
-        "timestamp": "2026-08-31T03:42:06.213551+00:00",
+        "timestamp": "2026-08-31T07:32:21.966362+00:00",
         "fee": "0.90",
         "tax": "0.16",
         "narration": "PG Settlement ORD_EX_0013"
@@ -150,7 +150,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0014",
         "reference_number": "UTR_EX_000014",
-        "timestamp": "2026-08-31T04:42:06.213551+00:00",
+        "timestamp": "2026-08-31T08:32:21.966362+00:00",
         "fee": "68.50",
         "tax": "12.33",
         "narration": "PG Settlement ORD_EX_0014"
@@ -161,7 +161,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0015",
         "reference_number": "UTR_EX_000015",
-        "timestamp": "2026-08-31T05:42:06.213551+00:00",
+        "timestamp": "2026-08-31T09:32:21.966362+00:00",
         "fee": "1275.00",
         "tax": "229.50",
         "narration": "PG Settlement ORD_EX_0015"
@@ -172,7 +172,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0016",
         "reference_number": "UTR_EX_000016",
-        "timestamp": "2026-08-31T06:42:06.213551+00:00",
+        "timestamp": "2026-08-31T10:32:21.966362+00:00",
         "fee": "1.03",
         "tax": "0.19",
         "narration": "PG Settlement ORD_EX_0016"
@@ -183,7 +183,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0017",
         "reference_number": "UTR_EX_000017",
-        "timestamp": "2026-08-31T07:42:06.213551+00:00",
+        "timestamp": "2026-08-31T11:32:21.966362+00:00",
         "fee": "76.75",
         "tax": "13.82",
         "narration": "PG Settlement ORD_EX_0017"
@@ -194,7 +194,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0018",
         "reference_number": "UTR_EX_000018",
-        "timestamp": "2026-08-31T08:42:06.213551+00:00",
+        "timestamp": "2026-08-31T12:32:21.966362+00:00",
         "fee": "1350.00",
         "tax": "243.00",
         "narration": "PG Settlement ORD_EX_0018"
@@ -205,7 +205,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0019",
         "reference_number": "UTR_EX_000019",
-        "timestamp": "2026-08-31T09:42:06.213551+00:00",
+        "timestamp": "2026-08-31T13:32:21.966362+00:00",
         "fee": "1.17",
         "tax": "0.21",
         "narration": "PG Settlement ORD_EX_0019"
@@ -216,7 +216,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0020",
         "reference_number": "UTR_EX_000020",
-        "timestamp": "2026-08-31T10:42:06.213551+00:00",
+        "timestamp": "2026-08-31T14:32:21.966362+00:00",
         "fee": "85.00",
         "tax": "15.30",
         "narration": "PG Settlement ORD_EX_0020"
@@ -227,7 +227,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0021",
         "reference_number": "UTR_EX_000021",
-        "timestamp": "2026-08-31T11:42:06.213551+00:00",
+        "timestamp": "2026-08-31T15:32:21.966362+00:00",
         "fee": "1425.00",
         "tax": "256.50",
         "narration": "PG Settlement ORD_EX_0021"
@@ -238,7 +238,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0022",
         "reference_number": "UTR_EX_000022",
-        "timestamp": "2026-08-31T12:42:06.213551+00:00",
+        "timestamp": "2026-08-31T16:32:21.966362+00:00",
         "fee": "1.30",
         "tax": "0.23",
         "narration": "PG Settlement ORD_EX_0022"
@@ -249,7 +249,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0023",
         "reference_number": "UTR_EX_000023",
-        "timestamp": "2026-08-31T13:42:06.213551+00:00",
+        "timestamp": "2026-08-31T17:32:21.966362+00:00",
         "fee": "93.25",
         "tax": "16.79",
         "narration": "PG Settlement ORD_EX_0023"
@@ -260,7 +260,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0024",
         "reference_number": "UTR_EX_000024",
-        "timestamp": "2026-08-31T14:42:06.213551+00:00",
+        "timestamp": "2026-08-31T18:32:21.966362+00:00",
         "fee": "1500.00",
         "tax": "270.00",
         "narration": "PG Settlement ORD_EX_0024"
@@ -271,7 +271,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0025",
         "reference_number": "UTR_EX_000025",
-        "timestamp": "2026-08-31T15:42:06.213551+00:00",
+        "timestamp": "2026-08-31T19:32:21.966362+00:00",
         "fee": "1.44",
         "tax": "0.26",
         "narration": "PG Settlement ORD_EX_0025"
@@ -282,7 +282,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0026",
         "reference_number": "UTR_EX_000026",
-        "timestamp": "2026-08-31T16:42:06.213551+00:00",
+        "timestamp": "2026-08-31T20:32:21.966362+00:00",
         "fee": "101.50",
         "tax": "18.27",
         "narration": "PG Settlement ORD_EX_0026"
@@ -293,7 +293,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0027",
         "reference_number": "UTR_EX_000027",
-        "timestamp": "2026-08-31T17:42:06.213551+00:00",
+        "timestamp": "2026-08-31T21:32:21.966362+00:00",
         "fee": "1575.00",
         "tax": "283.50",
         "narration": "PG Settlement ORD_EX_0027"
@@ -304,7 +304,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0028",
         "reference_number": "UTR_EX_000028",
-        "timestamp": "2026-08-31T18:42:06.213551+00:00",
+        "timestamp": "2026-08-31T22:32:21.966362+00:00",
         "fee": "1.57",
         "tax": "0.28",
         "narration": "PG Settlement ORD_EX_0028"
@@ -315,7 +315,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0029",
         "reference_number": "UTR_EX_000029",
-        "timestamp": "2026-08-31T19:42:06.213551+00:00",
+        "timestamp": "2026-08-31T23:32:21.966362+00:00",
         "fee": "109.75",
         "tax": "19.76",
         "narration": "PG Settlement ORD_EX_0029"
@@ -326,7 +326,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0030",
         "reference_number": "UTR_EX_000030",
-        "timestamp": "2026-08-31T20:42:06.213551+00:00",
+        "timestamp": "2026-09-01T00:32:21.966362+00:00",
         "fee": "1650.00",
         "tax": "297.00",
         "narration": "PG Settlement ORD_EX_0030"
@@ -337,7 +337,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0031",
         "reference_number": "UTR_DEL_000031",
-        "timestamp": "2026-08-31T21:42:06.213551+00:00",
+        "timestamp": "2026-09-01T01:32:21.966362+00:00",
         "fee": "810.00",
         "tax": "145.80"
       },
@@ -347,7 +347,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0032",
         "reference_number": "UTR_DEL_000032",
-        "timestamp": "2026-08-31T22:42:06.213551+00:00",
+        "timestamp": "2026-09-01T02:32:21.966362+00:00",
         "fee": "820.00",
         "tax": "147.60"
       },
@@ -357,7 +357,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0033",
         "reference_number": "UTR_DEL_000033",
-        "timestamp": "2026-08-31T23:42:06.213551+00:00",
+        "timestamp": "2026-09-01T03:32:21.966362+00:00",
         "fee": "830.00",
         "tax": "149.40"
       },
@@ -367,7 +367,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0034",
         "reference_number": "UTR_DEL_000034",
-        "timestamp": "2026-09-01T00:42:06.213551+00:00",
+        "timestamp": "2026-09-01T04:32:21.966362+00:00",
         "fee": "840.00",
         "tax": "151.20"
       },
@@ -377,7 +377,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0035",
         "reference_number": "UTR_DEL_000035",
-        "timestamp": "2026-09-01T01:42:06.213551+00:00",
+        "timestamp": "2026-09-01T05:32:21.966362+00:00",
         "fee": "850.00",
         "tax": "153.00"
       },
@@ -387,7 +387,7 @@
         "currency": "INR",
         "order_id": "ORD_UNR_0041",
         "reference_number": "UTR_UNR_000041",
-        "timestamp": "2026-09-01T07:42:06.213551+00:00",
+        "timestamp": "2026-09-01T11:32:21.966362+00:00",
         "fee": "252.00",
         "tax": "45.36"
       },
@@ -397,7 +397,7 @@
         "currency": "INR",
         "order_id": "ORD_UNR_0042",
         "reference_number": "UTR_UNR_000042",
-        "timestamp": "2026-09-01T08:42:06.213551+00:00",
+        "timestamp": "2026-09-01T12:32:21.966362+00:00",
         "fee": "254.00",
         "tax": "45.72"
       },
@@ -407,7 +407,7 @@
         "currency": "INR",
         "order_id": "ORD_UNR_0043",
         "reference_number": "UTR_UNR_000043",
-        "timestamp": "2026-09-01T09:42:06.213551+00:00",
+        "timestamp": "2026-09-01T13:32:21.966362+00:00",
         "fee": "256.00",
         "tax": "46.08"
       },
@@ -417,7 +417,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0044",
         "reference_number": "UTR_MIS_000044",
-        "timestamp": "2026-09-01T10:42:06.213551+00:00",
+        "timestamp": "2026-09-01T14:32:21.966362+00:00",
         "fee": "1880.00",
         "tax": "338.40"
       },
@@ -427,7 +427,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0045",
         "reference_number": "UTR_MIS_000045",
-        "timestamp": "2026-09-01T11:42:06.213551+00:00",
+        "timestamp": "2026-09-01T15:32:21.966362+00:00",
         "fee": "1900.00",
         "tax": "342.00"
       },
@@ -437,7 +437,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0046",
         "reference_number": "UTR_MIS_000046",
-        "timestamp": "2026-09-01T12:42:06.213551+00:00",
+        "timestamp": "2026-09-01T16:32:21.966362+00:00",
         "fee": "1920.00",
         "tax": "345.60"
       },
@@ -447,7 +447,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0047",
         "reference_number": "UTR_MIS_000047",
-        "timestamp": "2026-09-01T13:42:06.213551+00:00",
+        "timestamp": "2026-09-01T17:32:21.966362+00:00",
         "fee": "1940.00",
         "tax": "349.20"
       },
@@ -457,7 +457,7 @@
         "currency": "INR",
         "order_id": "ORD_FEE_0048",
         "reference_number": "UTR_FEE_000048",
-        "timestamp": "2026-09-01T14:42:06.213551+00:00",
+        "timestamp": "2026-09-01T18:32:21.966362+00:00",
         "fee": "4500.00",
         "tax": "810.00"
       },
@@ -467,7 +467,7 @@
         "currency": "INR",
         "order_id": "ORD_FEE_0049",
         "reference_number": "UTR_FEE_000049",
-        "timestamp": "2026-09-01T15:42:06.213551+00:00",
+        "timestamp": "2026-09-01T19:32:21.966362+00:00",
         "fee": "4500.00",
         "tax": "810.00"
       },
@@ -477,7 +477,7 @@
         "currency": "INR",
         "order_id": "ORD_FEE_0050",
         "reference_number": "UTR_FEE_000050",
-        "timestamp": "2026-09-01T16:42:06.213551+00:00",
+        "timestamp": "2026-09-01T20:32:21.966362+00:00",
         "fee": "4500.00",
         "tax": "810.00"
       },
@@ -487,7 +487,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0051",
         "reference_number": "UTR_DUP_000051",
-        "timestamp": "2026-09-01T17:42:06.213551+00:00",
+        "timestamp": "2026-09-01T21:32:21.966362+00:00",
         "fee": "564.00",
         "tax": "101.52"
       },
@@ -497,7 +497,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0051",
         "reference_number": "UTR_DUP_000051_DUP",
-        "timestamp": "2026-09-01T18:42:06.213551+00:00",
+        "timestamp": "2026-09-01T22:32:21.966362+00:00",
         "fee": "564.00",
         "tax": "101.52"
       },
@@ -507,7 +507,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0052",
         "reference_number": "UTR_DUP_000052",
-        "timestamp": "2026-09-01T18:42:06.213551+00:00",
+        "timestamp": "2026-09-01T22:32:21.966362+00:00",
         "fee": "568.00",
         "tax": "102.24"
       },
@@ -517,7 +517,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0052",
         "reference_number": "UTR_DUP_000052_DUP",
-        "timestamp": "2026-09-01T19:42:06.213551+00:00",
+        "timestamp": "2026-09-01T23:32:21.966362+00:00",
         "fee": "568.00",
         "tax": "102.24"
       },
@@ -527,7 +527,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0053",
         "reference_number": "UTR_DUP_000053",
-        "timestamp": "2026-09-01T19:42:06.213551+00:00",
+        "timestamp": "2026-09-01T23:32:21.966362+00:00",
         "fee": "572.00",
         "tax": "102.96"
       },
@@ -537,7 +537,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0053",
         "reference_number": "UTR_DUP_000053_DUP",
-        "timestamp": "2026-09-01T20:42:06.213551+00:00",
+        "timestamp": "2026-09-02T00:32:21.966362+00:00",
         "fee": "572.00",
         "tax": "102.96"
       },
@@ -547,7 +547,7 @@
         "currency": "INR",
         "order_id": "ORD_COR_0054",
         "reference_number": "UTR_COR_000054",
-        "timestamp": "2026-09-01T20:42:06.213551+00:00",
+        "timestamp": "2026-09-02T00:32:21.966362+00:00",
         "fee": "1024.00",
         "tax": "184.32"
       },
@@ -557,7 +557,7 @@
         "currency": "INR",
         "order_id": "ORD_COR_0055",
         "reference_number": "UTR_COR_000055",
-        "timestamp": "2026-09-01T21:42:06.213551+00:00",
+        "timestamp": "2026-09-02T01:32:21.966362+00:00",
         "fee": "1030.00",
         "tax": "185.40"
       },
@@ -567,7 +567,7 @@
         "currency": "INR",
         "order_id": "ORD_COR_0056",
         "reference_number": "UTR_COR_000056",
-        "timestamp": "2026-09-01T22:42:06.213551+00:00",
+        "timestamp": "2026-09-02T02:32:21.966362+00:00",
         "fee": "1036.00",
         "tax": "186.48"
       },
@@ -577,7 +577,7 @@
         "currency": "INR",
         "order_id": "ORD_COL_0057",
         "reference_number": "UTR_COL_000057",
-        "timestamp": "2026-09-01T23:42:06.213551+00:00",
+        "timestamp": "2026-09-02T03:32:21.966362+00:00",
         "fee": "1999.98",
         "tax": "360.00"
       },
@@ -587,7 +587,7 @@
         "currency": "INR",
         "order_id": "ORD_COL_0058",
         "reference_number": "UTR_COL_000058",
-        "timestamp": "2026-09-02T00:42:06.213551+00:00",
+        "timestamp": "2026-09-02T04:32:21.966362+00:00",
         "fee": "1999.98",
         "tax": "360.00"
       },
@@ -597,7 +597,7 @@
         "currency": "INR",
         "order_id": "ORD_HV_0059",
         "reference_number": "UTR_HV_000059",
-        "timestamp": "2026-09-02T01:42:06.213551+00:00",
+        "timestamp": "2026-09-02T05:32:21.966362+00:00",
         "fee": "37500.00",
         "tax": "6750.00"
       },
@@ -607,7 +607,7 @@
         "currency": "INR",
         "order_id": "ORD_HV_0060",
         "reference_number": "UTR_HV_000060",
-        "timestamp": "2026-09-02T02:42:06.213551+00:00",
+        "timestamp": "2026-09-02T06:32:21.966362+00:00",
         "fee": "75000.00",
         "tax": "13500.00"
       }
@@ -619,7 +619,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0001",
         "reference_number": "UTR_EX_000001",
-        "timestamp": "2026-08-30T15:42:06.213551+00:00",
+        "timestamp": "2026-08-30T19:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0001"
       },
       {
@@ -628,7 +628,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0002",
         "reference_number": "UTR_EX_000002",
-        "timestamp": "2026-08-30T16:42:06.213551+00:00",
+        "timestamp": "2026-08-30T20:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0002"
       },
       {
@@ -637,7 +637,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0003",
         "reference_number": "UTR_EX_000003",
-        "timestamp": "2026-08-30T17:42:06.213551+00:00",
+        "timestamp": "2026-08-30T21:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0003"
       },
       {
@@ -646,7 +646,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0004",
         "reference_number": "UTR_EX_000004",
-        "timestamp": "2026-08-30T18:42:06.213551+00:00",
+        "timestamp": "2026-08-30T22:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0004"
       },
       {
@@ -655,7 +655,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0005",
         "reference_number": "UTR_EX_000005",
-        "timestamp": "2026-08-30T19:42:06.213551+00:00",
+        "timestamp": "2026-08-30T23:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0005"
       },
       {
@@ -664,7 +664,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0006",
         "reference_number": "UTR_EX_000006",
-        "timestamp": "2026-08-30T20:42:06.213551+00:00",
+        "timestamp": "2026-08-31T00:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0006"
       },
       {
@@ -673,7 +673,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0007",
         "reference_number": "UTR_EX_000007",
-        "timestamp": "2026-08-30T21:42:06.213551+00:00",
+        "timestamp": "2026-08-31T01:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0007"
       },
       {
@@ -682,7 +682,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0008",
         "reference_number": "UTR_EX_000008",
-        "timestamp": "2026-08-30T22:42:06.213551+00:00",
+        "timestamp": "2026-08-31T02:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0008"
       },
       {
@@ -691,7 +691,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0009",
         "reference_number": "UTR_EX_000009",
-        "timestamp": "2026-08-30T23:42:06.213551+00:00",
+        "timestamp": "2026-08-31T03:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0009"
       },
       {
@@ -700,7 +700,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0010",
         "reference_number": "UTR_EX_000010",
-        "timestamp": "2026-08-31T00:42:06.213551+00:00",
+        "timestamp": "2026-08-31T04:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0010"
       },
       {
@@ -709,7 +709,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0011",
         "reference_number": "UTR_EX_000011",
-        "timestamp": "2026-08-31T01:42:06.213551+00:00",
+        "timestamp": "2026-08-31T05:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0011"
       },
       {
@@ -718,7 +718,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0012",
         "reference_number": "UTR_EX_000012",
-        "timestamp": "2026-08-31T02:42:06.213551+00:00",
+        "timestamp": "2026-08-31T06:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0012"
       },
       {
@@ -727,7 +727,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0013",
         "reference_number": "UTR_EX_000013",
-        "timestamp": "2026-08-31T03:42:06.213551+00:00",
+        "timestamp": "2026-08-31T07:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0013"
       },
       {
@@ -736,7 +736,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0014",
         "reference_number": "UTR_EX_000014",
-        "timestamp": "2026-08-31T04:42:06.213551+00:00",
+        "timestamp": "2026-08-31T08:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0014"
       },
       {
@@ -745,7 +745,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0015",
         "reference_number": "UTR_EX_000015",
-        "timestamp": "2026-08-31T05:42:06.213551+00:00",
+        "timestamp": "2026-08-31T09:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0015"
       },
       {
@@ -754,7 +754,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0016",
         "reference_number": "UTR_EX_000016",
-        "timestamp": "2026-08-31T06:42:06.213551+00:00",
+        "timestamp": "2026-08-31T10:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0016"
       },
       {
@@ -763,7 +763,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0017",
         "reference_number": "UTR_EX_000017",
-        "timestamp": "2026-08-31T07:42:06.213551+00:00",
+        "timestamp": "2026-08-31T11:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0017"
       },
       {
@@ -772,7 +772,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0018",
         "reference_number": "UTR_EX_000018",
-        "timestamp": "2026-08-31T08:42:06.213551+00:00",
+        "timestamp": "2026-08-31T12:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0018"
       },
       {
@@ -781,7 +781,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0019",
         "reference_number": "UTR_EX_000019",
-        "timestamp": "2026-08-31T09:42:06.213551+00:00",
+        "timestamp": "2026-08-31T13:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0019"
       },
       {
@@ -790,7 +790,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0020",
         "reference_number": "UTR_EX_000020",
-        "timestamp": "2026-08-31T10:42:06.213551+00:00",
+        "timestamp": "2026-08-31T14:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0020"
       },
       {
@@ -799,7 +799,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0021",
         "reference_number": "UTR_EX_000021",
-        "timestamp": "2026-08-31T11:42:06.213551+00:00",
+        "timestamp": "2026-08-31T15:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0021"
       },
       {
@@ -808,7 +808,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0022",
         "reference_number": "UTR_EX_000022",
-        "timestamp": "2026-08-31T12:42:06.213551+00:00",
+        "timestamp": "2026-08-31T16:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0022"
       },
       {
@@ -817,7 +817,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0023",
         "reference_number": "UTR_EX_000023",
-        "timestamp": "2026-08-31T13:42:06.213551+00:00",
+        "timestamp": "2026-08-31T17:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0023"
       },
       {
@@ -826,7 +826,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0024",
         "reference_number": "UTR_EX_000024",
-        "timestamp": "2026-08-31T14:42:06.213551+00:00",
+        "timestamp": "2026-08-31T18:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0024"
       },
       {
@@ -835,7 +835,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0025",
         "reference_number": "UTR_EX_000025",
-        "timestamp": "2026-08-31T15:42:06.213551+00:00",
+        "timestamp": "2026-08-31T19:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0025"
       },
       {
@@ -844,7 +844,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0026",
         "reference_number": "UTR_EX_000026",
-        "timestamp": "2026-08-31T16:42:06.213551+00:00",
+        "timestamp": "2026-08-31T20:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0026"
       },
       {
@@ -853,7 +853,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0027",
         "reference_number": "UTR_EX_000027",
-        "timestamp": "2026-08-31T17:42:06.213551+00:00",
+        "timestamp": "2026-08-31T21:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0027"
       },
       {
@@ -862,7 +862,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0028",
         "reference_number": "UTR_EX_000028",
-        "timestamp": "2026-08-31T18:42:06.213551+00:00",
+        "timestamp": "2026-08-31T22:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0028"
       },
       {
@@ -871,7 +871,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0029",
         "reference_number": "UTR_EX_000029",
-        "timestamp": "2026-08-31T19:42:06.213551+00:00",
+        "timestamp": "2026-08-31T23:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0029"
       },
       {
@@ -880,7 +880,7 @@
         "currency": "INR",
         "order_id": "ORD_EX_0030",
         "reference_number": "UTR_EX_000030",
-        "timestamp": "2026-08-31T20:42:06.213551+00:00",
+        "timestamp": "2026-09-01T00:32:21.966362+00:00",
         "narration": "Ledger Order ORD_EX_0030"
       },
       {
@@ -889,7 +889,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0031",
         "reference_number": "UTR_DEL_000031",
-        "timestamp": "2026-08-31T21:42:06.213551+00:00"
+        "timestamp": "2026-09-01T01:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DELAYED_32",
@@ -897,7 +897,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0032",
         "reference_number": "UTR_DEL_000032",
-        "timestamp": "2026-08-31T22:42:06.213551+00:00"
+        "timestamp": "2026-09-01T02:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DELAYED_33",
@@ -905,7 +905,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0033",
         "reference_number": "UTR_DEL_000033",
-        "timestamp": "2026-08-31T23:42:06.213551+00:00"
+        "timestamp": "2026-09-01T03:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DELAYED_34",
@@ -913,7 +913,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0034",
         "reference_number": "UTR_DEL_000034",
-        "timestamp": "2026-09-01T00:42:06.213551+00:00"
+        "timestamp": "2026-09-01T04:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DELAYED_35",
@@ -921,7 +921,7 @@
         "currency": "INR",
         "order_id": "ORD_DEL_0035",
         "reference_number": "UTR_DEL_000035",
-        "timestamp": "2026-09-01T01:42:06.213551+00:00"
+        "timestamp": "2026-09-01T05:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DIRECT_36",
@@ -929,7 +929,7 @@
         "currency": "INR",
         "order_id": "ORD_DIR_0036",
         "reference_number": "UTR_DIR_000036",
-        "timestamp": "2026-09-01T02:42:06.213551+00:00"
+        "timestamp": "2026-09-01T06:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DIRECT_37",
@@ -937,7 +937,7 @@
         "currency": "INR",
         "order_id": "ORD_DIR_0037",
         "reference_number": "UTR_DIR_000037",
-        "timestamp": "2026-09-01T03:42:06.213551+00:00"
+        "timestamp": "2026-09-01T07:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DIRECT_38",
@@ -945,7 +945,7 @@
         "currency": "INR",
         "order_id": "ORD_DIR_0038",
         "reference_number": "UTR_DIR_000038",
-        "timestamp": "2026-09-01T04:42:06.213551+00:00"
+        "timestamp": "2026-09-01T08:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DIRECT_39",
@@ -953,7 +953,7 @@
         "currency": "INR",
         "order_id": "ORD_DIR_0039",
         "reference_number": "UTR_DIR_000039",
-        "timestamp": "2026-09-01T05:42:06.213551+00:00"
+        "timestamp": "2026-09-01T09:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DIRECT_40",
@@ -961,7 +961,7 @@
         "currency": "INR",
         "order_id": "ORD_DIR_0040",
         "reference_number": "UTR_DIR_000040",
-        "timestamp": "2026-09-01T06:42:06.213551+00:00"
+        "timestamp": "2026-09-01T10:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_AMT_MISMATCH_44",
@@ -969,7 +969,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0044",
         "reference_number": "UTR_MIS_000044",
-        "timestamp": "2026-09-01T10:42:06.213551+00:00"
+        "timestamp": "2026-09-01T14:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_AMT_MISMATCH_45",
@@ -977,7 +977,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0045",
         "reference_number": "UTR_MIS_000045",
-        "timestamp": "2026-09-01T11:42:06.213551+00:00"
+        "timestamp": "2026-09-01T15:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_AMT_MISMATCH_46",
@@ -985,7 +985,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0046",
         "reference_number": "UTR_MIS_000046",
-        "timestamp": "2026-09-01T12:42:06.213551+00:00"
+        "timestamp": "2026-09-01T16:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_AMT_MISMATCH_47",
@@ -993,7 +993,7 @@
         "currency": "INR",
         "order_id": "ORD_MIS_0047",
         "reference_number": "UTR_MIS_000047",
-        "timestamp": "2026-09-01T13:42:06.213551+00:00"
+        "timestamp": "2026-09-01T17:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_FEE_OVERCHARGE_48",
@@ -1001,7 +1001,7 @@
         "currency": "INR",
         "order_id": "ORD_FEE_0048",
         "reference_number": "UTR_FEE_000048",
-        "timestamp": "2026-09-01T14:42:06.213551+00:00"
+        "timestamp": "2026-09-01T18:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_FEE_OVERCHARGE_49",
@@ -1009,7 +1009,7 @@
         "currency": "INR",
         "order_id": "ORD_FEE_0049",
         "reference_number": "UTR_FEE_000049",
-        "timestamp": "2026-09-01T15:42:06.213551+00:00"
+        "timestamp": "2026-09-01T19:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_FEE_OVERCHARGE_50",
@@ -1017,7 +1017,7 @@
         "currency": "INR",
         "order_id": "ORD_FEE_0050",
         "reference_number": "UTR_FEE_000050",
-        "timestamp": "2026-09-01T16:42:06.213551+00:00"
+        "timestamp": "2026-09-01T20:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DUP_51",
@@ -1025,7 +1025,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0051",
         "reference_number": "UTR_DUP_000051",
-        "timestamp": "2026-09-01T17:42:06.213551+00:00"
+        "timestamp": "2026-09-01T21:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DUP_52",
@@ -1033,7 +1033,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0052",
         "reference_number": "UTR_DUP_000052",
-        "timestamp": "2026-09-01T18:42:06.213551+00:00"
+        "timestamp": "2026-09-01T22:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_DUP_53",
@@ -1041,7 +1041,7 @@
         "currency": "INR",
         "order_id": "ORD_DUP_0053",
         "reference_number": "UTR_DUP_000053",
-        "timestamp": "2026-09-01T19:42:06.213551+00:00"
+        "timestamp": "2026-09-01T23:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_CORRUPT_REF_54",
@@ -1049,7 +1049,7 @@
         "currency": "INR",
         "order_id": "ORD_COR_0054",
         "reference_number": "UTR_COR_000054",
-        "timestamp": "2026-09-01T20:42:06.213551+00:00"
+        "timestamp": "2026-09-02T00:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_CORRUPT_REF_55",
@@ -1057,7 +1057,7 @@
         "currency": "INR",
         "order_id": "ORD_COR_0055",
         "reference_number": "UTR_COR_000055",
-        "timestamp": "2026-09-01T21:42:06.213551+00:00"
+        "timestamp": "2026-09-02T01:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_CORRUPT_REF_56",
@@ -1065,7 +1065,7 @@
         "currency": "INR",
         "order_id": "ORD_COR_0056",
         "reference_number": "UTR_COR_000056",
-        "timestamp": "2026-09-01T22:42:06.213551+00:00"
+        "timestamp": "2026-09-02T02:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_COLLISION_57",
@@ -1073,7 +1073,7 @@
         "currency": "INR",
         "order_id": "ORD_COL_0057",
         "reference_number": "UTR_COL_000057",
-        "timestamp": "2026-09-01T23:42:06.213551+00:00"
+        "timestamp": "2026-09-02T03:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_COLLISION_58",
@@ -1081,7 +1081,7 @@
         "currency": "INR",
         "order_id": "ORD_COL_0058",
         "reference_number": "UTR_COL_000058",
-        "timestamp": "2026-09-02T00:42:06.213551+00:00"
+        "timestamp": "2026-09-02T04:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_HIGHVAL_59",
@@ -1089,7 +1089,7 @@
         "currency": "INR",
         "order_id": "ORD_HV_0059",
         "reference_number": "UTR_HV_000059",
-        "timestamp": "2026-09-02T01:42:06.213551+00:00"
+        "timestamp": "2026-09-02T05:32:21.966362+00:00"
       },
       {
         "txn_id": "LD_ADV_HIGHVAL_60",
@@ -1097,7 +1097,7 @@
         "currency": "INR",
         "order_id": "ORD_HV_0060",
         "reference_number": "UTR_HV_000060",
-        "timestamp": "2026-09-02T02:42:06.213551+00:00"
+        "timestamp": "2026-09-02T06:32:21.966362+00:00"
       }
     ],
     "bk_records": [
@@ -1106,7 +1106,7 @@
         "amount": "17.33",
         "currency": "INR",
         "reference_number": "UTR_EX_000001",
-        "timestamp": "2026-08-30T17:42:06.213551+00:00",
+        "timestamp": "2026-08-30T21:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000001-ORD_EX_0001"
       },
       {
@@ -1114,7 +1114,7 @@
         "amount": "1733.11",
         "currency": "INR",
         "reference_number": "UTR_EX_000002",
-        "timestamp": "2026-08-30T18:42:06.213551+00:00",
+        "timestamp": "2026-08-30T22:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000002-ORD_EX_0002"
       },
       {
@@ -1122,7 +1122,7 @@
         "amount": "47599.50",
         "currency": "INR",
         "reference_number": "UTR_EX_000003",
-        "timestamp": "2026-08-30T19:42:06.213551+00:00",
+        "timestamp": "2026-08-30T23:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000003-ORD_EX_0003"
       },
       {
@@ -1130,7 +1130,7 @@
         "amount": "23.92",
         "currency": "INR",
         "reference_number": "UTR_EX_000004",
-        "timestamp": "2026-08-30T20:42:06.213551+00:00",
+        "timestamp": "2026-08-31T00:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000004-ORD_EX_0004"
       },
       {
@@ -1138,7 +1138,7 @@
         "amount": "2135.87",
         "currency": "INR",
         "reference_number": "UTR_EX_000005",
-        "timestamp": "2026-08-30T21:42:06.213551+00:00",
+        "timestamp": "2026-08-31T01:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000005-ORD_EX_0005"
       },
       {
@@ -1146,7 +1146,7 @@
         "amount": "51261.00",
         "currency": "INR",
         "reference_number": "UTR_EX_000006",
-        "timestamp": "2026-08-30T22:42:06.213551+00:00",
+        "timestamp": "2026-08-31T02:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000006-ORD_EX_0006"
       },
       {
@@ -1154,7 +1154,7 @@
         "amount": "30.51",
         "currency": "INR",
         "reference_number": "UTR_EX_000007",
-        "timestamp": "2026-08-30T23:42:06.213551+00:00",
+        "timestamp": "2026-08-31T03:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000007-ORD_EX_0007"
       },
       {
@@ -1162,7 +1162,7 @@
         "amount": "2538.64",
         "currency": "INR",
         "reference_number": "UTR_EX_000008",
-        "timestamp": "2026-08-31T00:42:06.213551+00:00",
+        "timestamp": "2026-08-31T04:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000008-ORD_EX_0008"
       },
       {
@@ -1170,7 +1170,7 @@
         "amount": "54922.50",
         "currency": "INR",
         "reference_number": "UTR_EX_000009",
-        "timestamp": "2026-08-31T01:42:06.213551+00:00",
+        "timestamp": "2026-08-31T05:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000009-ORD_EX_0009"
       },
       {
@@ -1178,7 +1178,7 @@
         "amount": "37.10",
         "currency": "INR",
         "reference_number": "UTR_EX_000010",
-        "timestamp": "2026-08-31T02:42:06.213551+00:00",
+        "timestamp": "2026-08-31T06:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000010-ORD_EX_0010"
       },
       {
@@ -1186,7 +1186,7 @@
         "amount": "2941.40",
         "currency": "INR",
         "reference_number": "UTR_EX_000011",
-        "timestamp": "2026-08-31T03:42:06.213551+00:00",
+        "timestamp": "2026-08-31T07:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000011-ORD_EX_0011"
       },
       {
@@ -1194,7 +1194,7 @@
         "amount": "58584.00",
         "currency": "INR",
         "reference_number": "UTR_EX_000012",
-        "timestamp": "2026-08-31T04:42:06.213551+00:00",
+        "timestamp": "2026-08-31T08:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000012-ORD_EX_0012"
       },
       {
@@ -1202,7 +1202,7 @@
         "amount": "43.69",
         "currency": "INR",
         "reference_number": "UTR_EX_000013",
-        "timestamp": "2026-08-31T05:42:06.213551+00:00",
+        "timestamp": "2026-08-31T09:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000013-ORD_EX_0013"
       },
       {
@@ -1210,7 +1210,7 @@
         "amount": "3344.17",
         "currency": "INR",
         "reference_number": "UTR_EX_000014",
-        "timestamp": "2026-08-31T06:42:06.213551+00:00",
+        "timestamp": "2026-08-31T10:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000014-ORD_EX_0014"
       },
       {
@@ -1218,7 +1218,7 @@
         "amount": "62245.50",
         "currency": "INR",
         "reference_number": "UTR_EX_000015",
-        "timestamp": "2026-08-31T07:42:06.213551+00:00",
+        "timestamp": "2026-08-31T11:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000015-ORD_EX_0015"
       },
       {
@@ -1226,7 +1226,7 @@
         "amount": "50.28",
         "currency": "INR",
         "reference_number": "UTR_EX_000016",
-        "timestamp": "2026-08-31T08:42:06.213551+00:00",
+        "timestamp": "2026-08-31T12:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000016-ORD_EX_0016"
       },
       {
@@ -1234,7 +1234,7 @@
         "amount": "3746.93",
         "currency": "INR",
         "reference_number": "UTR_EX_000017",
-        "timestamp": "2026-08-31T09:42:06.213551+00:00",
+        "timestamp": "2026-08-31T13:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000017-ORD_EX_0017"
       },
       {
@@ -1242,7 +1242,7 @@
         "amount": "65907.00",
         "currency": "INR",
         "reference_number": "UTR_EX_000018",
-        "timestamp": "2026-08-31T10:42:06.213551+00:00",
+        "timestamp": "2026-08-31T14:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000018-ORD_EX_0018"
       },
       {
@@ -1250,7 +1250,7 @@
         "amount": "56.87",
         "currency": "INR",
         "reference_number": "UTR_EX_000019",
-        "timestamp": "2026-08-31T11:42:06.213551+00:00",
+        "timestamp": "2026-08-31T15:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000019-ORD_EX_0019"
       },
       {
@@ -1258,7 +1258,7 @@
         "amount": "4149.70",
         "currency": "INR",
         "reference_number": "UTR_EX_000020",
-        "timestamp": "2026-08-31T12:42:06.213551+00:00",
+        "timestamp": "2026-08-31T16:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000020-ORD_EX_0020"
       },
       {
@@ -1266,7 +1266,7 @@
         "amount": "69568.50",
         "currency": "INR",
         "reference_number": "UTR_EX_000021",
-        "timestamp": "2026-08-31T13:42:06.213551+00:00",
+        "timestamp": "2026-08-31T17:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000021-ORD_EX_0021"
       },
       {
@@ -1274,7 +1274,7 @@
         "amount": "63.47",
         "currency": "INR",
         "reference_number": "UTR_EX_000022",
-        "timestamp": "2026-08-31T14:42:06.213551+00:00",
+        "timestamp": "2026-08-31T18:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000022-ORD_EX_0022"
       },
       {
@@ -1282,7 +1282,7 @@
         "amount": "4552.46",
         "currency": "INR",
         "reference_number": "UTR_EX_000023",
-        "timestamp": "2026-08-31T15:42:06.213551+00:00",
+        "timestamp": "2026-08-31T19:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000023-ORD_EX_0023"
       },
       {
@@ -1290,7 +1290,7 @@
         "amount": "73230.00",
         "currency": "INR",
         "reference_number": "UTR_EX_000024",
-        "timestamp": "2026-08-31T16:42:06.213551+00:00",
+        "timestamp": "2026-08-31T20:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000024-ORD_EX_0024"
       },
       {
@@ -1298,7 +1298,7 @@
         "amount": "70.05",
         "currency": "INR",
         "reference_number": "UTR_EX_000025",
-        "timestamp": "2026-08-31T17:42:06.213551+00:00",
+        "timestamp": "2026-08-31T21:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000025-ORD_EX_0025"
       },
       {
@@ -1306,7 +1306,7 @@
         "amount": "4955.23",
         "currency": "INR",
         "reference_number": "UTR_EX_000026",
-        "timestamp": "2026-08-31T18:42:06.213551+00:00",
+        "timestamp": "2026-08-31T22:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000026-ORD_EX_0026"
       },
       {
@@ -1314,7 +1314,7 @@
         "amount": "76891.50",
         "currency": "INR",
         "reference_number": "UTR_EX_000027",
-        "timestamp": "2026-08-31T19:42:06.213551+00:00",
+        "timestamp": "2026-08-31T23:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000027-ORD_EX_0027"
       },
       {
@@ -1322,7 +1322,7 @@
         "amount": "76.65",
         "currency": "INR",
         "reference_number": "UTR_EX_000028",
-        "timestamp": "2026-08-31T20:42:06.213551+00:00",
+        "timestamp": "2026-09-01T00:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000028-ORD_EX_0028"
       },
       {
@@ -1330,7 +1330,7 @@
         "amount": "5357.99",
         "currency": "INR",
         "reference_number": "UTR_EX_000029",
-        "timestamp": "2026-08-31T21:42:06.213551+00:00",
+        "timestamp": "2026-09-01T01:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000029-ORD_EX_0029"
       },
       {
@@ -1338,7 +1338,7 @@
         "amount": "80553.00",
         "currency": "INR",
         "reference_number": "UTR_EX_000030",
-        "timestamp": "2026-08-31T22:42:06.213551+00:00",
+        "timestamp": "2026-09-01T02:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_EX_000030-ORD_EX_0030"
       },
       {
@@ -1346,7 +1346,7 @@
         "amount": "21000.00",
         "currency": "INR",
         "reference_number": "UTR_DIR_000036",
-        "timestamp": "2026-09-01T03:42:06.213551+00:00",
+        "timestamp": "2026-09-01T07:32:21.966362+00:00",
         "narration": "DIRECT NEFT INWARD-UTR_DIR_000036"
       },
       {
@@ -1354,7 +1354,7 @@
         "amount": "21250.00",
         "currency": "INR",
         "reference_number": "UTR_DIR_000037",
-        "timestamp": "2026-09-01T04:42:06.213551+00:00",
+        "timestamp": "2026-09-01T08:32:21.966362+00:00",
         "narration": "DIRECT NEFT INWARD-UTR_DIR_000037"
       },
       {
@@ -1362,7 +1362,7 @@
         "amount": "21500.00",
         "currency": "INR",
         "reference_number": "UTR_DIR_000038",
-        "timestamp": "2026-09-01T05:42:06.213551+00:00",
+        "timestamp": "2026-09-01T09:32:21.966362+00:00",
         "narration": "DIRECT NEFT INWARD-UTR_DIR_000038"
       },
       {
@@ -1370,7 +1370,7 @@
         "amount": "21750.00",
         "currency": "INR",
         "reference_number": "UTR_DIR_000039",
-        "timestamp": "2026-09-01T06:42:06.213551+00:00",
+        "timestamp": "2026-09-01T10:32:21.966362+00:00",
         "narration": "DIRECT NEFT INWARD-UTR_DIR_000039"
       },
       {
@@ -1378,7 +1378,7 @@
         "amount": "22000.00",
         "currency": "INR",
         "reference_number": "UTR_DIR_000040",
-        "timestamp": "2026-09-01T07:42:06.213551+00:00",
+        "timestamp": "2026-09-01T11:32:21.966362+00:00",
         "narration": "DIRECT NEFT INWARD-UTR_DIR_000040"
       },
       {
@@ -1386,98 +1386,98 @@
         "amount": "12302.64",
         "currency": "INR",
         "reference_number": "UTR_UNR_000041",
-        "timestamp": "2026-09-01T09:42:06.213551+00:00"
+        "timestamp": "2026-09-01T13:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_UNREC_42",
         "amount": "12400.28",
         "currency": "INR",
         "reference_number": "UTR_UNR_000042",
-        "timestamp": "2026-09-01T10:42:06.213551+00:00"
+        "timestamp": "2026-09-01T14:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_UNREC_43",
         "amount": "12497.92",
         "currency": "INR",
         "reference_number": "UTR_UNR_000043",
-        "timestamp": "2026-09-01T11:42:06.213551+00:00"
+        "timestamp": "2026-09-01T15:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_AMT_MISMATCH_44",
         "amount": "84000.00",
         "currency": "INR",
         "reference_number": "UTR_MIS_000044",
-        "timestamp": "2026-09-01T12:42:06.213551+00:00"
+        "timestamp": "2026-09-01T16:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_AMT_MISMATCH_45",
         "amount": "85000.00",
         "currency": "INR",
         "reference_number": "UTR_MIS_000045",
-        "timestamp": "2026-09-01T13:42:06.213551+00:00"
+        "timestamp": "2026-09-01T17:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_AMT_MISMATCH_46",
         "amount": "86000.00",
         "currency": "INR",
         "reference_number": "UTR_MIS_000046",
-        "timestamp": "2026-09-01T14:42:06.213551+00:00"
+        "timestamp": "2026-09-01T18:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_AMT_MISMATCH_47",
         "amount": "87000.00",
         "currency": "INR",
         "reference_number": "UTR_MIS_000047",
-        "timestamp": "2026-09-01T15:42:06.213551+00:00"
+        "timestamp": "2026-09-01T19:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_FEE_OVERCHARGE_48",
         "amount": "94690.00",
         "currency": "INR",
         "reference_number": "UTR_FEE_000048",
-        "timestamp": "2026-09-01T16:42:06.213551+00:00"
+        "timestamp": "2026-09-01T20:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_FEE_OVERCHARGE_49",
         "amount": "94690.00",
         "currency": "INR",
         "reference_number": "UTR_FEE_000049",
-        "timestamp": "2026-09-01T17:42:06.213551+00:00"
+        "timestamp": "2026-09-01T21:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_FEE_OVERCHARGE_50",
         "amount": "94690.00",
         "currency": "INR",
         "reference_number": "UTR_FEE_000050",
-        "timestamp": "2026-09-01T18:42:06.213551+00:00"
+        "timestamp": "2026-09-01T22:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_DUP_51",
         "amount": "27534.48",
         "currency": "INR",
         "reference_number": "UTR_DUP_000051",
-        "timestamp": "2026-09-01T19:42:06.213551+00:00"
+        "timestamp": "2026-09-01T23:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_DUP_52",
         "amount": "27729.76",
         "currency": "INR",
         "reference_number": "UTR_DUP_000052",
-        "timestamp": "2026-09-01T20:42:06.213551+00:00"
+        "timestamp": "2026-09-02T00:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_DUP_53",
         "amount": "27925.04",
         "currency": "INR",
         "reference_number": "UTR_DUP_000053",
-        "timestamp": "2026-09-01T21:42:06.213551+00:00"
+        "timestamp": "2026-09-02T01:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_CORRUPT_REF_54",
         "amount": "49991.68",
         "currency": "INR",
         "reference_number": "UTR_COR_TYPO_000054",
-        "timestamp": "2026-09-01T22:42:06.213551+00:00",
+        "timestamp": "2026-09-02T02:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_COR_TYPO_000054-ORD_COR_0054"
       },
       {
@@ -1485,7 +1485,7 @@
         "amount": "50284.60",
         "currency": "INR",
         "reference_number": "UTR_COR_TYPO_000055",
-        "timestamp": "2026-09-01T23:42:06.213551+00:00",
+        "timestamp": "2026-09-02T03:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_COR_TYPO_000055-ORD_COR_0055"
       },
       {
@@ -1493,7 +1493,7 @@
         "amount": "50577.52",
         "currency": "INR",
         "reference_number": "UTR_COR_TYPO_000056",
-        "timestamp": "2026-09-02T00:42:06.213551+00:00",
+        "timestamp": "2026-09-02T04:32:21.966362+00:00",
         "narration": "CMS NEFT CR-UTR_COR_TYPO_000056-ORD_COR_0056"
       },
       {
@@ -1501,28 +1501,28 @@
         "amount": "97639.02",
         "currency": "INR",
         "reference_number": "UTR_COL_000057",
-        "timestamp": "2026-09-02T01:42:06.213551+00:00"
+        "timestamp": "2026-09-02T05:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_COLLISION_58",
         "amount": "97639.02",
         "currency": "INR",
         "reference_number": "UTR_COL_000058",
-        "timestamp": "2026-09-02T02:42:06.213551+00:00"
+        "timestamp": "2026-09-02T06:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_HIGHVAL_59",
         "amount": "2455750.00",
         "currency": "INR",
         "reference_number": "UTR_HV_000059",
-        "timestamp": "2026-09-02T03:42:06.213551+00:00"
+        "timestamp": "2026-09-02T07:32:21.966362+00:00"
       },
       {
         "txn_id": "BK_ADV_HIGHVAL_60",
         "amount": "4911500.00",
         "currency": "INR",
         "reference_number": "UTR_HV_000060",
-        "timestamp": "2026-09-02T04:42:06.213551+00:00"
+        "timestamp": "2026-09-02T08:32:21.966362+00:00"
       }
     ],
     "ground_truth": {
@@ -1947,59 +1947,64 @@
         "exposure": "41497.00"
       },
       "ADV_DIRECT_36": {
-        "expected_outcome": "MATCHED_OR_MISSING_GATEWAY",
-        "expected_exception": false,
+        "expected_outcome": "MISSING_GATEWAY",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "21000.00",
         "fee": "0.00",
         "tax": "0.00",
         "expected_net": "21000.00",
         "actual_bank": "21000.00",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "21000.00"
       },
       "ADV_DIRECT_37": {
-        "expected_outcome": "MATCHED_OR_MISSING_GATEWAY",
-        "expected_exception": false,
+        "expected_outcome": "MISSING_GATEWAY",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "21250.00",
         "fee": "0.00",
         "tax": "0.00",
         "expected_net": "21250.00",
         "actual_bank": "21250.00",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "21250.00"
       },
       "ADV_DIRECT_38": {
-        "expected_outcome": "MATCHED_OR_MISSING_GATEWAY",
-        "expected_exception": false,
+        "expected_outcome": "MISSING_GATEWAY",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "21500.00",
         "fee": "0.00",
         "tax": "0.00",
         "expected_net": "21500.00",
         "actual_bank": "21500.00",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "21500.00"
       },
       "ADV_DIRECT_39": {
-        "expected_outcome": "MATCHED_OR_MISSING_GATEWAY",
-        "expected_exception": false,
+        "expected_outcome": "MISSING_GATEWAY",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "21750.00",
         "fee": "0.00",
         "tax": "0.00",
         "expected_net": "21750.00",
         "actual_bank": "21750.00",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "21750.00"
       },
       "ADV_DIRECT_40": {
-        "expected_outcome": "MATCHED_OR_MISSING_GATEWAY",
-        "expected_exception": false,
+        "expected_outcome": "MISSING_GATEWAY",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "22000.00",
         "fee": "0.00",
         "tax": "0.00",
         "expected_net": "22000.00",
         "actual_bank": "22000.00",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "22000.00"
       },
       "ADV_UNREC_41": {
         "expected_outcome": "UNRESOLVED_OR_EXCEPTION",
@@ -2086,8 +2091,9 @@
         "exposure": "7710.80"
       },
       "ADV_FEE_OVERCHARGE_48": {
-        "expected_outcome": "MATCHED_WITH_FEE_ANOMALY",
-        "expected_exception": false,
+        "expected_outcome": "FEE_OVERCHARGE",
+        "expected_exception": true,
+        "expected_category": "fee_mismatch",
         "expected_fee_discrepancy": true,
         "gross_amount": "100000.00",
         "fee": "4500.00",
@@ -2098,8 +2104,9 @@
         "exposure": "2950.00"
       },
       "ADV_FEE_OVERCHARGE_49": {
-        "expected_outcome": "MATCHED_WITH_FEE_ANOMALY",
-        "expected_exception": false,
+        "expected_outcome": "FEE_OVERCHARGE",
+        "expected_exception": true,
+        "expected_category": "fee_mismatch",
         "expected_fee_discrepancy": true,
         "gross_amount": "100000.00",
         "fee": "4500.00",
@@ -2110,8 +2117,9 @@
         "exposure": "2950.00"
       },
       "ADV_FEE_OVERCHARGE_50": {
-        "expected_outcome": "MATCHED_WITH_FEE_ANOMALY",
-        "expected_exception": false,
+        "expected_outcome": "FEE_OVERCHARGE",
+        "expected_exception": true,
+        "expected_category": "fee_mismatch",
         "expected_fee_discrepancy": true,
         "gross_amount": "100000.00",
         "fee": "4500.00",
@@ -2158,37 +2166,40 @@
         "exposure": "28600.00"
       },
       "ADV_CORRUPT_REF_54": {
-        "expected_outcome": "ML_OR_MANUAL_RECOVERED",
-        "expected_exception": false,
+        "expected_outcome": "CORRUPTED_REFERENCE",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "51200.00",
         "fee": "1024.00",
         "tax": "184.32",
         "expected_net": "49991.68",
         "actual_bank": "49991.68",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "51200.00"
       },
       "ADV_CORRUPT_REF_55": {
-        "expected_outcome": "ML_OR_MANUAL_RECOVERED",
-        "expected_exception": false,
+        "expected_outcome": "CORRUPTED_REFERENCE",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "51500.00",
         "fee": "1030.00",
         "tax": "185.40",
         "expected_net": "50284.60",
         "actual_bank": "50284.60",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "51500.00"
       },
       "ADV_CORRUPT_REF_56": {
-        "expected_outcome": "ML_OR_MANUAL_RECOVERED",
-        "expected_exception": false,
+        "expected_outcome": "CORRUPTED_REFERENCE",
+        "expected_exception": true,
+        "expected_category": "missing_source",
         "gross_amount": "51800.00",
         "fee": "1036.00",
         "tax": "186.48",
         "expected_net": "50577.52",
         "actual_bank": "50577.52",
         "variance": "0.00",
-        "exposure": "0.00"
+        "exposure": "51800.00"
       },
       "ADV_COLLISION_57": {
         "expected_outcome": "MATCHED",
@@ -2237,42 +2248,42 @@
     }
   },
   "ingest_res": {
-    "batch_id": "ADV_BATCH_1788273726",
-    "run_id": "ADV_BATCH_1788273726",
+    "batch_id": "ADV_BATCH_1788287541",
+    "run_id": "ADV_BATCH_1788287541",
     "records_received": 170,
     "records_normalized": 170,
     "processing_status": "COMPLETED",
-    "processing_duration_ms": 1380.1,
+    "processing_duration_ms": 1247.62,
     "reconciliation_status": "COMPLETED",
     "auto_matched_count": 60,
-    "ml_recovered_count": 0,
-    "manual_review_count": 3,
-    "unresolved_count": 0
+    "ml_recovered_count": 7,
+    "manual_review_count": 0,
+    "unresolved_count": 7
   },
   "summary": {
     "total_records_processed": 170,
-    "total_logical_transactions": 66,
+    "total_logical_transactions": 73,
     "total_transaction_value_inr": "28519313.3300",
     "deterministic_matches": 143,
     "ml_recovered_matches": 0,
-    "total_matched_records": 152,
-    "automatic_matches": 60,
-    "manual_reviews": 9,
-    "unresolved_transactions": 6,
+    "total_matched_records": 143,
+    "automatic_matches": 53,
+    "manual_reviews": 0,
+    "unresolved_transactions": 27,
     "match_rate": 0.8412000000000001,
     "reconciliation_precision": null,
     "reconciliation_recall": null,
     "f1_score": null,
-    "exception_rate": 3.53,
+    "exception_rate": 15.88,
     "total_matched_monetary_value_inr": "9667841.7500",
-    "unresolved_monetary_exposure_inr": "783638.60000",
-    "manual_review_exposure_inr": "884070.0000",
-    "high_risk_exposure_inr": "0.00",
+    "unresolved_monetary_exposure_inr": "2051723.80",
+    "manual_review_exposure_inr": "0.00",
+    "high_risk_exposure_inr": "300000.00",
     "delayed_settlement_inr": "0.00",
     "duplicate_amount_inr": "0.00",
     "fee_mismatch_inr": "0.00",
-    "processing_throughput_tps": 123.32,
-    "average_processing_latency_ms": 8.11,
+    "processing_throughput_tps": 136.51,
+    "average_processing_latency_ms": 7.33,
     "match_rate_percent": 84.12
   },
   "cash": {
@@ -2298,7 +2309,7 @@
     "breakdown_by_category": {
       "delayed_settlement": "209277.08"
     },
-    "as_of": "2026-09-01T14:42:08.275721+00:00",
+    "as_of": "2026-09-01T18:32:23.748223+00:00",
     "expected_gross_settlement_inr": "9645541.7500",
     "expected_net_settlement_inr": "9453306.9100",
     "received_bank_credits_inr": "9244029.8300",
@@ -2308,12 +2319,208 @@
   "exceptions": {
     "page": 1,
     "page_size": 100,
-    "total_count": 172,
+    "total_count": 36,
     "exceptions": [
       {
-        "exception_id": "1430ca64-8e6e-4595-8dd4-5d2eb9e2ef23",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "817eae19-cfd0-4f85-9ddb-4f73211c753c",
+        "exception_id": "ee3b59f9-3051-41d2-a5d6-bcfe803cb2fa",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "720804d7-a8e4-4636-846f-cdfe952460fb",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 100000.0,
+        "expected_cost_inr": 4000.0,
+        "explanation": "Identity match is missing source records: bank.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.367543"
+      },
+      {
+        "exception_id": "cda10d9f-3629-4ba7-9c27-a78fa7b88d71",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "0c967994-8642-43d6-a3c2-6d609782219a",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 100000.0,
+        "expected_cost_inr": 4000.0,
+        "explanation": "Identity match is missing source records: bank.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.363880"
+      },
+      {
+        "exception_id": "13267b83-9fb2-4c2e-981d-1ebcf158e31f",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "252776d2-1342-4141-a5c6-80faeb804299",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 100000.0,
+        "expected_cost_inr": 4000.0,
+        "explanation": "Identity match is missing source records: bank.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.356554"
+      },
+      {
+        "exception_id": "d725ff15-845a-4b84-82d7-a3c4e8e96ba7",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "b0295257-f6cb-4170-ac24-3c4cd392049c",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 97000.0,
+        "expected_cost_inr": 3880.0,
+        "explanation": "Identity match is missing source records: bank.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.353711"
+      },
+      {
+        "exception_id": "d3dd583e-990a-4fb6-9497-d819dc14e5b3",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "f5f2efdf-2982-4ca0-a89a-28bfa270f4f2",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 96000.0,
+        "expected_cost_inr": 3840.0,
+        "explanation": "Identity match is missing source records: bank.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.337779"
+      },
+      {
+        "exception_id": "4111cf7f-c4f3-40c1-9b17-8ff45012cf1d",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "88d0b39b-4135-44f2-a769-41585a3b7f99",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 95000.0,
+        "expected_cost_inr": 3800.0,
+        "explanation": "Identity match is missing source records: bank.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.337779"
+      },
+      {
+        "exception_id": "2b93aa4e-e484-4e14-a621-d7274f268a53",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "dbd0ca02-90d7-46d5-8e83-19b3748bfaf0",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.7,
+        "financial_exposure_inr": 94690.0,
+        "expected_cost_inr": 94690.0,
+        "explanation": "Bank transaction BK_ADV_FEE_OVERCHARGE_50 has no matching gateway or ledger record",
+        "recommended_action": "trace_missing_gateway_ledger",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.403085"
+      },
+      {
+        "exception_id": "0709b437-0092-493c-a1ba-50cb571ff2fe",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "c347f447-cc0b-4746-a6f0-f8741e115b9f",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.7,
+        "financial_exposure_inr": 94690.0,
+        "expected_cost_inr": 94690.0,
+        "explanation": "Bank transaction BK_ADV_FEE_OVERCHARGE_49 has no matching gateway or ledger record",
+        "recommended_action": "trace_missing_gateway_ledger",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.399712"
+      },
+      {
+        "exception_id": "27d455b4-4ea9-4bc5-9137-ef0ae1656e36",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "4ebb2766-fc2c-47ba-8d08-8ec8d1f0cae2",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.7,
+        "financial_exposure_inr": 94690.0,
+        "expected_cost_inr": 94690.0,
+        "explanation": "Bank transaction BK_ADV_FEE_OVERCHARGE_48 has no matching gateway or ledger record",
+        "recommended_action": "trace_missing_gateway_ledger",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.392546"
+      },
+      {
+        "exception_id": "e39516ac-089c-4536-b80a-ea2416dad8cb",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "f5d4ad04-aa04-45d2-9deb-1196aa59d646",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 94000.0,
+        "expected_cost_inr": 3760.0,
+        "explanation": "Identity match is missing source records: bank.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.333046"
+      },
+      {
+        "exception_id": "546d5020-b243-4d6e-94ca-35e62a015754",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "4595458a-1633-412e-8949-bfb5471704af",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.7,
+        "financial_exposure_inr": 87000.0,
+        "expected_cost_inr": 87000.0,
+        "explanation": "Bank transaction BK_ADV_AMT_MISMATCH_47 has no matching gateway or ledger record",
+        "recommended_action": "trace_missing_gateway_ledger",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.382246"
+      },
+      {
+        "exception_id": "514864c4-d15f-4a7d-b242-8ff28d884e08",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "eb345d3c-0c9d-45cb-80e2-86d56584e199",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.7,
+        "financial_exposure_inr": 86000.0,
+        "expected_cost_inr": 86000.0,
+        "explanation": "Bank transaction BK_ADV_AMT_MISMATCH_46 has no matching gateway or ledger record",
+        "recommended_action": "trace_missing_gateway_ledger",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.385445"
+      },
+      {
+        "exception_id": "a6b0a0a7-963d-4961-a5c5-d80e479e3536",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "81e3fce9-012f-42a1-879c-b6a5512869d9",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.7,
+        "financial_exposure_inr": 85000.0,
+        "expected_cost_inr": 85000.0,
+        "explanation": "Bank transaction BK_ADV_AMT_MISMATCH_45 has no matching gateway or ledger record",
+        "recommended_action": "trace_missing_gateway_ledger",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.378100"
+      },
+      {
+        "exception_id": "95708506-a18a-481b-ac61-936e7737f2d3",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "6406065c-20f5-4bf5-941e-8ffa0650d1d4",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.7,
+        "financial_exposure_inr": 84000.0,
+        "expected_cost_inr": 84000.0,
+        "explanation": "Bank transaction BK_ADV_AMT_MISMATCH_44 has no matching gateway or ledger record",
+        "recommended_action": "trace_missing_gateway_ledger",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.375251"
+      },
+      {
+        "exception_id": "d2a6da3d-6a80-4ecf-8495-b483a92e7a10",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "2533d190-0480-4fcd-bb9b-e53f5cdeeb32",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2322,54 +2529,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.820089"
+        "created_at": "2026-09-01T18:32:23.307749"
       },
       {
-        "exception_id": "a67ee96c-f785-4a8a-9831-277c3f0e4658",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "817eae19-cfd0-4f85-9ddb-4f73211c753c",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51800.0,
-        "expected_cost_inr": 2072.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.058118"
-      },
-      {
-        "exception_id": "1373fd32-f8a8-4ebc-a680-074b427bfed8",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "817eae19-cfd0-4f85-9ddb-4f73211c753c",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51800.0,
-        "expected_cost_inr": 2072.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.369778"
-      },
-      {
-        "exception_id": "5cab4229-08e6-4351-851a-c3be83865887",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "817eae19-cfd0-4f85-9ddb-4f73211c753c",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51800.0,
-        "expected_cost_inr": 2072.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.584100"
-      },
-      {
-        "exception_id": "5ab824fe-b67a-4bc1-a0f7-05cd69cca742",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "fdf04d11-193a-4941-8d2d-f35398fbdec4",
+        "exception_id": "fd2b5678-f44b-4d82-bb33-a2334d43926a",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "32977347-a962-4f39-bf9a-4d452a28e446",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2378,54 +2543,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.810443"
+        "created_at": "2026-09-01T18:32:23.306433"
       },
       {
-        "exception_id": "e5406ae3-71cd-4b5a-a87d-eacfe7207279",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "fdf04d11-193a-4941-8d2d-f35398fbdec4",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51500.0,
-        "expected_cost_inr": 2060.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.058118"
-      },
-      {
-        "exception_id": "62a0169f-ae01-41e1-8bde-2630b10f3920",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "fdf04d11-193a-4941-8d2d-f35398fbdec4",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51500.0,
-        "expected_cost_inr": 2060.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.365742"
-      },
-      {
-        "exception_id": "56eb3258-c7bd-42c5-89b0-a5e28690f0a6",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "fdf04d11-193a-4941-8d2d-f35398fbdec4",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51500.0,
-        "expected_cost_inr": 2060.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.579773"
-      },
-      {
-        "exception_id": "137c82f4-c30e-442a-8bd3-75ab5e2128d6",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "4c5e8e1a-82f2-4871-93cb-52070e3a3324",
+        "exception_id": "86f9dd57-68b1-4c54-9128-335f295a6f0d",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "aac276b8-aa24-45c8-a9c8-d8ab08fc7675",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2434,54 +2557,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.810443"
+        "created_at": "2026-09-01T18:32:23.300012"
       },
       {
-        "exception_id": "c8c77501-05f1-450f-8861-a949ade05484",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "4c5e8e1a-82f2-4871-93cb-52070e3a3324",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51200.0,
-        "expected_cost_inr": 2048.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.051344"
-      },
-      {
-        "exception_id": "94c9e34b-e98c-4c76-bf85-c50a24aa1333",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "4c5e8e1a-82f2-4871-93cb-52070e3a3324",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51200.0,
-        "expected_cost_inr": 2048.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.361726"
-      },
-      {
-        "exception_id": "11a61c23-4f2e-409c-bc52-58b145774618",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "4c5e8e1a-82f2-4871-93cb-52070e3a3324",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 51200.0,
-        "expected_cost_inr": 2048.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.577880"
-      },
-      {
-        "exception_id": "82011eb2-35ce-44f8-aaa2-89a3d1c7b1b2",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "cbdb28b9-9a56-4942-826b-3529f862a7ce",
+        "exception_id": "23711e8b-639c-45cf-a89a-49b8b48d0240",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "7430c84b-0ec5-43e1-be29-724a0868de3e",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.7,
@@ -2490,54 +2571,12 @@
         "explanation": "Bank transaction BK_ADV_CORRUPT_REF_56 has no matching gateway or ledger record",
         "recommended_action": "trace_missing_gateway_ledger",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.830719"
+        "created_at": "2026-09-01T18:32:23.392546"
       },
       {
-        "exception_id": "7a6a4b81-9c31-48c9-9cdf-cf5bd3e3df2b",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "cbdb28b9-9a56-4942-826b-3529f862a7ce",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 50577.52,
-        "expected_cost_inr": 50577.52,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_56 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.096064"
-      },
-      {
-        "exception_id": "74cb83a2-9505-4418-8c9e-c03cd8c9b0e7",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "cbdb28b9-9a56-4942-826b-3529f862a7ce",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 50577.52,
-        "expected_cost_inr": 50577.52,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_56 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.398566"
-      },
-      {
-        "exception_id": "39df3b35-fda4-4236-9dc3-1df67f23f9b1",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "cbdb28b9-9a56-4942-826b-3529f862a7ce",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 50577.52,
-        "expected_cost_inr": 50577.52,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_56 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.612023"
-      },
-      {
-        "exception_id": "5c0c376f-8cd1-4be2-8ef5-5af61f3672ea",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "bd6a58f0-7ffd-46bb-ad17-d21a05a667ce",
+        "exception_id": "b04b6c4a-2649-495e-a3eb-546de4606035",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "b9be56e5-323a-4df8-a9a7-b0bc789bbe9c",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.7,
@@ -2546,54 +2585,12 @@
         "explanation": "Bank transaction BK_ADV_CORRUPT_REF_55 has no matching gateway or ledger record",
         "recommended_action": "trace_missing_gateway_ledger",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.851605"
+        "created_at": "2026-09-01T18:32:23.372003"
       },
       {
-        "exception_id": "be0ae344-9c9b-40fd-93c7-07dd73cced2b",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "bd6a58f0-7ffd-46bb-ad17-d21a05a667ce",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 50284.6,
-        "expected_cost_inr": 50284.6,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_55 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.082693"
-      },
-      {
-        "exception_id": "6e14b5f9-3a0f-4e4c-aed7-879759c0be9c",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "bd6a58f0-7ffd-46bb-ad17-d21a05a667ce",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 50284.6,
-        "expected_cost_inr": 50284.6,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_55 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.393245"
-      },
-      {
-        "exception_id": "c8b044bd-f822-4951-9936-d210a803c504",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "bd6a58f0-7ffd-46bb-ad17-d21a05a667ce",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 50284.6,
-        "expected_cost_inr": 50284.6,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_55 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.605243"
-      },
-      {
-        "exception_id": "2a7fc165-1721-45ae-9547-e031bd147045",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "95c7358d-e44e-4b17-ad7d-7fda70800e48",
+        "exception_id": "603a57ba-eb08-4768-bbb0-9c26443f180e",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "89bb50bf-c230-4747-8d38-c1db93dce623",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.7,
@@ -2602,152 +2599,12 @@
         "explanation": "Bank transaction BK_ADV_CORRUPT_REF_54 has no matching gateway or ledger record",
         "recommended_action": "trace_missing_gateway_ledger",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.857674"
+        "created_at": "2026-09-01T18:32:23.385445"
       },
       {
-        "exception_id": "a41903b7-f200-40ef-afc7-16be60034056",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "95c7358d-e44e-4b17-ad7d-7fda70800e48",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 49991.68,
-        "expected_cost_inr": 49991.68,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_54 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.082693"
-      },
-      {
-        "exception_id": "459422c7-5280-4ac0-bf12-abf26d0fcec0",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "95c7358d-e44e-4b17-ad7d-7fda70800e48",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 49991.68,
-        "expected_cost_inr": 49991.68,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_54 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.408137"
-      },
-      {
-        "exception_id": "33f17785-999b-4a0e-865b-7266d0f9f4de",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "95c7358d-e44e-4b17-ad7d-7fda70800e48",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 49991.68,
-        "expected_cost_inr": 49991.68,
-        "explanation": "Bank transaction BK_ADV_CORRUPT_REF_54 has no matching gateway or ledger record",
-        "recommended_action": "trace_missing_gateway_ledger",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.605243"
-      },
-      {
-        "exception_id": "18392e5e-ea3d-4c59-92ff-c879476cbaa5",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "3fb785ff-2a41-4dc1-94c0-53326b7882f2",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 48622.0,
-        "expected_cost_inr": 1944.88,
-        "explanation": "Identity match is missing source records: ledger.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.283767"
-      },
-      {
-        "exception_id": "d0771564-bc8c-4bce-887c-2ffad40efcf3",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "68703d11-f393-4f23-b97b-654c14f5d33f",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 46568.0,
-        "expected_cost_inr": 1862.72,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.208207"
-      },
-      {
-        "exception_id": "101fc6e1-16d0-4984-a60a-3560b48d59a8",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "b2b6de2d-21be-40a7-86d0-5139ed21f70c",
-        "category": "duplicate_exception",
-        "status": "open",
-        "confidence": 0.98,
-        "financial_exposure_inr": 46568.0,
-        "expected_cost_inr": 931.36,
-        "explanation": "Duplicate source records share the same transaction identity.",
-        "recommended_action": "flag_duplicate",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.018765"
-      },
-      {
-        "exception_id": "63b8aafe-51c9-49ee-80e7-3437e85683f2",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "3aacdd2c-ca10-4708-bcc8-a754e4d63d77",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 44897.0,
-        "expected_cost_inr": 1795.88,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.313595"
-      },
-      {
-        "exception_id": "67b8f137-0229-4e7a-9ef6-a56f9ba4ec2e",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "3d80fac5-a88c-4ad2-8b41-feb82668e3b5",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 43961.0,
-        "expected_cost_inr": 1758.44,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.268349"
-      },
-      {
-        "exception_id": "07505208-2f5b-4476-8b81-34461fc324d1",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "ff566edc-008c-40f9-a696-044124f7ebae",
-        "category": "duplicate_exception",
-        "status": "open",
-        "confidence": 0.98,
-        "financial_exposure_inr": 43837.4308,
-        "expected_cost_inr": 876.75,
-        "explanation": "Duplicate source records share the same transaction identity.",
-        "recommended_action": "flag_duplicate",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.028775"
-      },
-      {
-        "exception_id": "fa2dc195-9c61-4045-be11-603b2fd8d1e0",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "f4fee4a4-ed7f-42e7-a3bb-800b92d5a5bb",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 42696.0,
-        "expected_cost_inr": 1707.84,
-        "explanation": "Identity match is missing source records: ledger.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.280747"
-      },
-      {
-        "exception_id": "c798ac6b-8838-447b-9670-0797c6008c1c",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "74a8448a-3eb2-445e-8a44-c9e3c85caf0b",
+        "exception_id": "710bf0d2-b406-4ef7-aa44-8abaf5cb4516",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "5d72f2db-2c8f-48b0-bbf5-854478de22d1",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2756,54 +2613,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.799517"
+        "created_at": "2026-09-01T18:32:23.283522"
       },
       {
-        "exception_id": "238e0aad-2a1a-46a8-ad46-57afc2168680",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "74a8448a-3eb2-445e-8a44-c9e3c85caf0b",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 42500.0,
-        "expected_cost_inr": 1700.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.038698"
-      },
-      {
-        "exception_id": "06d5cfa3-b7c5-4e77-84dc-f01568a670ec",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "74a8448a-3eb2-445e-8a44-c9e3c85caf0b",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 42500.0,
-        "expected_cost_inr": 1700.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.343992"
-      },
-      {
-        "exception_id": "82d663b2-5c99-4f7b-98b1-270250f19b0b",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "74a8448a-3eb2-445e-8a44-c9e3c85caf0b",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 42500.0,
-        "expected_cost_inr": 1700.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.567411"
-      },
-      {
-        "exception_id": "b15fb10b-c85d-42b5-9129-2dd47b1a1bc9",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "bd0776e3-fa03-47c3-bbfa-e999ac12e51a",
+        "exception_id": "84f441ba-8e95-4fca-9563-9b36962f6bb9",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "fea0cda6-527d-468c-9976-29b31ab5a286",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2812,54 +2627,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.794917"
+        "created_at": "2026-09-01T18:32:23.282356"
       },
       {
-        "exception_id": "146be6c0-a4c7-4c28-b350-1b4986e8ddc1",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "bd0776e3-fa03-47c3-bbfa-e999ac12e51a",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 42000.0,
-        "expected_cost_inr": 1680.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.032664"
-      },
-      {
-        "exception_id": "27696d79-33a0-48d2-abe0-5f7ae57fd427",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "bd0776e3-fa03-47c3-bbfa-e999ac12e51a",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 42000.0,
-        "expected_cost_inr": 1680.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.340642"
-      },
-      {
-        "exception_id": "23bf65a8-d15e-48c1-a312-d5cfa7642339",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "bd0776e3-fa03-47c3-bbfa-e999ac12e51a",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 42000.0,
-        "expected_cost_inr": 1680.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.564409"
-      },
-      {
-        "exception_id": "1004bffa-fe48-4fdd-9648-2a9ef8126582",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "b8012b2c-9e70-4714-801f-862174032f6d",
+        "exception_id": "83decc3e-49b2-4741-86b0-f444a0c6c2c7",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "9291a874-8a3d-4ef6-a310-32150eadc4a0",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2868,54 +2641,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.788859"
+        "created_at": "2026-09-01T18:32:23.274164"
       },
       {
-        "exception_id": "e7d7782b-ff2e-4eeb-8271-830c19e7554c",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "b8012b2c-9e70-4714-801f-862174032f6d",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 41500.0,
-        "expected_cost_inr": 1660.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.032664"
-      },
-      {
-        "exception_id": "52cdebe8-57ae-420e-921a-4b57ecfdc8ba",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "b8012b2c-9e70-4714-801f-862174032f6d",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 41500.0,
-        "expected_cost_inr": 1660.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.335100"
-      },
-      {
-        "exception_id": "975b6a00-2c68-4060-ac23-5085304322b0",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "b8012b2c-9e70-4714-801f-862174032f6d",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 41500.0,
-        "expected_cost_inr": 1660.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.562317"
-      },
-      {
-        "exception_id": "cf487566-460a-46b9-8f07-31d19b22a377",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "fa994c18-95f4-4cc2-9852-5fb3cfe6980f",
+        "exception_id": "150413b2-c140-49ca-b6ab-da864838ec6b",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "49e77f70-1c59-47fe-8c93-6de54e39e2e2",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2924,54 +2655,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.779106"
+        "created_at": "2026-09-01T18:32:23.274164"
       },
       {
-        "exception_id": "3a1d25c7-9478-45eb-8b8f-27cf38f4765a",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "fa994c18-95f4-4cc2-9852-5fb3cfe6980f",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 41000.0,
-        "expected_cost_inr": 1640.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.028156"
-      },
-      {
-        "exception_id": "0fd1abba-5b1c-4c94-873e-7e16f1b0b27c",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "fa994c18-95f4-4cc2-9852-5fb3cfe6980f",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 41000.0,
-        "expected_cost_inr": 1640.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.328161"
-      },
-      {
-        "exception_id": "850dfa52-92f1-4b3a-9779-fd6ce8787038",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "fa994c18-95f4-4cc2-9852-5fb3cfe6980f",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 41000.0,
-        "expected_cost_inr": 1640.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.559405"
-      },
-      {
-        "exception_id": "35881da4-19b2-48ac-a715-9a61d76bb59b",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "2b090bc6-de8b-414c-bed8-9ede58719327",
+        "exception_id": "5bb9b3e2-3daf-4ca8-800e-b38140a518ef",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "6a8186ec-a884-4a18-8463-0dac937cdfbc",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -2980,110 +2669,12 @@
         "explanation": "Identity match is missing source records: bank.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.779106"
+        "created_at": "2026-09-01T18:32:23.269740"
       },
       {
-        "exception_id": "14a10179-0dbf-4e01-b243-1a15e5b4eebc",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "2b090bc6-de8b-414c-bed8-9ede58719327",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 40500.0,
-        "expected_cost_inr": 1620.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.024141"
-      },
-      {
-        "exception_id": "89ecd30e-80fb-4be5-848f-b8a251cc7ace",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "2b090bc6-de8b-414c-bed8-9ede58719327",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 40500.0,
-        "expected_cost_inr": 1620.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.318899"
-      },
-      {
-        "exception_id": "e4eda5b2-bf1c-49a1-9b49-1edd67228d6b",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "2b090bc6-de8b-414c-bed8-9ede58719327",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 40500.0,
-        "expected_cost_inr": 1620.0,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.556367"
-      },
-      {
-        "exception_id": "0ac192c4-a3f6-48b5-951d-8e3069e9c256",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "d45c8e89-12c4-4dbd-9cda-b25e29e391c7",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 39792.0,
-        "expected_cost_inr": 1591.68,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.315602"
-      },
-      {
-        "exception_id": "7107a8ae-8945-400c-8df0-695adfe58e80",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "d13da704-9d1e-43ff-b241-dd584e6c83e5",
-        "category": "duplicate_exception",
-        "status": "open",
-        "confidence": 0.98,
-        "financial_exposure_inr": 38852.9088,
-        "expected_cost_inr": 777.06,
-        "explanation": "Duplicate source records share the same transaction identity.",
-        "recommended_action": "flag_duplicate",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.034077"
-      },
-      {
-        "exception_id": "94c01e24-c994-4e0a-8e1e-972a3b6f8867",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "2d7e632a-0bae-464f-a6e5-d9ba873132d3",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 38264.0,
-        "expected_cost_inr": 1530.56,
-        "explanation": "Identity match is missing source records: ledger.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.250636"
-      },
-      {
-        "exception_id": "d520398c-764b-43a1-8ff4-be98748457e2",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "c7cd544d-973a-4f2f-b6aa-eb77a72210d4",
-        "category": "delayed_settlement_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 28987.3632,
-        "expected_cost_inr": 1159.49,
-        "explanation": "Financial amounts reconcile, but bank settlement is outside the configured settlement window.",
-        "recommended_action": "await_settlement_window",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.049995"
-      },
-      {
-        "exception_id": "da4b220d-7e05-4621-b417-91a2aa18024f",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "212dd676-d11a-4eae-a216-3d86c9d3aa1d",
+        "exception_id": "dbeefe2d-c29e-4db6-9b9a-3f954369998a",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "e085bc9b-f231-4269-b122-5cf26cae2387",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.7,
@@ -3092,68 +2683,12 @@
         "explanation": "Gateway transaction GW_ADV_DUP_53_B has no matching ledger or bank record",
         "recommended_action": "trace_missing_ledger_bank",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.861731"
+        "created_at": "2026-09-01T18:32:23.372003"
       },
       {
-        "exception_id": "b74cc607-c466-4582-81aa-749788eec9fa",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "212dd676-d11a-4eae-a216-3d86c9d3aa1d",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28600.0,
-        "expected_cost_inr": 28600.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_53_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.082693"
-      },
-      {
-        "exception_id": "0ecd02f1-bda0-4426-95e5-0c7f5bfb781b",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "212dd676-d11a-4eae-a216-3d86c9d3aa1d",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28600.0,
-        "expected_cost_inr": 28600.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_53_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.410725"
-      },
-      {
-        "exception_id": "34e61f53-6efe-4b86-915a-41c40c741d3e",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "212dd676-d11a-4eae-a216-3d86c9d3aa1d",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28600.0,
-        "expected_cost_inr": 28600.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_53_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.609871"
-      },
-      {
-        "exception_id": "17f2f25c-f8a6-4b66-8171-7c0383cfa6b8",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "676eba17-c9ed-47d1-a4ec-6946083eea6a",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 28554.0,
-        "expected_cost_inr": 1142.16,
-        "explanation": "Identity match is missing source records: bank.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.305816"
-      },
-      {
-        "exception_id": "9a5e24fa-e743-4135-af88-60c7f7df97c0",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "9adc6a31-e021-4388-bba3-517c86eed629",
+        "exception_id": "2e888482-afda-4d4a-ad49-03a99767e234",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "36572687-a1b2-464b-bcb4-9e4600ff0982",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.7,
@@ -3162,54 +2697,12 @@
         "explanation": "Gateway transaction GW_ADV_DUP_52_B has no matching ledger or bank record",
         "recommended_action": "trace_missing_ledger_bank",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.841804"
+        "created_at": "2026-09-01T18:32:23.385445"
       },
       {
-        "exception_id": "0b88efd3-1946-4410-a339-260cca779280",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "9adc6a31-e021-4388-bba3-517c86eed629",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28400.0,
-        "expected_cost_inr": 28400.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_52_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.093313"
-      },
-      {
-        "exception_id": "469c619e-5176-41ea-9302-d7b57e878187",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "9adc6a31-e021-4388-bba3-517c86eed629",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28400.0,
-        "expected_cost_inr": 28400.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_52_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.404672"
-      },
-      {
-        "exception_id": "70720f93-f6a3-423e-a43e-feb22fec237b",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "9adc6a31-e021-4388-bba3-517c86eed629",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28400.0,
-        "expected_cost_inr": 28400.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_52_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.600197"
-      },
-      {
-        "exception_id": "57947604-1aa4-41aa-8ef1-2e9e9b7fe7b9",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "9b93ea6b-e90d-4703-8dd9-5d8fb8fc5111",
+        "exception_id": "a1da7751-a83c-4246-93d5-9feb6bb57e22",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "6e2c2607-a791-4310-a5f3-4c9d4ec14f4e",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.7,
@@ -3218,82 +2711,12 @@
         "explanation": "Gateway transaction GW_ADV_DUP_51_B has no matching ledger or bank record",
         "recommended_action": "trace_missing_ledger_bank",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.848021"
+        "created_at": "2026-09-01T18:32:23.392546"
       },
       {
-        "exception_id": "0bdc1b36-2043-4f4c-882c-52297f1ae249",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "9b93ea6b-e90d-4703-8dd9-5d8fb8fc5111",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28200.0,
-        "expected_cost_inr": 28200.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_51_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.082693"
-      },
-      {
-        "exception_id": "51093ef0-ce41-40a8-bb4b-c44560833476",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "9b93ea6b-e90d-4703-8dd9-5d8fb8fc5111",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28200.0,
-        "expected_cost_inr": 28200.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_51_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.400657"
-      },
-      {
-        "exception_id": "28f92d0f-4cf8-46cf-b54c-0330a5e8426b",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "9b93ea6b-e90d-4703-8dd9-5d8fb8fc5111",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.7,
-        "financial_exposure_inr": 28200.0,
-        "expected_cost_inr": 28200.0,
-        "explanation": "Gateway transaction GW_ADV_DUP_51_B has no matching ledger or bank record",
-        "recommended_action": "trace_missing_ledger_bank",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.612023"
-      },
-      {
-        "exception_id": "1957c2cb-e537-4197-860c-8f78329cfed9",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "d288c609-d9f0-4909-90a1-b2cb784609d0",
-        "category": "duplicate_exception",
-        "status": "open",
-        "confidence": 0.98,
-        "financial_exposure_inr": 27880.1256,
-        "expected_cost_inr": 557.6,
-        "explanation": "Duplicate source records share the same transaction identity.",
-        "recommended_action": "flag_duplicate",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.028775"
-      },
-      {
-        "exception_id": "5ba439ca-17bc-4a45-b5eb-c9f073210304",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "7edea772-ea91-466c-8f04-68bac8fcf9b7",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 23766.0,
-        "expected_cost_inr": 950.64,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.289452"
-      },
-      {
-        "exception_id": "d61d8da4-af2c-432a-8c69-773e010456a7",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "2813c41d-c5c5-4eca-b7b8-9ca1715c552a",
+        "exception_id": "eb1a6909-ed1a-4d85-8a7d-5dd6b25eaba7",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "43dd31d8-31dc-46ec-85f2-222bdd79e46c",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -3302,54 +2725,12 @@
         "explanation": "Identity match is missing source records: gateway.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.830719"
+        "created_at": "2026-09-01T18:32:23.327510"
       },
       {
-        "exception_id": "c22a8697-3450-4f28-82b6-4af1a5e06d7e",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "2813c41d-c5c5-4eca-b7b8-9ca1715c552a",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 22000.0,
-        "expected_cost_inr": 880.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.080168"
-      },
-      {
-        "exception_id": "337c748f-44b7-46ce-98a0-8bfa49d30174",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "2813c41d-c5c5-4eca-b7b8-9ca1715c552a",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 22000.0,
-        "expected_cost_inr": 880.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.391223"
-      },
-      {
-        "exception_id": "8f991e63-2fe7-49ff-9c98-b0c7cb6fb237",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "2813c41d-c5c5-4eca-b7b8-9ca1715c552a",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 22000.0,
-        "expected_cost_inr": 880.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.596944"
-      },
-      {
-        "exception_id": "e0f28f3e-4d70-4f2d-a29c-cb7aaea9b1f7",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "ba75ac19-1fd7-4724-a68b-64e95cebad90",
+        "exception_id": "0affeded-f93f-4396-b021-68bc1d0c00fc",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "34094537-9539-4ac2-880c-560a46e80d65",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -3358,54 +2739,12 @@
         "explanation": "Identity match is missing source records: gateway.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.830719"
+        "created_at": "2026-09-01T18:32:23.322795"
       },
       {
-        "exception_id": "e01aafef-0ee1-4aaa-9ec2-acba4cddcff1",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "ba75ac19-1fd7-4724-a68b-64e95cebad90",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21750.0,
-        "expected_cost_inr": 870.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.072191"
-      },
-      {
-        "exception_id": "9fbbb033-9def-4673-b35f-450496c45118",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "ba75ac19-1fd7-4724-a68b-64e95cebad90",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21750.0,
-        "expected_cost_inr": 870.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.388240"
-      },
-      {
-        "exception_id": "e280f975-0430-41d6-a1ac-ab6ca7732035",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "ba75ac19-1fd7-4724-a68b-64e95cebad90",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21750.0,
-        "expected_cost_inr": 870.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.594929"
-      },
-      {
-        "exception_id": "382bf90b-eed0-4479-9013-6045209828b2",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "ec06346e-ad4b-4ef8-9a07-7dc50ddf0eee",
+        "exception_id": "1ff9873e-8339-4dfe-a5ba-57d5a7cbfbbd",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "9f3dfa0b-ed46-4ae1-8b70-e42212b60057",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -3414,54 +2753,12 @@
         "explanation": "Identity match is missing source records: gateway.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.830719"
+        "created_at": "2026-09-01T18:32:23.317591"
       },
       {
-        "exception_id": "a2a64174-c315-48e7-aefc-a228bebdbd00",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "ec06346e-ad4b-4ef8-9a07-7dc50ddf0eee",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21500.0,
-        "expected_cost_inr": 860.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.072191"
-      },
-      {
-        "exception_id": "f76ab0b8-ca99-494c-9351-913637326e2e",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "ec06346e-ad4b-4ef8-9a07-7dc50ddf0eee",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21500.0,
-        "expected_cost_inr": 860.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.383211"
-      },
-      {
-        "exception_id": "2b367bbc-57d1-4178-bf50-74fe68b60dd4",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "ec06346e-ad4b-4ef8-9a07-7dc50ddf0eee",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21500.0,
-        "expected_cost_inr": 860.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.592009"
-      },
-      {
-        "exception_id": "67fc1b4c-d53e-414d-b08e-6a01447269fc",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "67752233-889e-479c-b032-7fa2814d80dd",
+        "exception_id": "a37962f8-e036-46fc-b49a-80768685035a",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "b7afbe09-7832-4049-b1e3-3eb5b14b9376",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -3470,54 +2767,12 @@
         "explanation": "Identity match is missing source records: gateway.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.826629"
+        "created_at": "2026-09-01T18:32:23.317591"
       },
       {
-        "exception_id": "86ce177d-4713-42ab-afb1-ad506016c251",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "67752233-889e-479c-b032-7fa2814d80dd",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21250.0,
-        "expected_cost_inr": 850.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.066049"
-      },
-      {
-        "exception_id": "cd60acd7-1b03-4cbc-b0a9-65f26becc120",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "67752233-889e-479c-b032-7fa2814d80dd",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21250.0,
-        "expected_cost_inr": 850.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.377961"
-      },
-      {
-        "exception_id": "c7b602ce-ea34-44c6-b742-b65c791572e1",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "67752233-889e-479c-b032-7fa2814d80dd",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21250.0,
-        "expected_cost_inr": 850.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.584100"
-      },
-      {
-        "exception_id": "0879657d-e818-454e-8723-038ad2c79965",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "2f84e87f-4123-4da1-a7a8-b56b3a0aec5b",
+        "exception_id": "ef5eeac7-fd46-471d-803c-5e62a54205fc",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "9fbf4736-51eb-468a-ab75-9a2b6d5426bd",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -3526,124 +2781,12 @@
         "explanation": "Identity match is missing source records: gateway.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.820089"
+        "created_at": "2026-09-01T18:32:23.314457"
       },
       {
-        "exception_id": "ad93cd02-9fb4-44a7-b151-487eb6f34755",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "2f84e87f-4123-4da1-a7a8-b56b3a0aec5b",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21000.0,
-        "expected_cost_inr": 840.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.064252"
-      },
-      {
-        "exception_id": "6011f299-ffd3-4645-b32c-1cffe1056ee5",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "2f84e87f-4123-4da1-a7a8-b56b3a0aec5b",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21000.0,
-        "expected_cost_inr": 840.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.374824"
-      },
-      {
-        "exception_id": "d398f289-261f-4169-b3e7-f9834d60f05c",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "2f84e87f-4123-4da1-a7a8-b56b3a0aec5b",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 21000.0,
-        "expected_cost_inr": 840.0,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.584100"
-      },
-      {
-        "exception_id": "4a9cd779-0623-482b-88ec-d8030ee81b56",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "0a1689f4-c635-4f14-9779-e837d6471b86",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 20877.0,
-        "expected_cost_inr": 835.08,
-        "explanation": "Identity match is missing source records: ledger.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.276700"
-      },
-      {
-        "exception_id": "d4e99162-f154-4aa1-a27c-3e1b91c6d331",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "ef7b1fcc-0f29-4416-9f6c-a0c232bc166b",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 20066.0,
-        "expected_cost_inr": 802.64,
-        "explanation": "Identity match is missing source records: gateway.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.299108"
-      },
-      {
-        "exception_id": "1c30cee3-c4ce-4fbe-984b-eeea82011d67",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "792bad84-f264-4d29-9af7-44bc5595ac54",
-        "category": "amount_mismatch_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 19301.5,
-        "expected_cost_inr": 772.06,
-        "explanation": "Gateway and ledger amounts disagree for the same transaction identity.",
-        "recommended_action": "investigate_financial_variance",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.083925"
-      },
-      {
-        "exception_id": "5bc8a4c7-276a-4c2c-9cff-9aabb60cf96f",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "a4b5337d-1c1f-4d5d-8a4d-44803c2792d5",
-        "category": "amount_mismatch_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 19105.5,
-        "expected_cost_inr": 764.22,
-        "explanation": "Gateway and ledger amounts disagree for the same transaction identity.",
-        "recommended_action": "investigate_financial_variance",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.200685"
-      },
-      {
-        "exception_id": "e6fbae0d-a805-4a15-afdd-103bf3e5d62b",
-        "run_id": "e163e5be-faee-476f-8153-ce90d42b65c0",
-        "transaction_id": "7c304516-bfe2-4b6d-ae4d-109f8f2faed7",
-        "category": "delayed_settlement_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 13584.6532,
-        "expected_cost_inr": 543.39,
-        "explanation": "Financial amounts reconcile, but bank settlement is outside the configured settlement window.",
-        "recommended_action": "await_settlement_window",
-        "resolved": false,
-        "created_at": "2026-09-01T14:38:31.059892"
-      },
-      {
-        "exception_id": "fa600618-fbaf-43c1-820b-ec902fecd70a",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "59cec9a4-0324-4aaa-b5eb-ba17c07f5724",
+        "exception_id": "ad87ebed-d7c0-4f12-84cd-d1bb5fc759f0",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "07f077cc-d2b2-4399-b726-ea5b3b7095ec",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -3652,54 +2795,12 @@
         "explanation": "Identity match is missing source records: ledger.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.810443"
+        "created_at": "2026-09-01T18:32:23.297849"
       },
       {
-        "exception_id": "ce3beaab-b7b9-45f6-a110-37293d61e0a5",
-        "run_id": "b39a1be6-6400-4ff0-8446-d51867237fa2",
-        "transaction_id": "59cec9a4-0324-4aaa-b5eb-ba17c07f5724",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 12800.0,
-        "expected_cost_inr": 512.0,
-        "explanation": "Identity match is missing source records: ledger.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:41:17.048320"
-      },
-      {
-        "exception_id": "7fb65e55-68ad-4f81-9b17-ce985fa42835",
-        "run_id": "39baf449-b562-474c-8c2d-02f848f90576",
-        "transaction_id": "59cec9a4-0324-4aaa-b5eb-ba17c07f5724",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 12800.0,
-        "expected_cost_inr": 512.0,
-        "explanation": "Identity match is missing source records: ledger.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:40:26.359130"
-      },
-      {
-        "exception_id": "4857653f-bffc-404b-b671-93d89384b021",
-        "run_id": "1c5c01fa-3be6-499a-9d73-4032c4aad5da",
-        "transaction_id": "59cec9a4-0324-4aaa-b5eb-ba17c07f5724",
-        "category": "missing_source_exception",
-        "status": "open",
-        "confidence": 0.96,
-        "financial_exposure_inr": 12800.0,
-        "expected_cost_inr": 512.0,
-        "explanation": "Identity match is missing source records: ledger.",
-        "recommended_action": "trace_missing_source",
-        "resolved": false,
-        "created_at": "2026-09-01T14:31:49.574924"
-      },
-      {
-        "exception_id": "17b91881-c9cf-4ae1-ad0b-fb9d87ff4810",
-        "run_id": "8769a4f7-6fba-4490-8390-a0e7faf1145e",
-        "transaction_id": "e3c13d4a-58bb-49dc-b9a4-2adc336a64bc",
+        "exception_id": "f61461d4-4872-4796-8a4a-f6cfb4465e70",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "8eb536d0-e8e7-4caf-af8b-b98376674933",
         "category": "missing_source_exception",
         "status": "open",
         "confidence": 0.96,
@@ -3708,21 +2809,35 @@
         "explanation": "Identity match is missing source records: ledger.",
         "recommended_action": "trace_missing_source",
         "resolved": false,
-        "created_at": "2026-09-01T14:42:07.799517"
+        "created_at": "2026-09-01T18:32:23.292904"
+      },
+      {
+        "exception_id": "e21e32d8-ee14-47a4-a4e3-0d66c986a7a5",
+        "run_id": "5b84c5f6-3c9d-45ff-823e-7e5b80e4e23c",
+        "transaction_id": "333649d3-7499-4f9a-89b2-d7cd3f1c73ca",
+        "category": "missing_source_exception",
+        "status": "open",
+        "confidence": 0.96,
+        "financial_exposure_inr": 12600.0,
+        "expected_cost_inr": 504.0,
+        "explanation": "Identity match is missing source records: ledger.",
+        "recommended_action": "trace_missing_source",
+        "resolved": false,
+        "created_at": "2026-09-01T18:32:23.289710"
       }
     ]
   },
   "fees": {
-    "total_transactions_analyzed": 100,
-    "total_gross_volume": "10964041.7600",
-    "total_expected_fee": "219280.84",
-    "total_observed_fee": "187621.4452",
-    "total_fee_variance": "-31659.39",
-    "total_expected_tax": "39470.58",
-    "total_observed_tax": "33774.7953",
-    "total_tax_variance": "-5695.78",
-    "total_fee_tax_exposure": "37355.17",
-    "discrepant_transactions_count": 8,
+    "total_transactions_analyzed": 58,
+    "total_gross_volume": "9645541.7500",
+    "total_expected_fee": "192910.84",
+    "total_observed_fee": "162910.8600",
+    "total_fee_variance": "-29999.98",
+    "total_expected_tax": "34723.96",
+    "total_observed_tax": "29323.9800",
+    "total_tax_variance": "-5399.98",
+    "total_fee_tax_exposure": "35399.96",
+    "discrepant_transactions_count": 5,
     "discrepancies": [
       {
         "transaction_id": "GW_ADV_FEE_OVERCHARGE_48",
@@ -3783,126 +2898,90 @@
         "observed_tax": "13500.0000",
         "tax_difference": "-4500.00",
         "exposure": "29500.00"
-      },
-      {
-        "transaction_id": "EVAL_GW_0010",
-        "order_id": "ORD_48848",
-        "gross_amount": "7275.0000",
-        "expected_fee": "145.50",
-        "observed_fee": "145.5000",
-        "fee_difference": "0.00",
-        "expected_tax": "26.19",
-        "observed_tax": "29.1000",
-        "tax_difference": "2.91",
-        "exposure": "2.91"
-      },
-      {
-        "transaction_id": "EVAL_GW_0024",
-        "order_id": "ORD_64426",
-        "gross_amount": "374666.0000",
-        "expected_fee": "7493.32",
-        "observed_fee": "5619.9900",
-        "fee_difference": "-1873.33",
-        "expected_tax": "1348.80",
-        "observed_tax": "1011.5982",
-        "tax_difference": "-337.20",
-        "exposure": "2210.53"
-      },
-      {
-        "transaction_id": "EVAL_GW_0032",
-        "order_id": "ORD_17733",
-        "gross_amount": "42783.0000",
-        "expected_fee": "855.66",
-        "observed_fee": "1069.5750",
-        "fee_difference": "213.92",
-        "expected_tax": "154.02",
-        "observed_tax": "192.5235",
-        "tax_difference": "38.50",
-        "exposure": "252.42"
       }
     ],
     "currency": "INR"
   },
   "copilot": {
     "question": "What is the expected net settlement and how much money is at risk?",
-    "answer": "Currently, INR 783,638.60 remains unreconciled across open exceptions, with INR 0.00 classified as high financial exposure.",
-    "interpretation": "Currently, INR 783,638.60 remains unreconciled across open exceptions, with INR 0.00 classified as high financial exposure.",
+    "answer": "Based on the verified database records, the total unreconciled exposure (money at risk) is INR 2,051,723.80, with a high-risk portion of INR 300,000.00; however, the expected net settlement is not available.",
+    "interpretation": "Based on the verified database records, the total unreconciled exposure (money at risk) is INR 2,051,723.80, with a high-risk portion of INR 300,000.00; however, the expected net settlement is not available.",
     "recommendation": "Validate the live exception list and confirm working capital impact before closing this issue.",
     "fact_summary": {
-      "total_unreconciled_inr": 783638.6,
-      "high_risk_exposure_inr": 0.0,
+      "total_unreconciled_inr": 2051723.8,
+      "high_risk_exposure_inr": 300000.0,
       "open_exception_count": 10
     },
     "evidence": [
       {
-        "exception_id": "da4b220d-7e05-4621-b417-91a2aa18024f",
-        "transaction_id": "212dd676-d11a-4eae-a216-3d86c9d3aa1d",
+        "exception_id": "2b93aa4e-e484-4e14-a621-d7274f268a53",
+        "transaction_id": "dbd0ca02-90d7-46d5-8e83-19b3748bfaf0",
         "category": "missing_source_exception",
-        "amount": 28600.0,
-        "reason": "Gateway transaction GW_ADV_DUP_53_B has no matching ledger or bank record"
+        "amount": 94690.0,
+        "reason": "Bank transaction BK_ADV_FEE_OVERCHARGE_50 has no matching gateway or ledger record"
       },
       {
-        "exception_id": "2a7fc165-1721-45ae-9547-e031bd147045",
-        "transaction_id": "95c7358d-e44e-4b17-ad7d-7fda70800e48",
+        "exception_id": "0709b437-0092-493c-a1ba-50cb571ff2fe",
+        "transaction_id": "c347f447-cc0b-4746-a6f0-f8741e115b9f",
         "category": "missing_source_exception",
-        "amount": 49991.68,
-        "reason": "Bank transaction BK_ADV_CORRUPT_REF_54 has no matching gateway or ledger record"
+        "amount": 94690.0,
+        "reason": "Bank transaction BK_ADV_FEE_OVERCHARGE_49 has no matching gateway or ledger record"
       },
       {
-        "exception_id": "5c0c376f-8cd1-4be2-8ef5-5af61f3672ea",
-        "transaction_id": "bd6a58f0-7ffd-46bb-ad17-d21a05a667ce",
-        "category": "missing_source_exception",
-        "amount": 50284.6,
-        "reason": "Bank transaction BK_ADV_CORRUPT_REF_55 has no matching gateway or ledger record"
-      },
-      {
-        "exception_id": "57947604-1aa4-41aa-8ef1-2e9e9b7fe7b9",
-        "transaction_id": "9b93ea6b-e90d-4703-8dd9-5d8fb8fc5111",
+        "exception_id": "a1da7751-a83c-4246-93d5-9feb6bb57e22",
+        "transaction_id": "6e2c2607-a791-4310-a5f3-4c9d4ec14f4e",
         "category": "missing_source_exception",
         "amount": 28200.0,
         "reason": "Gateway transaction GW_ADV_DUP_51_B has no matching ledger or bank record"
       },
       {
-        "exception_id": "9a5e24fa-e743-4135-af88-60c7f7df97c0",
-        "transaction_id": "9adc6a31-e021-4388-bba3-517c86eed629",
-        "category": "missing_source_exception",
-        "amount": 28400.0,
-        "reason": "Gateway transaction GW_ADV_DUP_52_B has no matching ledger or bank record"
-      },
-      {
-        "exception_id": "d61d8da4-af2c-432a-8c69-773e010456a7",
-        "transaction_id": "2813c41d-c5c5-4eca-b7b8-9ca1715c552a",
-        "category": "missing_source_exception",
-        "amount": 22000.0,
-        "reason": "Identity match is missing source records: gateway."
-      },
-      {
-        "exception_id": "382bf90b-eed0-4479-9013-6045209828b2",
-        "transaction_id": "ec06346e-ad4b-4ef8-9a07-7dc50ddf0eee",
-        "category": "missing_source_exception",
-        "amount": 21500.0,
-        "reason": "Identity match is missing source records: gateway."
-      },
-      {
-        "exception_id": "e0f28f3e-4d70-4f2d-a29c-cb7aaea9b1f7",
-        "transaction_id": "ba75ac19-1fd7-4724-a68b-64e95cebad90",
-        "category": "missing_source_exception",
-        "amount": 21750.0,
-        "reason": "Identity match is missing source records: gateway."
-      },
-      {
-        "exception_id": "82011eb2-35ce-44f8-aaa2-89a3d1c7b1b2",
-        "transaction_id": "cbdb28b9-9a56-4942-826b-3529f862a7ce",
+        "exception_id": "23711e8b-639c-45cf-a89a-49b8b48d0240",
+        "transaction_id": "7430c84b-0ec5-43e1-be29-724a0868de3e",
         "category": "missing_source_exception",
         "amount": 50577.52,
         "reason": "Bank transaction BK_ADV_CORRUPT_REF_56 has no matching gateway or ledger record"
       },
       {
-        "exception_id": "67fc1b4c-d53e-414d-b08e-6a01447269fc",
-        "transaction_id": "67752233-889e-479c-b032-7fa2814d80dd",
+        "exception_id": "27d455b4-4ea9-4bc5-9137-ef0ae1656e36",
+        "transaction_id": "4ebb2766-fc2c-47ba-8d08-8ec8d1f0cae2",
         "category": "missing_source_exception",
-        "amount": 21250.0,
-        "reason": "Identity match is missing source records: gateway."
+        "amount": 94690.0,
+        "reason": "Bank transaction BK_ADV_FEE_OVERCHARGE_48 has no matching gateway or ledger record"
+      },
+      {
+        "exception_id": "2e888482-afda-4d4a-ad49-03a99767e234",
+        "transaction_id": "36572687-a1b2-464b-bcb4-9e4600ff0982",
+        "category": "missing_source_exception",
+        "amount": 28400.0,
+        "reason": "Gateway transaction GW_ADV_DUP_52_B has no matching ledger or bank record"
+      },
+      {
+        "exception_id": "603a57ba-eb08-4768-bbb0-9c26443f180e",
+        "transaction_id": "89bb50bf-c230-4747-8d38-c1db93dce623",
+        "category": "missing_source_exception",
+        "amount": 49991.68,
+        "reason": "Bank transaction BK_ADV_CORRUPT_REF_54 has no matching gateway or ledger record"
+      },
+      {
+        "exception_id": "514864c4-d15f-4a7d-b242-8ff28d884e08",
+        "transaction_id": "eb345d3c-0c9d-45cb-80e2-86d56584e199",
+        "category": "missing_source_exception",
+        "amount": 86000.0,
+        "reason": "Bank transaction BK_ADV_AMT_MISMATCH_46 has no matching gateway or ledger record"
+      },
+      {
+        "exception_id": "546d5020-b243-4d6e-94ca-35e62a015754",
+        "transaction_id": "4595458a-1633-412e-8949-bfb5471704af",
+        "category": "missing_source_exception",
+        "amount": 87000.0,
+        "reason": "Bank transaction BK_ADV_AMT_MISMATCH_47 has no matching gateway or ledger record"
+      },
+      {
+        "exception_id": "a6b0a0a7-963d-4961-a5c5-d80e479e3536",
+        "transaction_id": "81e3fce9-012f-42a1-879c-b6a5512869d9",
+        "category": "missing_source_exception",
+        "amount": 85000.0,
+        "reason": "Bank transaction BK_ADV_AMT_MISMATCH_45 has no matching gateway or ledger record"
       }
     ],
     "source": "groq_ai",
@@ -3915,6 +2994,6 @@
     "expected_net": 9477617.63,
     "actual_bank": 9244029.83,
     "variance": -233587.8,
-    "exposure": 365737.8
+    "exposure": 627737.8
   }
 }

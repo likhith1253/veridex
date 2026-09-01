@@ -53,7 +53,7 @@ class GatewayNormalizer:
 
         try:
             txn_id = row["transaction_id"]
-            amount = Decimal(row["net_amount"])
+            amount = Decimal(row["gross_amount"])
             currency = row["currency"]
             timestamp = datetime.fromisoformat(row["settlement_date"])
             status = cls._normalize_status(row["status"])
@@ -65,6 +65,7 @@ class GatewayNormalizer:
             metadata = {
                 "settlement_id": row["settlement_id"],
                 "gross_amount": row["gross_amount"],
+                "net_amount": row["net_amount"],
             }
 
             return Transaction(
