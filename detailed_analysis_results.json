@@ -1,0 +1,305 @@
+{
+  "accuracy": {
+    "ground_truth_total": 100,
+    "ground_truth_scenarios": {
+      "exact_match": 40,
+      "missing_optional_fields": 2,
+      "missing_ledger": 4,
+      "cross_date_boundary": 2,
+      "amount_mismatch_gw_bank": 5,
+      "duplicate_gateway": 3,
+      "same_order_diff_amount": 3,
+      "fee_mismatch": 3,
+      "missing_gateway": 3,
+      "amount_mismatch_gw_ledger": 5,
+      "complex_mismatch": 2,
+      "missing_bank": 3,
+      "tax_mismatch": 2,
+      "rounding_edge_case": 1,
+      "partial_match": 3,
+      "very_small_transaction": 2,
+      "duplicate_bank": 3,
+      "same_ref_diff_amount": 2,
+      "repeated_identifiers": 2,
+      "false_positive_risk": 2,
+      "high_value_transaction": 2,
+      "delayed_settlement": 3,
+      "duplicate_ledger": 2,
+      "near_duplicate_amounts": 1
+    },
+    "expected_outcomes": {
+      "exact_match": 48,
+      "missing_fields_exception": 2,
+      "missing_source_exception": 10,
+      "settlement_variance_exception": 5,
+      "duplicate_exception": 6,
+      "amount_mismatch_exception": 10,
+      "fee_mismatch_exception": 3,
+      "complex_mismatch_exception": 2,
+      "tax_mismatch_exception": 2,
+      "partial_match_exception": 3,
+      "rounding_edge_case": 2,
+      "false_positive_risk": 2,
+      "high_value_review_required": 2,
+      "delayed_settlement_exception": 3
+    },
+    "system_match_rate": 91.03,
+    "system_unresolved_count": 56,
+    "system_exceptions_count": 9,
+    "system_exceptions_by_category": {
+      "unknown": 9
+    }
+  },
+  "cash_position_verification": {
+    "independent_calculation": {
+      "total_gross": "2683496",
+      "total_fees": "51166.030",
+      "total_taxes": "9209.88540",
+      "expected_net_settlement": "2623120.08460"
+    },
+    "system_reported": {
+      "total_gross": "31349257.7600",
+      "total_fees": "600572.0602",
+      "total_taxes": "108121.0466",
+      "expected_net_settlement": "30640564.6532",
+      "received_bank_credits": "30191578.9411"
+    },
+    "discrepancies": {
+      "gross_difference": "28665761.7600",
+      "fees_difference": "549406.0302",
+      "taxes_difference": "98911.16120",
+      "net_difference": "28017444.56860"
+    },
+    "accounting_equation_check": {
+      "equation": "Gross - Fees - Taxes = Expected Net",
+      "independent_result": "2683496 - 51166.030 - 9209.88540 = 2623120.08460",
+      "system_result": "31349257.7600 - 600572.0602 - 108121.0466 = 30640564.6532",
+      "independent_matches_system": "False"
+    }
+  },
+  "ai_qa_results": {
+    "What is the total unresolved financial exposure?": {
+      "success": true,
+      "answer": "Based on the verified database records, the total unresolved financial exposure is INR 866,947.69.",
+      "key_metrics": {
+        "total_unreconciled_inr": 866947.68626,
+        "high_risk_exposure_inr": 788197.0,
+        "open_exception_count": 9
+      },
+      "has_evidence": true
+    },
+    "How much money was recovered by ML candidate scoring?": {
+      "success": true,
+      "answer": "Based on the verified database records, this information is not available.",
+      "key_metrics": {
+        "ml_recovered_count": 4,
+        "total_matches": 297,
+        "ml_share_percent": 1.35
+      },
+      "has_evidence": true
+    },
+    "What is the breakdown of open exceptions by category?": {
+      "success": true,
+      "answer": "Based on the verified database records, this information is not available.",
+      "key_metrics": {
+        "total_exceptions": 9,
+        "open_exceptions": 9,
+        "resolved_exceptions": 0
+      },
+      "has_evidence": true
+    },
+    "Which exceptions have the highest monetary exposure?": {
+      "success": true,
+      "answer": "Based on the verified database records, this information is not available.",
+      "key_metrics": {
+        "total_unreconciled_inr": 866947.68626,
+        "high_risk_exposure_inr": 788197.0,
+        "open_exception_count": 9
+      },
+      "has_evidence": true
+    },
+    "Why is there a discrepancy in today's settlement?": {
+      "success": true,
+      "answer": "Based on the verified database records, the discrepancy is primarily driven by four unexplained items, alongside one amount mismatch, two data quality issues, and two duplicate records.",
+      "key_metrics": {
+        "amount_mismatch": 1,
+        "unexplained": 4,
+        "data_quality": 2,
+        "duplicate_record": 2
+      },
+      "has_evidence": true
+    },
+    "What percentage of records matched?": {
+      "success": true,
+      "answer": "I am unable to answer this question from the available financial reconciliation data. Supported topics include: unreconciled exposure, exception counts by status, reconciliation match rate, transaction counts, ML match recovery, root-cause breakdown, delayed settlements, and cash positions.",
+      "key_metrics": {},
+      "has_evidence": false
+    },
+    "Which source is causing the largest reconciliation issue?": {
+      "success": true,
+      "answer": "I am unable to answer this question from the available financial reconciliation data. Supported topics include: unreconciled exposure, exception counts by status, reconciliation match rate, transaction counts, ML match recovery, root-cause breakdown, delayed settlements, and cash positions.",
+      "key_metrics": {},
+      "has_evidence": false
+    },
+    "What is the expected net settlement?": {
+      "success": true,
+      "answer": "I am unable to answer this question from the available financial reconciliation data. Supported topics include: unreconciled exposure, exception counts by status, reconciliation match rate, transaction counts, ML match recovery, root-cause breakdown, delayed settlements, and cash positions.",
+      "key_metrics": {},
+      "has_evidence": false
+    },
+    "Which transactions caused the largest variance?": {
+      "success": true,
+      "answer": "I am unable to answer this question from the available financial reconciliation data. Supported topics include: unreconciled exposure, exception counts by status, reconciliation match rate, transaction counts, ML match recovery, root-cause breakdown, delayed settlements, and cash positions.",
+      "key_metrics": {},
+      "has_evidence": false
+    },
+    "What should I investigate first?": {
+      "success": true,
+      "answer": "I am unable to answer this question from the available financial reconciliation data. Supported topics include: unreconciled exposure, exception counts by status, reconciliation match rate, transaction counts, ML match recovery, root-cause breakdown, delayed settlements, and cash positions.",
+      "key_metrics": {},
+      "has_evidence": false
+    }
+  },
+  "copilot_results": {
+    "What needs my attention right now?": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    },
+    "Where is the highest monetary exposure?": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    },
+    "Why are these transactions unresolved?": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    },
+    "Show me the highest-risk exception.": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    },
+    "Which source is unhealthy?": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    },
+    "What can I safely auto-resolve?": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    },
+    "What requires human review?": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    },
+    "Explain today's reconciliation performance.": {
+      "success": true,
+      "answer": "No answer",
+      "interpretation": "",
+      "recommendation": "",
+      "needs_human_review": false
+    }
+  },
+  "exception_honesty": {
+    "ground_truth_expected_exceptions": 50,
+    "ground_truth_breakdown": {
+      "missing_fields_exception": 2,
+      "missing_source_exception": 10,
+      "settlement_variance_exception": 5,
+      "duplicate_exception": 6,
+      "amount_mismatch_exception": 10,
+      "fee_mismatch_exception": 3,
+      "complex_mismatch_exception": 2,
+      "tax_mismatch_exception": 2,
+      "partial_match_exception": 3,
+      "false_positive_risk": 2,
+      "high_value_review_required": 2,
+      "delayed_settlement_exception": 3
+    },
+    "system_reported_exceptions": 9,
+    "exception_coverage": 0.18,
+    "honesty_assessment": "POTENTIALLY INCOMPLETE",
+    "system_exception_details": [
+      {
+        "id": "600b4cee-5af2-4804-bdf0-654752fadf77",
+        "category": "",
+        "exposure": 461203.0,
+        "status": "open"
+      },
+      {
+        "id": "4e5c70a7-c288-4274-93e7-14fdf53abc85",
+        "category": "",
+        "exposure": 256670.0,
+        "status": "open"
+      },
+      {
+        "id": "bb3731bc-650d-48b5-b9d8-1ab2ed4ff94c",
+        "category": "",
+        "exposure": 49462.0,
+        "status": "open"
+      },
+      {
+        "id": "83cd87c7-c54a-423e-aa05-9d8c3cecc1fe",
+        "category": "",
+        "exposure": 38558.42656,
+        "status": "open"
+      },
+      {
+        "id": "26d547ee-9117-40cd-a9df-f0b2155f8923",
+        "category": "",
+        "exposure": 24210.76558,
+        "status": "open"
+      },
+      {
+        "id": "f6d1d22b-84b0-44d7-a170-0dba577f7178",
+        "category": "",
+        "exposure": 13013.0,
+        "status": "open"
+      },
+      {
+        "id": "84a5487d-6f00-4f1b-bec8-7d1313c8296f",
+        "category": "",
+        "exposure": 9876.0,
+        "status": "open"
+      },
+      {
+        "id": "64333498-71d7-4b2a-83b7-b64ebd4845af",
+        "category": "",
+        "exposure": 7849.0,
+        "status": "open"
+      },
+      {
+        "id": "1fb3b64d-c185-49cd-a202-d34b7a28fd8c",
+        "category": "",
+        "exposure": 6105.49412,
+        "status": "open"
+      }
+    ]
+  },
+  "throughput_analysis": {
+    "system_reported_tps": 26.34,
+    "system_reported_latency_ms": 37.96,
+    "total_records_processed": 691,
+    "expected_tps_from_batch": 26.42857142857143,
+    "throughput_discrepancy": 0.08857142857143074,
+    "throughput_realistic": true
+  }
+}

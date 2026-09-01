@@ -1,0 +1,7 @@
+SECURITY WARNING: Database configured with default/development credentials (postgres:****@localhost). Use strong credentials in production.
+INFO:     Started server process [19012]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+C:\Users\LAKSHMI NARAYANA\AppData\Local\Programs\Python\Python312\Lib\site-packages\xgboost\sklearn.py:1125: UserWarning: [19:33:32] WARNING: C:\actions-runner\_work\xgboost\xgboost\src\c_api\c_api.cc:1509: Unknown file format: `xgb`. Using UBJSON (`ubj`) as a guess.
+  self.get_booster().load_model(fname)

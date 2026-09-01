@@ -1,0 +1,22 @@
+INFO:     127.0.0.1:59542 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59462 - "GET /api/v1/controller/exceptions?category=nonexistent_category HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:59462 - "GET /api/v1/controller/transactions?limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56286 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56994 - "GET /api/v1/controller/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53477 - "GET /api/v1/controller/funnel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53478 - "GET /api/v1/controller/cash-position HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53479 - "GET /api/v1/controller/source-health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63638 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62234 - "GET /api/v1/controller/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62235 - "GET /api/v1/controller/funnel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62236 - "GET /api/v1/controller/cash-position HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62237 - "GET /api/v1/controller/source-health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62238 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62239 - "GET /api/v1/controller/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56947 - "GET /api/v1/controller/transactions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50960 - "GET /api/v1/runs?limit=5 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50961 - "GET /api/v1/controller/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50962 - "GET /api/v1/controller/exceptions?limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50963 - "GET /api/v1/controller/transactions?limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63426 - "GET /runs?limit=5 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63427 - "GET /api/v1/runs?limit=5 HTTP/1.1" 404 Not Found

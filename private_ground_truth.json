@@ -1,0 +1,1002 @@
+{
+  "EVAL_TXN_0000": {
+    "logical_id": "EVAL_TXN_0000",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0000",
+    "ledger_id": "EVAL_LD_0000",
+    "bank_id": "EVAL_BK_0000",
+    "expected_outcome": "exact_match",
+    "amount": "33974",
+    "timestamp": "2026-08-31T00:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0001": {
+    "logical_id": "EVAL_TXN_0001",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0001",
+    "ledger_id": "EVAL_LD_0001",
+    "bank_id": "EVAL_BK_0001",
+    "expected_outcome": "exact_match",
+    "amount": "13932",
+    "timestamp": "2026-08-29T03:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0002": {
+    "logical_id": "EVAL_TXN_0002",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0002",
+    "ledger_id": "EVAL_LD_0002",
+    "bank_id": "EVAL_BK_0002",
+    "expected_outcome": "exact_match",
+    "amount": "12092",
+    "timestamp": "2026-08-28T23:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0003": {
+    "logical_id": "EVAL_TXN_0003",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0003",
+    "ledger_id": "EVAL_LD_0003",
+    "bank_id": "EVAL_BK_0003",
+    "expected_outcome": "exact_match",
+    "amount": "24308",
+    "timestamp": "2026-08-30T15:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0004": {
+    "logical_id": "EVAL_TXN_0004",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0004",
+    "ledger_id": "EVAL_LD_0004",
+    "bank_id": "EVAL_BK_0004",
+    "expected_outcome": "exact_match",
+    "amount": "27909",
+    "timestamp": "2026-09-01T12:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0005": {
+    "logical_id": "EVAL_TXN_0005",
+    "scenario": "amount_mismatch_gw_ledger",
+    "gateway_id": "EVAL_GW_0005",
+    "ledger_id": "EVAL_LD_0005",
+    "bank_id": "EVAL_BK_0005",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "13681",
+    "timestamp": "2026-08-30T13:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0006": {
+    "logical_id": "EVAL_TXN_0006",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0006",
+    "ledger_id": "EVAL_LD_0006",
+    "bank_id": "EVAL_BK_0006",
+    "expected_outcome": "exact_match",
+    "amount": "4644",
+    "timestamp": "2026-08-29T17:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0007": {
+    "logical_id": "EVAL_TXN_0007",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0007",
+    "ledger_id": "EVAL_LD_0007",
+    "bank_id": "EVAL_BK_0007",
+    "expected_outcome": "exact_match",
+    "amount": "46869",
+    "timestamp": "2026-09-01T04:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0008": {
+    "logical_id": "EVAL_TXN_0008",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0008",
+    "ledger_id": "EVAL_LD_0008",
+    "bank_id": "EVAL_BK_0008",
+    "expected_outcome": "exact_match",
+    "amount": "14381",
+    "timestamp": "2026-09-01T09:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0009": {
+    "logical_id": "EVAL_TXN_0009",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0009",
+    "ledger_id": "EVAL_LD_0009",
+    "bank_id": "EVAL_BK_0009",
+    "expected_outcome": "exact_match",
+    "amount": "48706",
+    "timestamp": "2026-08-29T07:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0010": {
+    "logical_id": "EVAL_TXN_0010",
+    "scenario": "tax_mismatch",
+    "gateway_id": "EVAL_GW_0010",
+    "ledger_id": "EVAL_LD_0010",
+    "bank_id": "EVAL_BK_0010",
+    "expected_outcome": "tax_mismatch_exception",
+    "amount": "7275",
+    "timestamp": "2026-08-31T07:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0011": {
+    "logical_id": "EVAL_TXN_0011",
+    "scenario": "partial_match",
+    "gateway_id": "EVAL_GW_0011",
+    "ledger_id": "EVAL_LD_0011",
+    "bank_id": "EVAL_BK_0011",
+    "expected_outcome": "partial_match_exception",
+    "amount": "44874",
+    "timestamp": "2026-09-01T13:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0012": {
+    "logical_id": "EVAL_TXN_0012",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0012",
+    "ledger_id": "EVAL_LD_0012",
+    "bank_id": "EVAL_BK_0012",
+    "expected_outcome": "exact_match",
+    "amount": "36475",
+    "timestamp": "2026-08-31T20:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0013": {
+    "logical_id": "EVAL_TXN_0013",
+    "scenario": "missing_ledger",
+    "gateway_id": "EVAL_GW_0013",
+    "ledger_id": "EVAL_LD_0013",
+    "bank_id": "EVAL_BK_0013",
+    "expected_outcome": "missing_source_exception",
+    "amount": "38264",
+    "timestamp": "2026-08-30T03:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0014": {
+    "logical_id": "EVAL_TXN_0014",
+    "scenario": "duplicate_bank",
+    "gateway_id": "EVAL_GW_0014",
+    "ledger_id": "EVAL_LD_0014",
+    "bank_id": "EVAL_BK_0014",
+    "expected_outcome": "duplicate_exception",
+    "amount": "28554",
+    "timestamp": "2026-08-30T17:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0015": {
+    "logical_id": "EVAL_TXN_0015",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0015",
+    "ledger_id": "EVAL_LD_0015",
+    "bank_id": "EVAL_BK_0015",
+    "expected_outcome": "exact_match",
+    "amount": "19163",
+    "timestamp": "2026-08-28T23:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0016": {
+    "logical_id": "EVAL_TXN_0016",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0016",
+    "ledger_id": "EVAL_LD_0016",
+    "bank_id": "EVAL_BK_0016",
+    "expected_outcome": "exact_match",
+    "amount": "49052",
+    "timestamp": "2026-08-30T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0017": {
+    "logical_id": "EVAL_TXN_0017",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0017",
+    "ledger_id": "EVAL_LD_0017",
+    "bank_id": "EVAL_BK_0017",
+    "expected_outcome": "exact_match",
+    "amount": "15771",
+    "timestamp": "2026-08-30T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0018": {
+    "logical_id": "EVAL_TXN_0018",
+    "scenario": "amount_mismatch_gw_bank",
+    "gateway_id": "EVAL_GW_0018",
+    "ledger_id": "EVAL_LD_0018",
+    "bank_id": "EVAL_BK_0018",
+    "expected_outcome": "settlement_variance_exception",
+    "amount": "28768",
+    "timestamp": "2026-08-31T23:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0019": {
+    "logical_id": "EVAL_TXN_0019",
+    "scenario": "delayed_settlement",
+    "gateway_id": "EVAL_GW_0019",
+    "ledger_id": "EVAL_LD_0019",
+    "bank_id": "EVAL_BK_0019",
+    "expected_outcome": "delayed_settlement_exception",
+    "amount": "29688",
+    "timestamp": "2026-08-18T17:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0020": {
+    "logical_id": "EVAL_TXN_0020",
+    "scenario": "amount_mismatch_gw_bank",
+    "gateway_id": "EVAL_GW_0020",
+    "ledger_id": "EVAL_LD_0020",
+    "bank_id": "EVAL_BK_0020",
+    "expected_outcome": "settlement_variance_exception",
+    "amount": "45242",
+    "timestamp": "2026-09-01T14:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0021": {
+    "logical_id": "EVAL_TXN_0021",
+    "scenario": "duplicate_gateway",
+    "gateway_id": "EVAL_GW_0021",
+    "ledger_id": "EVAL_LD_0021",
+    "bank_id": "EVAL_BK_0021",
+    "expected_outcome": "duplicate_exception",
+    "amount": "4016",
+    "timestamp": "2026-08-31T23:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0022": {
+    "logical_id": "EVAL_TXN_0022",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0022",
+    "ledger_id": "EVAL_LD_0022",
+    "bank_id": "EVAL_BK_0022",
+    "expected_outcome": "exact_match",
+    "amount": "1362",
+    "timestamp": "2026-08-31T19:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0023": {
+    "logical_id": "EVAL_TXN_0023",
+    "scenario": "missing_gateway",
+    "gateway_id": "EVAL_GW_0023",
+    "ledger_id": "EVAL_LD_0023",
+    "bank_id": "EVAL_BK_0023",
+    "expected_outcome": "missing_source_exception",
+    "amount": "23766",
+    "timestamp": "2026-08-29T12:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0024": {
+    "logical_id": "EVAL_TXN_0024",
+    "scenario": "high_value_transaction",
+    "gateway_id": "EVAL_GW_0024",
+    "ledger_id": "EVAL_LD_0024",
+    "bank_id": "EVAL_BK_0024",
+    "expected_outcome": "high_value_review_required",
+    "amount": "374666",
+    "timestamp": "2026-08-29T14:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0025": {
+    "logical_id": "EVAL_TXN_0025",
+    "scenario": "missing_bank",
+    "gateway_id": "EVAL_GW_0025",
+    "ledger_id": "EVAL_LD_0025",
+    "bank_id": "EVAL_BK_0025",
+    "expected_outcome": "missing_source_exception",
+    "amount": "4653",
+    "timestamp": "2026-08-29T02:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0026": {
+    "logical_id": "EVAL_TXN_0026",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0026",
+    "ledger_id": "EVAL_LD_0026",
+    "bank_id": "EVAL_BK_0026",
+    "expected_outcome": "exact_match",
+    "amount": "718",
+    "timestamp": "2026-08-30T22:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0027": {
+    "logical_id": "EVAL_TXN_0027",
+    "scenario": "rounding_edge_case",
+    "gateway_id": "EVAL_GW_0027",
+    "ledger_id": "EVAL_LD_0027",
+    "bank_id": "EVAL_BK_0027",
+    "expected_outcome": "exact_match",
+    "amount": "29635",
+    "timestamp": "2026-09-01T09:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0028": {
+    "logical_id": "EVAL_TXN_0028",
+    "scenario": "delayed_settlement",
+    "gateway_id": "EVAL_GW_0028",
+    "ledger_id": "EVAL_LD_0028",
+    "bank_id": "EVAL_BK_0028",
+    "expected_outcome": "delayed_settlement_exception",
+    "amount": "13913",
+    "timestamp": "2026-08-19T13:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0029": {
+    "logical_id": "EVAL_TXN_0029",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0029",
+    "ledger_id": "EVAL_LD_0029",
+    "bank_id": "EVAL_BK_0029",
+    "expected_outcome": "exact_match",
+    "amount": "15967",
+    "timestamp": "2026-08-31T00:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0030": {
+    "logical_id": "EVAL_TXN_0030",
+    "scenario": "missing_bank",
+    "gateway_id": "EVAL_GW_0030",
+    "ledger_id": "EVAL_LD_0030",
+    "bank_id": "EVAL_BK_0030",
+    "expected_outcome": "missing_source_exception",
+    "amount": "3070",
+    "timestamp": "2026-08-30T13:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0031": {
+    "logical_id": "EVAL_TXN_0031",
+    "scenario": "cross_date_boundary",
+    "gateway_id": "EVAL_GW_0031",
+    "ledger_id": "EVAL_LD_0031",
+    "bank_id": "EVAL_BK_0031",
+    "expected_outcome": "exact_match",
+    "amount": "46986",
+    "timestamp": "2026-08-30T23:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0032": {
+    "logical_id": "EVAL_TXN_0032",
+    "scenario": "fee_mismatch",
+    "gateway_id": "EVAL_GW_0032",
+    "ledger_id": "EVAL_LD_0032",
+    "bank_id": "EVAL_BK_0032",
+    "expected_outcome": "fee_mismatch_exception",
+    "amount": "42783",
+    "timestamp": "2026-08-29T12:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0033": {
+    "logical_id": "EVAL_TXN_0033",
+    "scenario": "repeated_identifiers",
+    "gateway_id": "EVAL_GW_0033",
+    "ledger_id": "EVAL_LD_0033",
+    "bank_id": "EVAL_BK_0033",
+    "expected_outcome": "exact_match",
+    "amount": "2058",
+    "timestamp": "2026-08-31T04:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0034": {
+    "logical_id": "EVAL_TXN_0034",
+    "scenario": "repeated_identifiers",
+    "gateway_id": "EVAL_GW_0034",
+    "ledger_id": "EVAL_LD_0034",
+    "bank_id": "EVAL_BK_0034",
+    "expected_outcome": "exact_match",
+    "amount": "14947",
+    "timestamp": "2026-08-29T14:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0035": {
+    "logical_id": "EVAL_TXN_0035",
+    "scenario": "same_ref_diff_amount",
+    "gateway_id": "EVAL_GW_0035",
+    "ledger_id": "EVAL_LD_0035",
+    "bank_id": "EVAL_BK_0035",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "35186",
+    "timestamp": "2026-09-01T10:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0036": {
+    "logical_id": "EVAL_TXN_0036",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0036",
+    "ledger_id": "EVAL_LD_0036",
+    "bank_id": "EVAL_BK_0036",
+    "expected_outcome": "exact_match",
+    "amount": "47847",
+    "timestamp": "2026-08-29T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0037": {
+    "logical_id": "EVAL_TXN_0037",
+    "scenario": "missing_gateway",
+    "gateway_id": "EVAL_GW_0037",
+    "ledger_id": "EVAL_LD_0037",
+    "bank_id": "EVAL_BK_0037",
+    "expected_outcome": "missing_source_exception",
+    "amount": "1787",
+    "timestamp": "2026-08-30T04:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0038": {
+    "logical_id": "EVAL_TXN_0038",
+    "scenario": "missing_bank",
+    "gateway_id": "EVAL_GW_0038",
+    "ledger_id": "EVAL_LD_0038",
+    "bank_id": "EVAL_BK_0038",
+    "expected_outcome": "missing_source_exception",
+    "amount": "43961",
+    "timestamp": "2026-08-29T01:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0039": {
+    "logical_id": "EVAL_TXN_0039",
+    "scenario": "duplicate_ledger",
+    "gateway_id": "EVAL_GW_0039",
+    "ledger_id": "EVAL_LD_0039",
+    "bank_id": "EVAL_BK_0039",
+    "expected_outcome": "exact_match",
+    "amount": "49935",
+    "timestamp": "2026-08-31T09:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0040": {
+    "logical_id": "EVAL_TXN_0040",
+    "scenario": "amount_mismatch_gw_ledger",
+    "gateway_id": "EVAL_GW_0040",
+    "ledger_id": "EVAL_LD_0040",
+    "bank_id": "EVAL_BK_0040",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "24732",
+    "timestamp": "2026-08-29T02:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0041": {
+    "logical_id": "EVAL_TXN_0041",
+    "scenario": "duplicate_gateway",
+    "gateway_id": "EVAL_GW_0041",
+    "ledger_id": "EVAL_LD_0041",
+    "bank_id": "EVAL_BK_0041",
+    "expected_outcome": "duplicate_exception",
+    "amount": "1531",
+    "timestamp": "2026-08-31T06:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0042": {
+    "logical_id": "EVAL_TXN_0042",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0042",
+    "ledger_id": "EVAL_LD_0042",
+    "bank_id": "EVAL_BK_0042",
+    "expected_outcome": "exact_match",
+    "amount": "41135",
+    "timestamp": "2026-08-29T14:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0043": {
+    "logical_id": "EVAL_TXN_0043",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0043",
+    "ledger_id": "EVAL_LD_0043",
+    "bank_id": "EVAL_BK_0043",
+    "expected_outcome": "exact_match",
+    "amount": "16457",
+    "timestamp": "2026-08-31T06:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0044": {
+    "logical_id": "EVAL_TXN_0044",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0044",
+    "ledger_id": "EVAL_LD_0044",
+    "bank_id": "EVAL_BK_0044",
+    "expected_outcome": "exact_match",
+    "amount": "44936",
+    "timestamp": "2026-08-28T15:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0045": {
+    "logical_id": "EVAL_TXN_0045",
+    "scenario": "duplicate_ledger",
+    "gateway_id": "EVAL_GW_0045",
+    "ledger_id": "EVAL_LD_0045",
+    "bank_id": "EVAL_BK_0045",
+    "expected_outcome": "exact_match",
+    "amount": "24974",
+    "timestamp": "2026-08-31T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0046": {
+    "logical_id": "EVAL_TXN_0046",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0046",
+    "ledger_id": "EVAL_LD_0046",
+    "bank_id": "EVAL_BK_0046",
+    "expected_outcome": "exact_match",
+    "amount": "36671",
+    "timestamp": "2026-08-30T04:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0047": {
+    "logical_id": "EVAL_TXN_0047",
+    "scenario": "missing_ledger",
+    "gateway_id": "EVAL_GW_0047",
+    "ledger_id": "EVAL_LD_0047",
+    "bank_id": "EVAL_BK_0047",
+    "expected_outcome": "missing_source_exception",
+    "amount": "20877",
+    "timestamp": "2026-08-31T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0048": {
+    "logical_id": "EVAL_TXN_0048",
+    "scenario": "false_positive_risk",
+    "gateway_id": "EVAL_GW_0048",
+    "ledger_id": "EVAL_LD_0048",
+    "bank_id": "EVAL_BK_0048",
+    "expected_outcome": "false_positive_risk",
+    "amount": "11622",
+    "timestamp": "2026-08-30T22:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0049": {
+    "logical_id": "EVAL_TXN_0049",
+    "scenario": "missing_ledger",
+    "gateway_id": "EVAL_GW_0049",
+    "ledger_id": "EVAL_LD_0049",
+    "bank_id": "EVAL_BK_0049",
+    "expected_outcome": "missing_source_exception",
+    "amount": "42696",
+    "timestamp": "2026-08-31T14:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0050": {
+    "logical_id": "EVAL_TXN_0050",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0050",
+    "ledger_id": "EVAL_LD_0050",
+    "bank_id": "EVAL_BK_0050",
+    "expected_outcome": "exact_match",
+    "amount": "23914",
+    "timestamp": "2026-08-28T18:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0051": {
+    "logical_id": "EVAL_TXN_0051",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0051",
+    "ledger_id": "EVAL_LD_0051",
+    "bank_id": "EVAL_BK_0051",
+    "expected_outcome": "exact_match",
+    "amount": "36273",
+    "timestamp": "2026-08-28T20:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0052": {
+    "logical_id": "EVAL_TXN_0052",
+    "scenario": "amount_mismatch_gw_bank",
+    "gateway_id": "EVAL_GW_0052",
+    "ledger_id": "EVAL_LD_0052",
+    "bank_id": "EVAL_BK_0052",
+    "expected_outcome": "settlement_variance_exception",
+    "amount": "32071",
+    "timestamp": "2026-08-31T22:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0053": {
+    "logical_id": "EVAL_TXN_0053",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0053",
+    "ledger_id": "EVAL_LD_0053",
+    "bank_id": "EVAL_BK_0053",
+    "expected_outcome": "exact_match",
+    "amount": "15221",
+    "timestamp": "2026-08-29T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0054": {
+    "logical_id": "EVAL_TXN_0054",
+    "scenario": "same_order_diff_amount",
+    "gateway_id": "EVAL_GW_0054",
+    "ledger_id": "EVAL_LD_0054",
+    "bank_id": "EVAL_BK_0054",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "38603",
+    "timestamp": "2026-08-30T16:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0055": {
+    "logical_id": "EVAL_TXN_0055",
+    "scenario": "same_order_diff_amount",
+    "gateway_id": "EVAL_GW_0055",
+    "ledger_id": "EVAL_LD_0055",
+    "bank_id": "EVAL_BK_0055",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "13328",
+    "timestamp": "2026-08-31T00:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0056": {
+    "logical_id": "EVAL_TXN_0056",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0056",
+    "ledger_id": "EVAL_LD_0056",
+    "bank_id": "EVAL_BK_0056",
+    "expected_outcome": "exact_match",
+    "amount": "22871",
+    "timestamp": "2026-08-30T02:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0057": {
+    "logical_id": "EVAL_TXN_0057",
+    "scenario": "very_small_transaction",
+    "gateway_id": "EVAL_GW_0057",
+    "ledger_id": "EVAL_LD_0057",
+    "bank_id": "EVAL_BK_0057",
+    "expected_outcome": "rounding_edge_case",
+    "amount": "63",
+    "timestamp": "2026-09-01T12:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0058": {
+    "logical_id": "EVAL_TXN_0058",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0058",
+    "ledger_id": "EVAL_LD_0058",
+    "bank_id": "EVAL_BK_0058",
+    "expected_outcome": "exact_match",
+    "amount": "5157",
+    "timestamp": "2026-08-29T16:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0059": {
+    "logical_id": "EVAL_TXN_0059",
+    "scenario": "partial_match",
+    "gateway_id": "EVAL_GW_0059",
+    "ledger_id": "EVAL_LD_0059",
+    "bank_id": "EVAL_BK_0059",
+    "expected_outcome": "partial_match_exception",
+    "amount": "26009",
+    "timestamp": "2026-08-28T15:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0060": {
+    "logical_id": "EVAL_TXN_0060",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0060",
+    "ledger_id": "EVAL_LD_0060",
+    "bank_id": "EVAL_BK_0060",
+    "expected_outcome": "exact_match",
+    "amount": "27022",
+    "timestamp": "2026-09-01T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0061": {
+    "logical_id": "EVAL_TXN_0061",
+    "scenario": "fee_mismatch",
+    "gateway_id": "EVAL_GW_0061",
+    "ledger_id": "EVAL_LD_0061",
+    "bank_id": "EVAL_BK_0061",
+    "expected_outcome": "fee_mismatch_exception",
+    "amount": "23574",
+    "timestamp": "2026-09-01T01:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0062": {
+    "logical_id": "EVAL_TXN_0062",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0062",
+    "ledger_id": "EVAL_LD_0062",
+    "bank_id": "EVAL_BK_0062",
+    "expected_outcome": "exact_match",
+    "amount": "38596",
+    "timestamp": "2026-08-28T15:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0063": {
+    "logical_id": "EVAL_TXN_0063",
+    "scenario": "partial_match",
+    "gateway_id": "EVAL_GW_0063",
+    "ledger_id": "EVAL_LD_0063",
+    "bank_id": "EVAL_BK_0063",
+    "expected_outcome": "partial_match_exception",
+    "amount": "19433",
+    "timestamp": "2026-08-31T14:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0064": {
+    "logical_id": "EVAL_TXN_0064",
+    "scenario": "missing_optional_fields",
+    "gateway_id": "EVAL_GW_0064",
+    "ledger_id": "EVAL_LD_0064",
+    "bank_id": "EVAL_BK_0064",
+    "expected_outcome": "missing_fields_exception",
+    "amount": "44891",
+    "timestamp": "2026-09-01T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0065": {
+    "logical_id": "EVAL_TXN_0065",
+    "scenario": "amount_mismatch_gw_bank",
+    "gateway_id": "EVAL_GW_0065",
+    "ledger_id": "EVAL_LD_0065",
+    "bank_id": "EVAL_BK_0065",
+    "expected_outcome": "settlement_variance_exception",
+    "amount": "6570",
+    "timestamp": "2026-08-30T02:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0066": {
+    "logical_id": "EVAL_TXN_0066",
+    "scenario": "delayed_settlement",
+    "gateway_id": "EVAL_GW_0066",
+    "ledger_id": "EVAL_LD_0066",
+    "bank_id": "EVAL_BK_0066",
+    "expected_outcome": "delayed_settlement_exception",
+    "amount": "1582",
+    "timestamp": "2026-08-22T08:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0067": {
+    "logical_id": "EVAL_TXN_0067",
+    "scenario": "missing_ledger",
+    "gateway_id": "EVAL_GW_0067",
+    "ledger_id": "EVAL_LD_0067",
+    "bank_id": "EVAL_BK_0067",
+    "expected_outcome": "missing_source_exception",
+    "amount": "48622",
+    "timestamp": "2026-08-28T15:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0068": {
+    "logical_id": "EVAL_TXN_0068",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0068",
+    "ledger_id": "EVAL_LD_0068",
+    "bank_id": "EVAL_BK_0068",
+    "expected_outcome": "exact_match",
+    "amount": "7127",
+    "timestamp": "2026-08-29T13:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0069": {
+    "logical_id": "EVAL_TXN_0069",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0069",
+    "ledger_id": "EVAL_LD_0069",
+    "bank_id": "EVAL_BK_0069",
+    "expected_outcome": "exact_match",
+    "amount": "49201",
+    "timestamp": "2026-08-29T00:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0070": {
+    "logical_id": "EVAL_TXN_0070",
+    "scenario": "near_duplicate_amounts",
+    "gateway_id": "EVAL_GW_0070",
+    "ledger_id": "EVAL_LD_0070",
+    "bank_id": "EVAL_BK_0070",
+    "expected_outcome": "exact_match",
+    "amount": "44253",
+    "timestamp": "2026-08-31T13:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0071": {
+    "logical_id": "EVAL_TXN_0071",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0071",
+    "ledger_id": "EVAL_LD_0071",
+    "bank_id": "EVAL_BK_0071",
+    "expected_outcome": "exact_match",
+    "amount": "44271",
+    "timestamp": "2026-08-31T16:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0072": {
+    "logical_id": "EVAL_TXN_0072",
+    "scenario": "fee_mismatch",
+    "gateway_id": "EVAL_GW_0072",
+    "ledger_id": "EVAL_LD_0072",
+    "bank_id": "EVAL_BK_0072",
+    "expected_outcome": "fee_mismatch_exception",
+    "amount": "10498",
+    "timestamp": "2026-08-31T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0073": {
+    "logical_id": "EVAL_TXN_0073",
+    "scenario": "missing_optional_fields",
+    "gateway_id": "EVAL_GW_0073",
+    "ledger_id": "EVAL_LD_0073",
+    "bank_id": "EVAL_BK_0073",
+    "expected_outcome": "missing_fields_exception",
+    "amount": "10847",
+    "timestamp": "2026-08-29T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0074": {
+    "logical_id": "EVAL_TXN_0074",
+    "scenario": "amount_mismatch_gw_ledger",
+    "gateway_id": "EVAL_GW_0074",
+    "ledger_id": "EVAL_LD_0074",
+    "bank_id": "EVAL_BK_0074",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "16266",
+    "timestamp": "2026-08-28T16:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0075": {
+    "logical_id": "EVAL_TXN_0075",
+    "scenario": "tax_mismatch",
+    "gateway_id": "EVAL_GW_0075",
+    "ledger_id": "EVAL_LD_0075",
+    "bank_id": "EVAL_BK_0075",
+    "expected_outcome": "tax_mismatch_exception",
+    "amount": "47937",
+    "timestamp": "2026-08-31T19:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0076": {
+    "logical_id": "EVAL_TXN_0076",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0076",
+    "ledger_id": "EVAL_LD_0076",
+    "bank_id": "EVAL_BK_0076",
+    "expected_outcome": "exact_match",
+    "amount": "9680",
+    "timestamp": "2026-08-29T23:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0077": {
+    "logical_id": "EVAL_TXN_0077",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0077",
+    "ledger_id": "EVAL_LD_0077",
+    "bank_id": "EVAL_BK_0077",
+    "expected_outcome": "exact_match",
+    "amount": "26041",
+    "timestamp": "2026-08-31T19:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0078": {
+    "logical_id": "EVAL_TXN_0078",
+    "scenario": "amount_mismatch_gw_ledger",
+    "gateway_id": "EVAL_GW_0078",
+    "ledger_id": "EVAL_LD_0078",
+    "bank_id": "EVAL_BK_0078",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "14755",
+    "timestamp": "2026-08-30T03:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0079": {
+    "logical_id": "EVAL_TXN_0079",
+    "scenario": "complex_mismatch",
+    "gateway_id": "EVAL_GW_0079",
+    "ledger_id": "EVAL_LD_0079",
+    "bank_id": "EVAL_BK_0079",
+    "expected_outcome": "complex_mismatch_exception",
+    "amount": "41814",
+    "timestamp": "2026-08-30T06:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0080": {
+    "logical_id": "EVAL_TXN_0080",
+    "scenario": "cross_date_boundary",
+    "gateway_id": "EVAL_GW_0080",
+    "ledger_id": "EVAL_LD_0080",
+    "bank_id": "EVAL_BK_0080",
+    "expected_outcome": "exact_match",
+    "amount": "27716",
+    "timestamp": "2026-09-01T03:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0081": {
+    "logical_id": "EVAL_TXN_0081",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0081",
+    "ledger_id": "EVAL_LD_0081",
+    "bank_id": "EVAL_BK_0081",
+    "expected_outcome": "exact_match",
+    "amount": "45056",
+    "timestamp": "2026-08-30T08:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0082": {
+    "logical_id": "EVAL_TXN_0082",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0082",
+    "ledger_id": "EVAL_LD_0082",
+    "bank_id": "EVAL_BK_0082",
+    "expected_outcome": "exact_match",
+    "amount": "34711",
+    "timestamp": "2026-08-30T06:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0083": {
+    "logical_id": "EVAL_TXN_0083",
+    "scenario": "duplicate_bank",
+    "gateway_id": "EVAL_GW_0083",
+    "ledger_id": "EVAL_LD_0083",
+    "bank_id": "EVAL_BK_0083",
+    "expected_outcome": "duplicate_exception",
+    "amount": "44897",
+    "timestamp": "2026-08-30T23:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0084": {
+    "logical_id": "EVAL_TXN_0084",
+    "scenario": "missing_gateway",
+    "gateway_id": "EVAL_GW_0084",
+    "ledger_id": "EVAL_LD_0084",
+    "bank_id": "EVAL_BK_0084",
+    "expected_outcome": "missing_source_exception",
+    "amount": "20066",
+    "timestamp": "2026-08-28T16:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0085": {
+    "logical_id": "EVAL_TXN_0085",
+    "scenario": "same_ref_diff_amount",
+    "gateway_id": "EVAL_GW_0085",
+    "ledger_id": "EVAL_LD_0085",
+    "bank_id": "EVAL_BK_0085",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "9517",
+    "timestamp": "2026-09-01T10:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0086": {
+    "logical_id": "EVAL_TXN_0086",
+    "scenario": "high_value_transaction",
+    "gateway_id": "EVAL_GW_0086",
+    "ledger_id": "EVAL_LD_0086",
+    "bank_id": "EVAL_BK_0086",
+    "expected_outcome": "high_value_review_required",
+    "amount": "456011",
+    "timestamp": "2026-08-29T08:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0087": {
+    "logical_id": "EVAL_TXN_0087",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0087",
+    "ledger_id": "EVAL_LD_0087",
+    "bank_id": "EVAL_BK_0087",
+    "expected_outcome": "exact_match",
+    "amount": "20956",
+    "timestamp": "2026-09-01T12:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0088": {
+    "logical_id": "EVAL_TXN_0088",
+    "scenario": "same_order_diff_amount",
+    "gateway_id": "EVAL_GW_0088",
+    "ledger_id": "EVAL_LD_0088",
+    "bank_id": "EVAL_BK_0088",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "38211",
+    "timestamp": "2026-08-30T05:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0089": {
+    "logical_id": "EVAL_TXN_0089",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0089",
+    "ledger_id": "EVAL_LD_0089",
+    "bank_id": "EVAL_BK_0089",
+    "expected_outcome": "exact_match",
+    "amount": "49673",
+    "timestamp": "2026-08-29T11:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0090": {
+    "logical_id": "EVAL_TXN_0090",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0090",
+    "ledger_id": "EVAL_LD_0090",
+    "bank_id": "EVAL_BK_0090",
+    "expected_outcome": "exact_match",
+    "amount": "37733",
+    "timestamp": "2026-08-29T17:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0091": {
+    "logical_id": "EVAL_TXN_0091",
+    "scenario": "duplicate_gateway",
+    "gateway_id": "EVAL_GW_0091",
+    "ledger_id": "EVAL_LD_0091",
+    "bank_id": "EVAL_BK_0091",
+    "expected_outcome": "duplicate_exception",
+    "amount": "46568",
+    "timestamp": "2026-08-31T03:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0092": {
+    "logical_id": "EVAL_TXN_0092",
+    "scenario": "complex_mismatch",
+    "gateway_id": "EVAL_GW_0092",
+    "ledger_id": "EVAL_LD_0092",
+    "bank_id": "EVAL_BK_0092",
+    "expected_outcome": "complex_mismatch_exception",
+    "amount": "32641",
+    "timestamp": "2026-08-28T17:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0093": {
+    "logical_id": "EVAL_TXN_0093",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0093",
+    "ledger_id": "EVAL_LD_0093",
+    "bank_id": "EVAL_BK_0093",
+    "expected_outcome": "exact_match",
+    "amount": "49542",
+    "timestamp": "2026-08-30T00:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0094": {
+    "logical_id": "EVAL_TXN_0094",
+    "scenario": "exact_match",
+    "gateway_id": "EVAL_GW_0094",
+    "ledger_id": "EVAL_LD_0094",
+    "bank_id": "EVAL_BK_0094",
+    "expected_outcome": "exact_match",
+    "amount": "7964",
+    "timestamp": "2026-08-30T10:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0095": {
+    "logical_id": "EVAL_TXN_0095",
+    "scenario": "duplicate_bank",
+    "gateway_id": "EVAL_GW_0095",
+    "ledger_id": "EVAL_LD_0095",
+    "bank_id": "EVAL_BK_0095",
+    "expected_outcome": "duplicate_exception",
+    "amount": "39792",
+    "timestamp": "2026-08-30T06:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0096": {
+    "logical_id": "EVAL_TXN_0096",
+    "scenario": "amount_mismatch_gw_ledger",
+    "gateway_id": "EVAL_GW_0096",
+    "ledger_id": "EVAL_LD_0096",
+    "bank_id": "EVAL_BK_0096",
+    "expected_outcome": "amount_mismatch_exception",
+    "amount": "49899",
+    "timestamp": "2026-09-01T10:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0097": {
+    "logical_id": "EVAL_TXN_0097",
+    "scenario": "amount_mismatch_gw_bank",
+    "gateway_id": "EVAL_GW_0097",
+    "ledger_id": "EVAL_LD_0097",
+    "bank_id": "EVAL_BK_0097",
+    "expected_outcome": "settlement_variance_exception",
+    "amount": "30652",
+    "timestamp": "2026-08-28T18:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0098": {
+    "logical_id": "EVAL_TXN_0098",
+    "scenario": "false_positive_risk",
+    "gateway_id": "EVAL_GW_0098",
+    "ledger_id": "EVAL_LD_0098",
+    "bank_id": "EVAL_BK_0098",
+    "expected_outcome": "false_positive_risk",
+    "amount": "4705",
+    "timestamp": "2026-09-01T03:38:28.593171+00:00"
+  },
+  "EVAL_TXN_0099": {
+    "logical_id": "EVAL_TXN_0099",
+    "scenario": "very_small_transaction",
+    "gateway_id": "EVAL_GW_0099",
+    "ledger_id": "EVAL_LD_0099",
+    "bank_id": "EVAL_BK_0099",
+    "expected_outcome": "rounding_edge_case",
+    "amount": "98",
+    "timestamp": "2026-08-31T01:38:28.593171+00:00"
+  }
+}

@@ -1,0 +1,290 @@
+{
+  "scenario_testing": {
+    "EVAL_TXN_0000": {
+      "expected_scenario": "exact_match",
+      "expected_outcome": "exact_match",
+      "gateway_id": "EVAL_GW_0000",
+      "ledger_id": "EVAL_LD_0000",
+      "bank_id": "EVAL_BK_0000",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "UNKNOWN"
+    },
+    "EVAL_TXN_0003": {
+      "expected_scenario": "missing_optional_fields",
+      "expected_outcome": "missing_fields_exception",
+      "gateway_id": "EVAL_GW_0003",
+      "ledger_id": "EVAL_LD_0003",
+      "bank_id": "EVAL_BK_0003",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0005": {
+      "expected_scenario": "missing_ledger",
+      "expected_outcome": "missing_source_exception",
+      "gateway_id": "EVAL_GW_0005",
+      "ledger_id": "EVAL_LD_0005",
+      "bank_id": "EVAL_BK_0005",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0009": {
+      "expected_scenario": "amount_mismatch_gw_bank",
+      "expected_outcome": "settlement_variance_exception",
+      "gateway_id": "EVAL_GW_0009",
+      "ledger_id": "EVAL_LD_0009",
+      "bank_id": "EVAL_BK_0009",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0012": {
+      "expected_scenario": "duplicate_gateway",
+      "expected_outcome": "duplicate_exception",
+      "gateway_id": "EVAL_GW_0012",
+      "ledger_id": "EVAL_LD_0012",
+      "bank_id": "EVAL_BK_0012",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0013": {
+      "expected_scenario": "same_order_diff_amount",
+      "expected_outcome": "amount_mismatch_exception",
+      "gateway_id": "EVAL_GW_0013",
+      "ledger_id": "EVAL_LD_0013",
+      "bank_id": "EVAL_BK_0013",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0016": {
+      "expected_scenario": "fee_mismatch",
+      "expected_outcome": "fee_mismatch_exception",
+      "gateway_id": "EVAL_GW_0016",
+      "ledger_id": "EVAL_LD_0016",
+      "bank_id": "EVAL_BK_0016",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0018": {
+      "expected_scenario": "missing_gateway",
+      "expected_outcome": "missing_source_exception",
+      "gateway_id": "EVAL_GW_0018",
+      "ledger_id": "EVAL_LD_0018",
+      "bank_id": "EVAL_BK_0018",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0022": {
+      "expected_scenario": "complex_mismatch",
+      "expected_outcome": "complex_mismatch_exception",
+      "gateway_id": "EVAL_GW_0022",
+      "ledger_id": "EVAL_LD_0022",
+      "bank_id": "EVAL_BK_0022",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0028": {
+      "expected_scenario": "tax_mismatch",
+      "expected_outcome": "tax_mismatch_exception",
+      "gateway_id": "EVAL_GW_0028",
+      "ledger_id": "EVAL_LD_0028",
+      "bank_id": "EVAL_BK_0028",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0032": {
+      "expected_scenario": "partial_match",
+      "expected_outcome": "partial_match_exception",
+      "gateway_id": "EVAL_GW_0032",
+      "ledger_id": "EVAL_LD_0032",
+      "bank_id": "EVAL_BK_0032",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0036": {
+      "expected_scenario": "duplicate_bank",
+      "expected_outcome": "duplicate_exception",
+      "gateway_id": "EVAL_GW_0036",
+      "ledger_id": "EVAL_LD_0036",
+      "bank_id": "EVAL_BK_0036",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0040": {
+      "expected_scenario": "same_ref_diff_amount",
+      "expected_outcome": "amount_mismatch_exception",
+      "gateway_id": "EVAL_GW_0040",
+      "ledger_id": "EVAL_LD_0040",
+      "bank_id": "EVAL_BK_0040",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    },
+    "EVAL_TXN_0049": {
+      "expected_scenario": "false_positive_risk",
+      "expected_outcome": "false_positive_risk",
+      "gateway_id": "EVAL_GW_0049",
+      "ledger_id": "EVAL_LD_0049",
+      "bank_id": "EVAL_BK_0049",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "UNKNOWN"
+    },
+    "EVAL_TXN_0052": {
+      "expected_scenario": "high_value_transaction",
+      "expected_outcome": "high_value_review_required",
+      "gateway_id": "EVAL_GW_0052",
+      "ledger_id": "EVAL_LD_0052",
+      "bank_id": "EVAL_BK_0052",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "UNKNOWN"
+    },
+    "EVAL_TXN_0056": {
+      "expected_scenario": "delayed_settlement",
+      "expected_outcome": "delayed_settlement_exception",
+      "gateway_id": "EVAL_GW_0056",
+      "ledger_id": "EVAL_LD_0056",
+      "bank_id": "EVAL_BK_0056",
+      "found_in_exceptions": false,
+      "exception_details": null,
+      "assessment": "INCORRECT"
+    }
+  },
+  "data_isolation": {
+    "total_records_in_system": 691,
+    "total_logical_transactions": 330,
+    "our_batch_size": 296,
+    "isolation_issue": true,
+    "available_runs": 0,
+    "assessment": "SYSTEM AGGREGATES ALL DATA - CANNOT ISOLATE BATCH RESULTS"
+  },
+  "metrics_consistency": {
+    "overall_consistent": true,
+    "consistency_checks": {
+      "funnel_vs_summary_match_rate": {
+        "funnel_final_match_rate": 91.03,
+        "summary_match_rate": 91.03,
+        "consistent": true
+      },
+      "funnel_vs_summary_unresolved": {
+        "funnel_unresolved": 56,
+        "summary_unresolved": 56,
+        "consistent": true
+      },
+      "exception_count_consistency": {
+        "exceptions_from_endpoint": 9,
+        "unresolved_from_summary": 56,
+        "consistent": true
+      },
+      "cash_position_match": {
+        "cash_unreconciled": "866947.68626",
+        "summary_unresolved_exposure": "866947.68626",
+        "consistent": true
+      }
+    },
+    "assessment": "METRICS CONSISTENT"
+  },
+  "malformed_input_handling": {
+    "empty_records": {
+      "status_code": 200,
+      "response": {
+        "batch_id": "test_empty_records",
+        "run_id": "test_empty_records",
+        "records_received": 0,
+        "records_normalized": 0,
+        "processing_status": "COMPLETED",
+        "processing_duration_ms": 13.7,
+        "reconciliation_status": "COMPLETED",
+        "auto_matched_count": 0,
+        "ml_recovered_count": 0,
+        "manual_review_count": 0,
+        "unresolved_count": 0
+      },
+      "expected_failure": false,
+      "actually_failed": false,
+      "handled_correctly": true
+    },
+    "missing_required_fields": {
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "gateway_records",
+              0,
+              "amount"
+            ],
+            "msg": "Field required",
+            "input": {
+              "txn_id": "test"
+            }
+          }
+        ],
+        "status_code": 422
+      },
+      "expected_failure": true,
+      "actually_failed": true,
+      "handled_correctly": true
+    },
+    "invalid_amount": {
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "decimal_parsing",
+            "loc": [
+              "body",
+              "gateway_records",
+              0,
+              "amount"
+            ],
+            "msg": "Input should be a valid decimal",
+            "input": "invalid"
+          }
+        ],
+        "status_code": 422
+      },
+      "expected_failure": true,
+      "actually_failed": true,
+      "handled_correctly": true
+    },
+    "negative_amount": {
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "greater_than",
+            "loc": [
+              "body",
+              "gateway_records",
+              0,
+              "amount"
+            ],
+            "msg": "Input should be greater than 0.0",
+            "input": -100,
+            "ctx": {
+              "gt": 0.0
+            }
+          }
+        ],
+        "status_code": 422
+      },
+      "expected_failure": true,
+      "actually_failed": true,
+      "handled_correctly": true
+    }
+  }
+}
