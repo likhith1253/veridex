@@ -16,6 +16,7 @@ EXACT_TXN_REF_CONFIDENCE = Decimal("0.97")
 AMOUNT_DATE_UNIQUE_CONFIDENCE = Decimal("0.80")
 AMBIGUOUS_CONFIDENCE = Decimal("0.30")
 DATE_WINDOW_DAYS = 3
+MONEY_TOLERANCE = Decimal("0.01")
 
 
 class DeterministicMatcher:
@@ -114,10 +115,23 @@ class DeterministicMatcher:
             if b.currency != g.currency:
                 continue
 
-            # Check amount consistency - allow mismatches but track them
-            gw_ld_match = (l.amount == g.amount)
+            # Check financial consistency - identifiers establish identity, not reconciliation.
+            gw_ld_match = self._money_equal(l.amount, g.amount)
             expected_bank = calculate_expected_bank_amount(g)
-            gw_bk_match = (b.amount == g.amount) or (expected_bank is not None and b.amount == expected_bank)
+            gw_bk_match = (expected_bank is not None and self._money_equal(b.amount, expected_bank))
+            expected_fee_rate = Decimal("0.015") if g.amount >= Decimal("100000") else Decimal("0.02")
+            expected_fee = g.amount * expected_fee_rate
+            expected_tax = expected_fee * Decimal("0.18")
+            fee_tax_valid = (
+                g.fee is not None
+                and g.tax is not None
+                and self._money_equal(g.fee, expected_fee)
+                and self._money_equal(g.tax, expected_tax)
+            )
+            g_ts = g.timestamp.replace(tzinfo=None) if g.timestamp.tzinfo else g.timestamp
+            b_ts = b.timestamp.replace(tzinfo=None) if b.timestamp.tzinfo else b.timestamp
+            settlement_days = abs((b_ts - g_ts).total_seconds()) / 86400
+            settlement_timing_valid = settlement_days <= DATE_WINDOW_DAYS
             
             # If amounts don't match at all, still match but with lower confidence
             # This allows detection of amount_mismatch exceptions
@@ -125,10 +139,10 @@ class DeterministicMatcher:
                 # All amounts differ - match with low confidence for exception detection
                 confidence = Decimal("0.75")
                 reason = f"3-way identifier match with amount differences: {g.order_id or g.reference_number}"
-            elif not gw_ld_match or not gw_bk_match:
+            elif not gw_ld_match or not gw_bk_match or not fee_tax_valid or not settlement_timing_valid:
                 # Partial amount mismatch - match with medium confidence
                 confidence = Decimal("0.85")
-                reason = f"3-way identifier match with partial amount difference: {g.order_id or g.reference_number}"
+                reason = f"3-way identifier match with financial validation difference: {g.order_id or g.reference_number}"
             else:
                 # All amounts match - high confidence
                 confidence = EXACT_3WAY_CONFIDENCE
@@ -146,6 +160,10 @@ class DeterministicMatcher:
                 "gateway_amount": str(g.amount),
                 "ledger_amount": str(l.amount),
                 "bank_amount": str(b.amount),
+                "expected_bank": str(expected_bank) if expected_bank is not None else None,
+                "fee_tax_valid": fee_tax_valid,
+                "settlement_timing_valid": settlement_timing_valid,
+                "settlement_days": settlement_days,
                 "sources": ["gateway", "ledger", "bank"],
                 "three_way_match": True,
             }
@@ -333,6 +351,13 @@ class DeterministicMatcher:
             has_amount_mismatch = len(amounts) > 1
 
             if len(txns) == 2:
+                gateway_txns = [t for t in txns if t.source == TransactionSource.GATEWAY]
+                bank_txns = [t for t in txns if t.source == TransactionSource.BANK]
+                if has_amount_mismatch and gateway_txns and bank_txns:
+                    expected_bank = calculate_expected_bank_amount(gateway_txns[0])
+                    if expected_bank is None or not self._money_equal(bank_txns[0].amount, expected_bank):
+                        continue
+
                 txn_ids = [t.txn_id for t in txns]
                 match_key = tuple(sorted(txn_ids))
                 if match_key not in self.matched_combinations and not any(t in self.matched_txn_ids for t in txn_ids):
@@ -585,6 +610,12 @@ class DeterministicMatcher:
                 )
 
         return final_results
+
+    @staticmethod
+    def _money_equal(left: Optional[Decimal], right: Optional[Decimal]) -> bool:
+        if left is None or right is None:
+            return False
+        return abs(left - right) <= MONEY_TOLERANCE
 
     def _detect_ambiguity(self, candidates: list[Transaction]) -> bool:
         """Check for multiple plausible candidates."""

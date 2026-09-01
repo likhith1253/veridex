@@ -10,21 +10,42 @@ from app.models.exception_record import ExceptionRecord as ExceptionDomain, Exce
 # and ORM ExceptionCategory (database schema categories).
 _DOMAIN_TO_ORM_CATEGORY: dict[DomainExceptionCategory, ExceptionCategory] = {
     DomainExceptionCategory.DUPLICATE_ENTRY: ExceptionCategory.DUPLICATE_RECORD,
+    DomainExceptionCategory.DUPLICATE_EXCEPTION: ExceptionCategory.DUPLICATE_EXCEPTION,
     DomainExceptionCategory.FEE_MISMATCH: ExceptionCategory.AMOUNT_MISMATCH,
+    DomainExceptionCategory.FEE_MISMATCH_EXCEPTION: ExceptionCategory.FEE_MISMATCH_EXCEPTION,
+    DomainExceptionCategory.TAX_MISMATCH_EXCEPTION: ExceptionCategory.TAX_MISMATCH_EXCEPTION,
+    DomainExceptionCategory.SETTLEMENT_VARIANCE_EXCEPTION: ExceptionCategory.SETTLEMENT_VARIANCE_EXCEPTION,
+    DomainExceptionCategory.AMOUNT_MISMATCH_EXCEPTION: ExceptionCategory.AMOUNT_MISMATCH_EXCEPTION,
+    DomainExceptionCategory.PARTIAL_MATCH_EXCEPTION: ExceptionCategory.PARTIAL_MATCH_EXCEPTION,
+    DomainExceptionCategory.COMPLEX_MISMATCH_EXCEPTION: ExceptionCategory.COMPLEX_MISMATCH_EXCEPTION,
+    DomainExceptionCategory.MISSING_FIELDS_EXCEPTION: ExceptionCategory.MISSING_FIELDS_EXCEPTION,
     DomainExceptionCategory.CURRENCY_ROUNDING: ExceptionCategory.AMOUNT_MISMATCH,
     DomainExceptionCategory.PARTIAL_REFUND: ExceptionCategory.AMOUNT_MISMATCH,
     DomainExceptionCategory.DELAYED_SETTLEMENT: ExceptionCategory.TIMING_MISMATCH,
+    DomainExceptionCategory.DELAYED_SETTLEMENT_EXCEPTION: ExceptionCategory.DELAYED_SETTLEMENT_EXCEPTION,
     DomainExceptionCategory.WRONG_REFERENCE: ExceptionCategory.DATA_QUALITY,
     DomainExceptionCategory.AMBIGUOUS_MATCH: ExceptionCategory.MISSING_RECORD,
+    DomainExceptionCategory.MISSING_SOURCE: ExceptionCategory.MISSING_RECORD,
+    DomainExceptionCategory.MISSING_SOURCE_EXCEPTION: ExceptionCategory.MISSING_SOURCE_EXCEPTION,
     DomainExceptionCategory.UNEXPLAINED: ExceptionCategory.UNEXPLAINED,
 }
 
 _ORM_TO_DOMAIN_CATEGORY: dict[ExceptionCategory, DomainExceptionCategory] = {
     ExceptionCategory.DUPLICATE_RECORD: DomainExceptionCategory.DUPLICATE_ENTRY,
+    ExceptionCategory.DUPLICATE_EXCEPTION: DomainExceptionCategory.DUPLICATE_EXCEPTION,
     ExceptionCategory.AMOUNT_MISMATCH: DomainExceptionCategory.FEE_MISMATCH,
+    ExceptionCategory.AMOUNT_MISMATCH_EXCEPTION: DomainExceptionCategory.AMOUNT_MISMATCH_EXCEPTION,
+    ExceptionCategory.SETTLEMENT_VARIANCE_EXCEPTION: DomainExceptionCategory.SETTLEMENT_VARIANCE_EXCEPTION,
+    ExceptionCategory.FEE_MISMATCH_EXCEPTION: DomainExceptionCategory.FEE_MISMATCH_EXCEPTION,
+    ExceptionCategory.TAX_MISMATCH_EXCEPTION: DomainExceptionCategory.TAX_MISMATCH_EXCEPTION,
+    ExceptionCategory.PARTIAL_MATCH_EXCEPTION: DomainExceptionCategory.PARTIAL_MATCH_EXCEPTION,
+    ExceptionCategory.COMPLEX_MISMATCH_EXCEPTION: DomainExceptionCategory.COMPLEX_MISMATCH_EXCEPTION,
+    ExceptionCategory.MISSING_FIELDS_EXCEPTION: DomainExceptionCategory.MISSING_FIELDS_EXCEPTION,
     ExceptionCategory.TIMING_MISMATCH: DomainExceptionCategory.DELAYED_SETTLEMENT,
+    ExceptionCategory.DELAYED_SETTLEMENT_EXCEPTION: DomainExceptionCategory.DELAYED_SETTLEMENT_EXCEPTION,
     ExceptionCategory.DATA_QUALITY: DomainExceptionCategory.WRONG_REFERENCE,
-    ExceptionCategory.MISSING_RECORD: DomainExceptionCategory.AMBIGUOUS_MATCH,
+    ExceptionCategory.MISSING_RECORD: DomainExceptionCategory.MISSING_SOURCE,  # Updated to use MISSING_SOURCE
+    ExceptionCategory.MISSING_SOURCE_EXCEPTION: DomainExceptionCategory.MISSING_SOURCE_EXCEPTION,
     ExceptionCategory.UNEXPLAINED: DomainExceptionCategory.UNEXPLAINED,
     ExceptionCategory.UNKNOWN: DomainExceptionCategory.UNEXPLAINED,
 }
@@ -38,6 +59,9 @@ def _domain_category_to_orm(cat: DomainExceptionCategory) -> ExceptionCategory:
     for d_cat, o_cat in _DOMAIN_TO_ORM_CATEGORY.items():
         if d_cat.value == val:
             return o_cat
+    # Map MISSING_SOURCE to MISSING_RECORD for backward compatibility
+    if val == "missing_source":
+        return ExceptionCategory.MISSING_RECORD
     return ExceptionCategory.UNEXPLAINED
 
 
@@ -60,7 +84,7 @@ def domain_to_orm_exception(
         id=id,
         run_id=run_id,
         transaction_id=transaction_id,
-        exception_category=_domain_category_to_orm(domain.category),
+        exception_category=_domain_category_to_orm(domain.category).value,
         status="resolved" if is_resolved else "open",
         confidence=domain.confidence,
         financial_exposure=domain.financial_exposure,
@@ -87,4 +111,3 @@ def orm_to_domain_exception(orm: ExceptionORM) -> ExceptionDomain:
         recommended_action=orm.recommended_action,
         resolved=orm.resolved,
     )
-

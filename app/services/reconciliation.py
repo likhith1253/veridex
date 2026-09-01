@@ -15,6 +15,7 @@ from app.database.repositories import (
 from app.matching.candidate import CandidateGenerator
 from app.matching.decision import DecisionPolicy
 from app.matching.deterministic import DeterministicMatcher
+from app.matching.exception_classifier import ExceptionClassifier
 from app.matching.features import FeatureExtractor
 from app.matching.ml_scorer import MLScorer
 from app.investigation.analyzer import DeterministicAnalyzer
@@ -124,13 +125,13 @@ class ReconciliationService:
             matcher = DeterministicMatcher(transactions_by_source)
             deterministic_matches = matcher.match_all()
             
-            # Track matched transaction IDs from high-confidence deterministic matches
+            # Deterministic identity groups are reserved before ML scoring.
+            # Their confidence describes identity certainty, not financial validity.
             matched_txn_ids = set()
             high_conf_deterministic_matches = []
             for match in deterministic_matches:
-                if match.confidence >= Decimal("0.95"):
-                    matched_txn_ids.update(match.transaction_ids)
-                    high_conf_deterministic_matches.append(match)
+                matched_txn_ids.update(match.transaction_ids)
+                high_conf_deterministic_matches.append(match)
             
             # For unresolved transactions, run CandidateGenerator + MLScorer
             unresolved_txns = self._get_unresolved_transactions(persisted_txns, matched_txn_ids)
@@ -140,12 +141,10 @@ class ReconciliationService:
             
             # Combine all matches (high-confidence deterministic + ML matches + remaining fallback)
             if self.ml_scorer:
-                ml_matched_txn_ids = {tid for m in ml_matches for tid in m.transaction_ids}
-                remaining_det_matches = [
-                    m for m in deterministic_matches
-                    if m.confidence < Decimal("0.95") and not any(tid in ml_matched_txn_ids for tid in m.transaction_ids)
+                raw_all_matches = high_conf_deterministic_matches + [
+                    m for m in ml_matches
+                    if not any(tid in matched_txn_ids for tid in m.transaction_ids)
                 ]
-                raw_all_matches = high_conf_deterministic_matches + ml_matches + remaining_det_matches
             else:
                 raw_all_matches = deterministic_matches
 
@@ -179,7 +178,35 @@ class ReconciliationService:
             
             # Create exceptions for MANUAL_REVIEW, AMBIGUOUS, UNRESOLVED, REJECT
             txn_by_id_map = {txn.txn_id: txn for txns in transactions_by_source.values() for txn in txns}
-            exception_ids = await self._create_exceptions_with_ids(decisions, run_orm_id, txn_orm_ids, txn_by_id_map)
+            exception_ids = await self._create_deterministic_group_exceptions(
+                all_matches,
+                matcher.duplicates_detected,
+                run_orm_id,
+                txn_orm_ids,
+                txn_by_id_map,
+            )
+            exception_txn_ids = {tid for _, tids, _ in exception_ids for tid in tids}
+            exception_ids.extend(
+                await self._create_exceptions_with_ids(
+                    decisions,
+                    run_orm_id,
+                    txn_orm_ids,
+                    txn_by_id_map,
+                    excluded_domain_ids=exception_txn_ids,
+                )
+            )
+            
+            # Create exceptions for unmatched transactions (missing sources, etc.)
+            all_txn_ids = set(txn_orm_ids.keys())
+            matched_txn_ids = assigned_tids
+            unmatched_txn_ids = all_txn_ids - matched_txn_ids - exception_txn_ids
+            
+            if unmatched_txn_ids:
+                unmatched_exceptions = await self._create_unmatched_exceptions(
+                    unmatched_txn_ids, run_orm_id, txn_orm_ids, txn_by_id_map
+                )
+                exception_ids.extend(unmatched_exceptions)
+            
             exception_count = len(exception_ids)
             
             # Write audit events for all stages
@@ -398,14 +425,17 @@ class ReconciliationService:
                 txn2 = txn_by_id.get(match.transaction_ids[1])
                 
                 if txn1 and txn2:
-                    # For high-confidence deterministic matches, use evaluate_deterministic
-                    if match.confidence >= Decimal("0.95") and match.match_type != MatchType.PROBABLE and "ml" not in str(match.reason).lower():
-                        decision = decision_policy.evaluate_deterministic(match)
-                    else:
-                        decision = decision_policy.evaluate_ml(
-                            txn1, txn2, float(match.confidence), transactions_by_source
-                        )
-                    decisions.append(decision)
+                    # Use make_decision for all matches to apply financial consistency checks
+                    # This prevents false matches where amounts differ despite having same identifiers
+                    decision = decision_policy.make_decision(
+                        txn1, 
+                        txn2, 
+                        deterministic_result=match if match.confidence >= Decimal("0.95") else None,
+                        ml_probability=float(match.confidence),
+                        transactions_by_source=transactions_by_source
+                    )
+                    if decision:
+                        decisions.append(decision)
         
         return decisions
 
@@ -427,6 +457,7 @@ class ReconciliationService:
         run_id: str,
         txn_orm_ids: dict[str, str] | None = None,
         txn_by_id: dict[str, Transaction] | None = None,
+        excluded_domain_ids: set[str] | None = None,
     ) -> list[tuple[str, list[str], object]]:
         """Create exceptions and return (exception_id, transaction_ids, decision) tuples.
 
@@ -448,6 +479,10 @@ class ReconciliationService:
 
         results = []
         for decision in decisions:
+            if decision is None:
+                continue
+            if excluded_domain_ids and any(tid in excluded_domain_ids for tid in decision.transaction_ids):
+                continue
             if decision.action in exception_actions:
                 first_txn_id = _to_orm_id(decision.transaction_ids[0]) if decision.transaction_ids else None
                 
@@ -511,6 +546,194 @@ class ReconciliationService:
 
         return results
 
+    async def _create_deterministic_group_exceptions(
+        self,
+        matches: list[MatchResult],
+        duplicate_reports: list[dict],
+        run_id: str,
+        txn_orm_ids: dict[str, str],
+        txn_by_id: dict[str, Transaction],
+    ) -> list[tuple[str, list[str], object]]:
+        """Persist deterministic financial exceptions for associated identity groups."""
+        results: list[tuple[str, list[str], object]] = []
+        covered: set[str] = set()
+
+        for report in duplicate_reports:
+            if not str(report.get("type", "")).startswith("duplicate"):
+                continue
+            txn_ids = [tid for tid in report.get("txn_ids", []) if tid in txn_by_id]
+            txn_ids = [tid for tid in txn_ids if tid not in covered]
+            if len(txn_ids) < 2:
+                continue
+            transactions = [txn_by_id[tid] for tid in txn_ids]
+            exposure = max((t.amount for t in transactions), default=Decimal("0.00"))
+            evidence = {
+                "rule": report.get("type"),
+                "source": getattr(report.get("source"), "value", str(report.get("source"))),
+                "transaction_ids": txn_ids,
+                "reference": report.get("reference"),
+                "order_id": report.get("order_id"),
+                "amount": str(report.get("amount")) if report.get("amount") is not None else None,
+                "count": report.get("count"),
+            }
+            exception_id = await self._persist_group_exception(
+                run_id=run_id,
+                txn_ids=txn_ids,
+                txn_orm_ids=txn_orm_ids,
+                category=ExceptionCategory.DUPLICATE_EXCEPTION,
+                confidence=Decimal("0.98"),
+                exposure=exposure,
+                explanation="Duplicate source records share the same transaction identity.",
+                evidence=evidence,
+                recommended_action="flag_duplicate",
+            )
+            results.append((exception_id, txn_ids, None))
+            covered.update(txn_ids)
+
+        classifier = ExceptionClassifier()
+        for match in matches:
+            txn_ids = [tid for tid in match.transaction_ids if tid in txn_by_id and tid not in covered]
+            if len(txn_ids) < 2:
+                continue
+            transactions = [txn_by_id[tid] for tid in txn_ids]
+            classification = classifier.classify_transaction_group(transactions, match.evidence)
+            if not classification:
+                continue
+            category = classification["category"]
+            exception_id = await self._persist_group_exception(
+                run_id=run_id,
+                txn_ids=txn_ids,
+                txn_orm_ids=txn_orm_ids,
+                category=category,
+                confidence=classification["confidence"],
+                exposure=classification["financial_exposure"],
+                explanation=classification["explanation"],
+                evidence=classification["evidence"],
+                recommended_action=self._recommended_action_for_category(category),
+            )
+            results.append((exception_id, txn_ids, None))
+            covered.update(txn_ids)
+
+        return results
+
+    async def _persist_group_exception(
+        self,
+        run_id: str,
+        txn_ids: list[str],
+        txn_orm_ids: dict[str, str],
+        category: ExceptionCategory,
+        confidence: Decimal,
+        exposure: Decimal,
+        explanation: str,
+        evidence: dict,
+        recommended_action: str,
+    ) -> str:
+        first_txn_id = txn_orm_ids.get(txn_ids[0], txn_ids[0]) if txn_ids else None
+        expected_cost = (exposure * (Decimal("1.0") - confidence)).quantize(Decimal("0.01"))
+        if expected_cost == Decimal("0.00") and exposure > Decimal("0.00"):
+            expected_cost = exposure
+        exception = ExceptionRecord(
+            transaction_id=first_txn_id,
+            category=category,
+            confidence=confidence,
+            financial_exposure=exposure,
+            expected_cost=expected_cost,
+            explanation=explanation,
+            evidence=evidence,
+            recommended_action=recommended_action,
+        )
+        exception_id = await self.exception_repo.create(exception, run_id, first_txn_id)
+        for txn_id in txn_ids[1:]:
+            await self.exception_repo.add_transaction_to_exception(
+                exception_id,
+                txn_orm_ids.get(txn_id, txn_id),
+            )
+        return exception_id
+
+    @staticmethod
+    def _recommended_action_for_category(category: ExceptionCategory) -> str:
+        if category == ExceptionCategory.DUPLICATE_EXCEPTION:
+            return "flag_duplicate"
+        if category == ExceptionCategory.MISSING_SOURCE_EXCEPTION:
+            return "trace_missing_source"
+        if category in (
+            ExceptionCategory.AMOUNT_MISMATCH_EXCEPTION,
+            ExceptionCategory.SETTLEMENT_VARIANCE_EXCEPTION,
+            ExceptionCategory.FEE_MISMATCH_EXCEPTION,
+            ExceptionCategory.TAX_MISMATCH_EXCEPTION,
+            ExceptionCategory.COMPLEX_MISMATCH_EXCEPTION,
+            ExceptionCategory.PARTIAL_MATCH_EXCEPTION,
+        ):
+            return "investigate_financial_variance"
+        if category == ExceptionCategory.DELAYED_SETTLEMENT_EXCEPTION:
+            return "await_settlement_window"
+        if category == ExceptionCategory.MISSING_FIELDS_EXCEPTION:
+            return "request_source_field_backfill"
+        return "escalate_manual"
+
+    async def _create_unmatched_exceptions(
+        self,
+        unmatched_txn_ids: set[str],
+        run_id: str,
+        txn_orm_ids: dict[str, str],
+        txn_by_id: dict[str, Transaction],
+    ) -> list[tuple[str, list[str], object]]:
+        """Create exceptions for unmatched transactions (missing sources, etc.).
+        
+        Args:
+            unmatched_txn_ids: Set of domain transaction IDs that were not matched
+            run_id: Reconciliation run ORM ID
+            txn_orm_ids: Mapping from domain txn_id to ORM UUID
+            txn_by_id: Map of txn_id -> Transaction domain object
+            
+        Returns:
+            List of (exception_id, transaction_ids, decision) tuples for created exceptions.
+        """
+        results = []
+        
+        for domain_id in unmatched_txn_ids:
+            if domain_id not in txn_by_id:
+                continue
+                
+            txn = txn_by_id[domain_id]
+            orm_id = txn_orm_ids.get(domain_id, domain_id)
+            
+            # Determine exception category based on source availability
+            category = ExceptionCategory.UNEXPLAINED
+            explanation = f"Transaction {domain_id} from {txn.source.value} was not matched to any other source"
+            exposure = txn.amount
+            confidence = Decimal("0.70")
+            recommended_action = "investigate_missing_source"
+            
+            # Check if this is a missing source case
+            if txn.source == TransactionSource.GATEWAY:
+                category = ExceptionCategory.MISSING_SOURCE_EXCEPTION
+                explanation = f"Gateway transaction {domain_id} has no matching ledger or bank record"
+                recommended_action = "trace_missing_ledger_bank"
+            elif txn.source == TransactionSource.LEDGER:
+                category = ExceptionCategory.MISSING_SOURCE_EXCEPTION
+                explanation = f"Ledger transaction {domain_id} has no matching gateway or bank record"
+                recommended_action = "trace_missing_gateway_bank"
+            elif txn.source == TransactionSource.BANK:
+                category = ExceptionCategory.MISSING_SOURCE_EXCEPTION
+                explanation = f"Bank transaction {domain_id} has no matching gateway or ledger record"
+                recommended_action = "trace_missing_gateway_ledger"
+            
+            exception = ExceptionRecord(
+                transaction_id=orm_id,
+                category=category,
+                confidence=confidence,
+                financial_exposure=exposure,
+                expected_cost=exposure,
+                explanation=explanation,
+                evidence={"unmatched_transaction": {"txn_id": domain_id, "source": txn.source.value, "amount": str(txn.amount)}},
+                recommended_action=recommended_action,
+            )
+            exception_id = await self.exception_repo.create(exception, run_id, orm_id)
+            results.append((exception_id, [domain_id], None))
+        
+        return results
+
     async def _run_investigations(
         self,
         run_id: str,
@@ -530,7 +753,7 @@ class ReconciliationService:
             txn_by_id: Map of txn_id -> Transaction domain object.
         """
         for exception_id, txn_ids, decision in exception_ids:
-            if decision.action not in _INVESTIGATION_ACTIONS:
+            if decision is None or decision.action not in _INVESTIGATION_ACTIONS:
                 # REJECT is created as an exception but is not investigated.
                 continue
             transactions = [txn_by_id[tid] for tid in txn_ids if tid in txn_by_id]

@@ -63,35 +63,41 @@ async def ingest_batch_records(
 ) -> dict[str, Any]:
     """Ingest multi-source transaction batch (50+ records) and execute 3-way reconciliation."""
     from datetime import datetime, timezone
+    import traceback
 
-    def parse_items(items, src: TransactionSource) -> list[Transaction]:
-        txns = []
-        for it in items:
-            dt = datetime.fromisoformat(it.timestamp) if it.timestamp else datetime.now(timezone.utc)
-            txns.append(
-                Transaction(
-                    txn_id=it.txn_id,
-                    source=src,
-                    amount=Decimal(str(it.amount)),
-                    currency=it.currency,
-                    timestamp=dt,
-                    status=TransactionStatus.COMPLETED,
-                    order_id=it.order_id,
-                    reference_number=it.reference_number,
-                    fee=Decimal(str(it.fee)) if it.fee else None,
-                    tax=Decimal(str(it.tax)) if it.tax else None,
-                    narration=it.narration,
+    try:
+        def parse_items(items, src: TransactionSource) -> list[Transaction]:
+            txns = []
+            for it in items:
+                dt = datetime.fromisoformat(it.timestamp) if it.timestamp else datetime.now(timezone.utc)
+                txns.append(
+                    Transaction(
+                        txn_id=it.txn_id,
+                        source=src,
+                        amount=Decimal(str(it.amount)),
+                        currency=it.currency,
+                        timestamp=dt,
+                        status=TransactionStatus.COMPLETED,
+                        order_id=it.order_id,
+                        reference_number=it.reference_number,
+                        fee=Decimal(str(it.fee)) if it.fee else None,
+                        tax=Decimal(str(it.tax)) if it.tax else None,
+                        narration=it.narration,
+                    )
                 )
-            )
-        return txns
+            return txns
 
-    gw_txns = parse_items(request.gateway_records, TransactionSource.GATEWAY)
-    ld_txns = parse_items(request.ledger_records, TransactionSource.LEDGER)
-    bk_txns = parse_items(request.bank_records, TransactionSource.BANK)
+        gw_txns = parse_items(request.gateway_records, TransactionSource.GATEWAY)
+        ld_txns = parse_items(request.ledger_records, TransactionSource.LEDGER)
+        bk_txns = parse_items(request.bank_records, TransactionSource.BANK)
 
-    controller = FinanceController(session, investigation_service=investigation_service)
-    res = await controller.ingest_and_reconcile_batch(gw_txns, ld_txns, bk_txns, request.batch_id)
-    return res
+        controller = FinanceController(session, investigation_service=investigation_service)
+        res = await controller.ingest_and_reconcile_batch(gw_txns, ld_txns, bk_txns, request.batch_id)
+        return res
+    except Exception as e:
+        import logging
+        logging.error(f"Batch ingestion error: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Batch ingestion failed: {str(e)}")
 
 
 @router.post("/ingest")
@@ -179,7 +185,7 @@ async def get_reconciliation_funnel(
 @router.get("/exceptions")
 async def list_exceptions(
     status: Optional[Literal["open", "investigating", "resolved", "approved", "rejected", "escalated"]] = Query(None, description="Exception lifecycle status filter"),
-    category: Optional[Literal["amount_mismatch", "missing_ledger", "missing_bank", "delayed_settlement", "duplicate_transaction", "duplicate_entry", "fee_discrepancy", "timing_difference", "unmatched_settlement", "currency_mismatch", "unrecognized"]] = Query(None, description="Exception root-cause category filter"),
+    category: Optional[str] = Query(None, description="Exception root-cause category filter"),
     min_exposure: Optional[Decimal] = Query(None, ge=Decimal("0.0"), description="Minimum financial exposure filter"),
     max_exposure: Optional[Decimal] = Query(None, ge=Decimal("0.0"), description="Maximum financial exposure filter"),
     transaction_id: Optional[str] = Query(None),
@@ -189,25 +195,83 @@ async def list_exceptions(
     session: AsyncSession = Depends(get_db_session),
 ) -> dict[str, Any]:
     """Query exceptions with multi-criteria filtering and pagination."""
+    import traceback
     from app.services.exception_management_service import ExceptionManagementService
-    service = ExceptionManagementService(session)
+    try:
+        service = ExceptionManagementService(session)
 
-    items, total_count = await service.list_exceptions(
-        status=status,
-        category=category,
-        min_exposure=min_exposure,
-        max_exposure=max_exposure,
-        transaction_id=transaction_id,
-        run_id=run_id,
-        page=page,
-        page_size=page_size,
-    )
-    return {
-        "page": page,
-        "page_size": page_size,
-        "total_count": total_count,
-        "exceptions": items,
-    }
+        items, total_count = await service.list_exceptions(
+            status=status,
+            category=category,
+            min_exposure=min_exposure,
+            max_exposure=max_exposure,
+            transaction_id=transaction_id,
+            run_id=run_id,
+            page=page,
+            page_size=page_size,
+        )
+        return {
+            "page": page,
+            "page_size": page_size,
+            "total_count": total_count,
+            "exceptions": items,
+        }
+    except Exception as e:
+        import logging
+        logging.error(f"Exception list error: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to list exceptions: {str(e)}")
+
+
+@router.get("/transactions")
+async def list_transactions(
+    run_id: Optional[str] = Query(None, description="Reconciliation Run ID filter"),
+    limit: int = Query(100, ge=1, le=1000),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """List transactions, optionally scoped by reconciliation run."""
+    from sqlalchemy import select
+    from app.database.models import ReconciliationItem as ReconciliationItemORM
+    from app.database.models import ReconciliationRun as ReconciliationRunORM
+    from app.database.models import Transaction as TransactionORM
+
+    stmt = select(TransactionORM)
+    effective_run_id = run_id
+    if run_id:
+        run_res = await session.execute(
+            select(ReconciliationRunORM).where(
+                (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+            )
+        )
+        run_obj = run_res.scalar_one_or_none()
+        if run_obj:
+            effective_run_id = run_obj.id
+            item_res = await session.execute(
+                select(ReconciliationItemORM.transaction_id).where(ReconciliationItemORM.run_id == run_obj.id)
+            )
+            txn_ids = list(item_res.scalars().all())
+            stmt = stmt.where(TransactionORM.id.in_(txn_ids)) if txn_ids else stmt.where(False)
+        else:
+            stmt = stmt.where(False)
+
+    res = await session.execute(stmt.order_by(TransactionORM.created_at.desc()).limit(limit))
+    transactions = []
+    for txn in res.scalars().all():
+        transactions.append({
+            "id": txn.id,
+            "run_id": effective_run_id,
+            "domain_transaction_id": txn.domain_transaction_id,
+            "source": txn.source.value if hasattr(txn.source, "value") else str(txn.source),
+            "reference_number": txn.reference_number,
+            "order_id": txn.order_id,
+            "amount": str(txn.amount),
+            "currency": txn.currency,
+            "timestamp": txn.timestamp.isoformat() if txn.timestamp else None,
+            "fee": str(txn.fee) if txn.fee is not None else None,
+            "tax": str(txn.tax) if txn.tax is not None else None,
+            "status": txn.status.value if hasattr(txn.status, "value") else str(txn.status),
+        })
+
+    return {"run_id": effective_run_id, "total_count": len(transactions), "transactions": transactions}
 
 
 # 6. Exception Aging Analysis
