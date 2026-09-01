@@ -14,6 +14,7 @@ from .exception import (
 )
 from .audit import AuditEvent
 from .investigation import Investigation
+from .webhook_event import WebhookEvent
 
 __all__ = [
     "Base",
@@ -33,4 +34,5 @@ __all__ = [
     "ExceptionTransaction",
     "Investigation",
     "AuditEvent",
+    "WebhookEvent",
 ]

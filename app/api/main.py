@@ -13,8 +13,10 @@ from app.api.routes.integrations import router as integrations_router
 from app.api.routes.investigations import router as investigations_router
 from app.api.routes.reconciliation import router as reconciliation_router
 from app.api.routes.runs import router as runs_router
+from app.api.routes.webhooks import router as webhooks_router
 
 logger = logging.getLogger(__name__)
+
 
 
 def create_app() -> FastAPI:
@@ -54,12 +56,14 @@ def create_app() -> FastAPI:
 
     # 3. Register routers with global API Key auth dependency (AUD-063)
     app.include_router(health_router)
+    app.include_router(webhooks_router)
     app.include_router(controller_router, dependencies=[Depends(verify_api_key)])
     app.include_router(integrations_router, dependencies=[Depends(verify_api_key)])
     app.include_router(investigations_router, dependencies=[Depends(verify_api_key)])
     app.include_router(runs_router, dependencies=[Depends(verify_api_key)])
     app.include_router(runs_router, prefix="/api/v1", dependencies=[Depends(verify_api_key)])
     app.include_router(reconciliation_router, dependencies=[Depends(verify_api_key)])
+
 
     # 4. Structured error handlers (AUD-004, AUD-049, AUD-060, AUD-064)
     from fastapi.encoders import jsonable_encoder
