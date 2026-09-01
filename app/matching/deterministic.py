@@ -10,6 +10,7 @@ from app.models.transaction import Transaction, TransactionSource
 
 # Confidence policy constants
 EXACT_UTR_CONFIDENCE = Decimal("0.98")
+EXACT_3WAY_CONFIDENCE = Decimal("0.98")
 EXACT_ORDER_ID_CONFIDENCE = Decimal("0.95")
 EXACT_TXN_REF_CONFIDENCE = Decimal("0.97")
 AMOUNT_DATE_UNIQUE_CONFIDENCE = Decimal("0.80")
@@ -87,7 +88,7 @@ class DeterministicMatcher:
             if g.txn_id in self.matched_txn_ids:
                 continue
 
-            # 1. Find Ledger counterpart (prefer order_id, then reference_number)
+            # 1. Find Ledger by exact order_id
             matching_ledgers = []
             if g.order_id and g.order_id in ledger_by_order:
                 matching_ledgers = [l for l in ledger_by_order[g.order_id] if l.txn_id not in self.matched_txn_ids]
@@ -97,7 +98,7 @@ class DeterministicMatcher:
             if len(matching_ledgers) != 1:
                 continue
             l = matching_ledgers[0]
-            if l.currency != g.currency or l.amount != g.amount:
+            if l.currency != g.currency:
                 continue
 
             # 2. Find Bank counterpart (prefer reference_number / UTR, then order_id)
@@ -113,11 +114,25 @@ class DeterministicMatcher:
             if b.currency != g.currency:
                 continue
 
-            # Check amount consistency (exact or fee-adjusted)
+            # Check amount consistency - allow mismatches but track them
+            gw_ld_match = (l.amount == g.amount)
             expected_bank = calculate_expected_bank_amount(g)
-            amount_matches = (b.amount == g.amount) or (expected_bank is not None and b.amount == expected_bank)
-            if not amount_matches:
-                continue
+            gw_bk_match = (b.amount == g.amount) or (expected_bank is not None and b.amount == expected_bank)
+            
+            # If amounts don't match at all, still match but with lower confidence
+            # This allows detection of amount_mismatch exceptions
+            if not gw_ld_match and not gw_bk_match:
+                # All amounts differ - match with low confidence for exception detection
+                confidence = Decimal("0.75")
+                reason = f"3-way identifier match with amount differences: {g.order_id or g.reference_number}"
+            elif not gw_ld_match or not gw_bk_match:
+                # Partial amount mismatch - match with medium confidence
+                confidence = Decimal("0.85")
+                reason = f"3-way identifier match with partial amount difference: {g.order_id or g.reference_number}"
+            else:
+                # All amounts match - high confidence
+                confidence = EXACT_3WAY_CONFIDENCE
+                reason = f"Exact 3-way match (Order ID + UTR): {g.order_id or g.reference_number}"
 
             # Valid 3-way match found!
             txn_ids = [g.txn_id, l.txn_id, b.txn_id]
@@ -142,8 +157,8 @@ class DeterministicMatcher:
             results.append(
                 self._build_match_result(
                     txn_ids,
-                    EXACT_UTR_CONFIDENCE,
-                    f"Exact 3-way match: {g.order_id or g.reference_number}",
+                    confidence,
+                    reason,
                     evidence,
                 )
             )
@@ -188,10 +203,14 @@ class DeterministicMatcher:
                         )
                     )
             elif len(amounts) > 1:
+                # Different amounts with same reference - this is an amount mismatch exception
+                # Only match if it's a legitimate fee adjustment (gateway-bank pair)
                 gateway_txns = [t for t in txns if t.source == TransactionSource.GATEWAY]
                 bank_txns = [t for t in txns if t.source == TransactionSource.BANK]
+                ledger_txns = [t for t in txns if t.source == TransactionSource.LEDGER]
 
-                if gateway_txns and bank_txns:
+                # Only allow fee adjustment for gateway-bank pairs
+                if gateway_txns and bank_txns and not ledger_txns:
                     for gateway_txn in gateway_txns:
                         if gateway_txn.txn_id in self.matched_txn_ids:
                             continue
@@ -219,11 +238,16 @@ class DeterministicMatcher:
                                             },
                                         )
                                     )
+                # If amounts don't match even with fee adjustment, or if ledger is involved, don't match - let it become an exception
 
         return results
 
     def _match_by_order_id(self) -> list[MatchResult]:
-        """Match gateway↔ledger by exact order ID."""
+        """Match gateway↔ledger by exact order ID.
+        
+        Match even when amounts differ - the decision engine will flag amount mismatches as exceptions.
+        This allows the system to detect amount_mismatch scenarios instead of treating them as missing records.
+        """
         results = []
         gateway_txns = self.transactions_by_source.get(TransactionSource.GATEWAY, [])
         ledger_txns = self.transactions_by_source.get(TransactionSource.LEDGER, [])
@@ -252,19 +276,39 @@ class DeterministicMatcher:
                         if match_key not in self.matched_combinations and not any(t in self.matched_txn_ids for t in txn_ids):
                             self.matched_combinations.add(match_key)
                             self.matched_txn_ids.update(txn_ids)
+                            
+                            # Use high confidence if amounts match, lower confidence if they differ
+                            if g_txn.amount == l_txn.amount:
+                                confidence = EXACT_ORDER_ID_CONFIDENCE
+                                reason = f"Exact order ID match: {order_id}"
+                                evidence = {"order_id": order_id}
+                            else:
+                                confidence = Decimal("0.85")  # Lower confidence for amount mismatch
+                                reason = f"Order ID match with amount difference: {order_id}"
+                                evidence = {
+                                    "order_id": order_id,
+                                    "gateway_amount": str(g_txn.amount),
+                                    "ledger_amount": str(l_txn.amount),
+                                    "amount_difference": str(abs(g_txn.amount - l_txn.amount))
+                                }
+                            
                             results.append(
                                 self._build_match_result(
                                     txn_ids,
-                                    EXACT_ORDER_ID_CONFIDENCE,
-                                    f"Exact order ID match: {order_id}",
-                                    {"order_id": order_id},
+                                    confidence,
+                                    reason,
+                                    evidence,
                                 )
                             )
 
         return results
 
     def _match_by_txn_reference(self) -> list[MatchResult]:
-        """Match by exact transaction/reference relationship."""
+        """Match by exact transaction/reference relationship.
+        
+        Match even when amounts differ - the decision engine will flag amount mismatches as exceptions.
+        This allows the system to detect amount_mismatch scenarios instead of treating them as missing records.
+        """
         results = []
         all_transactions = []
         for txns in self.transactions_by_source.values():
@@ -284,9 +328,9 @@ class DeterministicMatcher:
             if len(currencies) > 1:
                 continue
 
+            # Remove the amount check - match even when amounts differ
             amounts = {t.amount for t in txns}
-            if len(amounts) > 1:
-                continue
+            has_amount_mismatch = len(amounts) > 1
 
             if len(txns) == 2:
                 txn_ids = [t.txn_id for t in txns]
@@ -294,12 +338,26 @@ class DeterministicMatcher:
                 if match_key not in self.matched_combinations and not any(t in self.matched_txn_ids for t in txn_ids):
                     self.matched_combinations.add(match_key)
                     self.matched_txn_ids.update(txn_ids)
+                    
+                    # Use high confidence if amounts match, lower confidence if they differ
+                    if has_amount_mismatch:
+                        confidence = Decimal("0.85")
+                        reason = f"Reference match with amount difference: {ref}"
+                        evidence = {
+                            "reference": ref,
+                            "amounts": [str(t.amount) for t in txns]
+                        }
+                    else:
+                        confidence = EXACT_TXN_REF_CONFIDENCE
+                        reason = f"Exact transaction reference match: {ref}"
+                        evidence = {"reference": ref}
+                    
                     results.append(
                         self._build_match_result(
                             txn_ids,
-                            EXACT_TXN_REF_CONFIDENCE,
-                            f"Exact transaction reference match: {ref}",
-                            {"reference": ref},
+                            confidence,
+                            reason,
+                            evidence,
                         )
                     )
             elif len(txns) > 2:
@@ -345,6 +403,48 @@ class DeterministicMatcher:
                 and c.txn_id not in self.matched_txn_ids
                 and not any(c.txn_id in combo for combo in self.matched_combinations)
             ]
+
+            if not candidates:
+                continue
+
+            # Filter out candidates that share order_id or reference_number but have different amounts
+            # These should be exceptions, not matches - record them for exception classification
+            filtered_candidates = []
+            potential_exceptions = []
+            for candidate in candidates:
+                # Check if they share order_id
+                if txn.order_id and candidate.order_id and txn.order_id == candidate.order_id:
+                    if txn.amount != candidate.amount:
+                        # Same order_id, different amount - record as potential exception
+                        potential_exceptions.append({
+                            "type": "amount_mismatch",
+                            "reason": "same_order_id_different_amount",
+                            "txn_id": txn.txn_id,
+                            "candidate_id": candidate.txn_id,
+                            "order_id": txn.order_id,
+                            "amount_difference": str(abs(txn.amount - candidate.amount))
+                        })
+                        continue
+                # Check if they share reference_number
+                if txn.reference_number and candidate.reference_number and txn.reference_number == candidate.reference_number:
+                    if txn.amount != candidate.amount:
+                        # Same reference, different amount - record as potential exception
+                        potential_exceptions.append({
+                            "type": "amount_mismatch",
+                            "reason": "same_reference_different_amount",
+                            "txn_id": txn.txn_id,
+                            "candidate_id": candidate.txn_id,
+                            "reference": txn.reference_number,
+                            "amount_difference": str(abs(txn.amount - candidate.amount))
+                        })
+                        continue
+                filtered_candidates.append(candidate)
+            
+            candidates = filtered_candidates
+
+            # Store potential exceptions for later classification
+            if potential_exceptions:
+                self.duplicates_detected.extend(potential_exceptions)
 
             if not candidates:
                 continue
@@ -491,8 +591,9 @@ class DeterministicMatcher:
         return len(candidates) > 1
 
     def _detect_duplicates(self) -> None:
-        """Detect duplicate records (same source + same reference + same amount)."""
+        """Detect duplicate records with multiple patterns."""
         for source, txns in self.transactions_by_source.items():
+            # Pattern 1: Same source + same reference + same amount (original)
             ref_amount_groups = defaultdict(list)
             for txn in txns:
                 if txn.reference_number:
@@ -503,6 +604,7 @@ class DeterministicMatcher:
                 if len(group) > 1:
                     self.duplicates_detected.append(
                         {
+                            "type": "duplicate_exact",
                             "source": key[0],
                             "reference": key[1],
                             "amount": key[2],
@@ -510,6 +612,50 @@ class DeterministicMatcher:
                             "txn_ids": [t.txn_id for t in group],
                         }
                     )
+            
+            # Pattern 2: Same source + same reference + different amount
+            ref_groups = defaultdict(list)
+            for txn in txns:
+                if txn.reference_number:
+                    key = (txn.source, txn.reference_number)
+                    ref_groups[key].append(txn)
+            
+            for key, group in ref_groups.items():
+                if len(group) > 1:
+                    amounts = {t.amount for t in group}
+                    if len(amounts) > 1:
+                        self.duplicates_detected.append(
+                            {
+                                "type": "duplicate_amount_mismatch",
+                                "source": key[0],
+                                "reference": key[1],
+                                "amounts": [str(a) for a in amounts],
+                                "count": len(group),
+                                "txn_ids": [t.txn_id for t in group],
+                            }
+                        )
+            
+            # Pattern 3: Same source + same order_id + different amount
+            order_groups = defaultdict(list)
+            for txn in txns:
+                if txn.order_id:
+                    key = (txn.source, txn.order_id)
+                    order_groups[key].append(txn)
+            
+            for key, group in order_groups.items():
+                if len(group) > 1:
+                    amounts = {t.amount for t in group}
+                    if len(amounts) > 1:
+                        self.duplicates_detected.append(
+                            {
+                                "type": "duplicate_order_amount_mismatch",
+                                "source": key[0],
+                                "order_id": key[1],
+                                "amounts": [str(a) for a in amounts],
+                                "count": len(group),
+                                "txn_ids": [t.txn_id for t in group],
+                            }
+                        )
 
     def _build_match_result(
         self,

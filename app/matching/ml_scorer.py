@@ -23,6 +23,24 @@ class TrainingExample:
 class MLScorer:
     """ML-based candidate scorer using XGBoost or Logistic Regression."""
 
+    # Fixed feature schema for consistent training/inference
+    FEATURE_SCHEMA = [
+        "abs_amount_diff",
+        "rel_amount_diff",
+        "date_diff_days",
+        "settlement_window_7d",
+        "ref_similarity",
+        "narration_similarity",
+        "currency_equal",
+        "order_id_equal",
+        "reference_equal",
+        "fee_tax_consistent",
+        "fee_tax_amount_diff",
+        "source_pair_gw_ledger",
+        "source_pair_gw_bank",
+        "source_pair_ledger_bank",
+    ]
+
     def __init__(self, model_type: str = "xgboost", artifact_path: Optional[str] = None):
         """
         Initialize ML scorer.
@@ -33,6 +51,7 @@ class MLScorer:
         """
         self.model_type = model_type
         self.model = None
+        self.model_loaded = False
         self.feature_extractor = FeatureExtractor()
         self._initialize_model()
 
@@ -76,6 +95,7 @@ class MLScorer:
         
         # Train model
         self.model.fit(feature_matrix, labels)
+        self.model_loaded = True
 
     def predict(self, features: list[dict[str, float]]) -> list[float]:
         """
@@ -87,8 +107,8 @@ class MLScorer:
         Returns:
             List of probabilities in [0, 1] range
         """
-        if self.model is None:
-            raise RuntimeError("Model not trained. Call train() first.")
+        if self.model is None or not self.model_loaded:
+            raise RuntimeError("Model not loaded. Cannot perform inference without trained model.")
         
         feature_matrix = self._features_to_matrix(features)
         probabilities = self.model.predict_proba(feature_matrix)
@@ -97,12 +117,12 @@ class MLScorer:
         return [float(p[1]) for p in probabilities]
 
     def _features_to_matrix(self, features: list[dict[str, float]]) -> np.ndarray:
-        """Convert list of feature dicts to numpy matrix."""
+        """Convert list of feature dicts to numpy matrix using fixed schema."""
         if not features:
             return np.array([])
         
-        # Get feature names from first example
-        feature_names = list(features[0].keys())
+        # Use fixed feature schema for consistent ordering
+        feature_names = self.FEATURE_SCHEMA
         
         # Build matrix
         matrix = []
@@ -125,19 +145,24 @@ class MLScorer:
 
     def load(self, filepath: str) -> None:
         """Load model artifact from file."""
-        if self.model_type == "xgboost":
-            self.model = XGBClassifier(
-                max_depth=3,
-                n_estimators=50,
-                learning_rate=0.1,
-                random_state=42,
-                use_label_encoder=False,
-                eval_metric="logloss"
-            )
-            self.model.load_model(filepath)
-        else:
-            import joblib
-            self.model = joblib.load(filepath)
+        try:
+            if self.model_type == "xgboost":
+                self.model = XGBClassifier(
+                    max_depth=3,
+                    n_estimators=50,
+                    learning_rate=0.1,
+                    random_state=42,
+                    use_label_encoder=False,
+                    eval_metric="logloss"
+                )
+                self.model.load_model(filepath)
+            else:
+                import joblib
+                self.model = joblib.load(filepath)
+            self.model_loaded = True
+        except Exception as e:
+            self.model_loaded = False
+            raise RuntimeError(f"Failed to load model from {filepath}: {e}")
 
 
 class TrainingDataBuilder:

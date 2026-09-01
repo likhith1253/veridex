@@ -28,6 +28,7 @@ from app.database.models import (
     Exception as ExceptionORM,
     Match as MatchORM,
     ReconciliationRun as ReconciliationRunORM,
+    ReconciliationRunStatus,
     Transaction as TransactionORM,
 )
 from app.database.repositories.audit_repository import AuditRepository
@@ -106,16 +107,15 @@ class IncrementalReconciliationService:
             )
 
         # Ensure run record exists for foreign key integrity
-        from app.database.models import ReconciliationRun as ReconciliationRunORM, ReconciliationRunStatus
         run_check = await self.session.execute(select(ReconciliationRunORM).where(ReconciliationRunORM.id == run_id))
         if not run_check.scalars().first():
             now_dt = datetime.now(timezone.utc).replace(tzinfo=None)
             new_run = ReconciliationRunORM(
                 id=run_id,
                 run_id=run_id,
-                status=ReconciliationRunStatus.COMPLETED,
+                status="RUNNING",
                 started_at=now_dt,
-                completed_at=now_dt,
+                completed_at=None,
                 gateway_count=0,
                 ledger_count=0,
                 bank_count=0,
@@ -129,7 +129,7 @@ class IncrementalReconciliationService:
         # 2. Persist new transaction
         orm_txn_id = await self.txn_repo.create(incoming_txn)
 
-        # 3. Retrieve candidate scope from other sources within ±3 days
+        # 3. Retrieve candidate scope from other sources within ±3 days AND same run_id
         delta = timedelta(days=3)
         min_dt = incoming_txn.timestamp - delta
         max_dt = incoming_txn.timestamp + delta
@@ -138,7 +138,12 @@ class IncrementalReconciliationService:
         min_dt_naive = min_dt.replace(tzinfo=None) if min_dt.tzinfo else min_dt
         max_dt_naive = max_dt.replace(tzinfo=None) if max_dt.tzinfo else max_dt
 
-        stmt = select(TransactionORM).where(
+        # Join with reconciliation_items to enforce run isolation
+        from app.database.models import ReconciliationItem as ReconciliationItemORM
+        stmt = select(TransactionORM).join(
+            ReconciliationItemORM, TransactionORM.id == ReconciliationItemORM.transaction_id
+        ).where(
+            ReconciliationItemORM.run_id == run_id,
             TransactionORM.source != incoming_txn.source.value,
             TransactionORM.currency == incoming_txn.currency,
             TransactionORM.timestamp >= min_dt_naive,
@@ -270,6 +275,16 @@ class IncrementalReconciliationService:
                     logger.warning("Investigation invocation error: %s", ex)
 
         elapsed = (datetime.now(timezone.utc) - t0).total_seconds() * 1000
+        
+        # Update run status to COMPLETED after processing
+        run_stmt = select(ReconciliationRunORM).where(ReconciliationRunORM.id == run_id)
+        run_result = await self.session.execute(run_stmt)
+        run_obj = run_result.scalar_one_or_none()
+        if run_obj and run_obj.status == "RUNNING":
+            run_obj.status = "COMPLETED"
+            run_obj.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            await self.session.flush()
+        
         return IncrementalReconciliationResult(
             transaction_id=incoming_txn.txn_id,
             status="EXCEPTION_CREATED",

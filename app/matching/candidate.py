@@ -38,8 +38,8 @@ class CandidateGenerator:
         self, transaction: Transaction, candidates: list[Transaction]
     ) -> list[Transaction]:
         """Filter candidates with reasonable amount relationship."""
-        # For now, use a simple tolerance: amounts within 20% of each other
-        tolerance = Decimal("0.2")
+        # Use 5% tolerance for financial reconciliation (was 20% - too permissive)
+        tolerance = Decimal("0.05")
         min_amount = transaction.amount * (Decimal("1") - tolerance)
         max_amount = transaction.amount * (Decimal("1") + tolerance)
         return [c for c in candidates if min_amount <= c.amount <= max_amount]

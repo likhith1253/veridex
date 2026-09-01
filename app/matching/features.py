@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Optional
 
 from app.models.transaction import Transaction, TransactionSource
+from app.matching.financial_utils import calculate_expected_bank_amount
 
 
 class FeatureExtractor:
@@ -105,7 +106,7 @@ class FeatureExtractor:
     def _fee_tax_consistent(self, txn1: Transaction, txn2: Transaction) -> float:
         """
         Binary: 1 if gateway expected amount matches bank within tolerance.
-        expected_bank_amount = gross - fee - tax - refund
+        Uses canonical calculate_expected_bank_amount for consistency.
         """
         # Only applicable for gateway-bank pairs
         if not self._is_gateway_bank_pair(txn1, txn2):
@@ -117,10 +118,11 @@ class FeatureExtractor:
         if gateway_txn is None or bank_txn is None:
             return 0.0
         
-        # Calculate expected bank amount from gateway
-        fee = gateway_txn.fee or Decimal("0")
-        tax = gateway_txn.tax or Decimal("0")
-        expected_bank = gateway_txn.amount - fee - tax
+        # Use canonical financial calculation
+        expected_bank = calculate_expected_bank_amount(gateway_txn)
+        
+        if expected_bank is None:
+            return 0.0
         
         # Check if within 1% tolerance
         tolerance = Decimal("0.01")
@@ -130,7 +132,7 @@ class FeatureExtractor:
     def _fee_tax_amount_diff(self, txn1: Transaction, txn2: Transaction) -> float:
         """
         Numeric difference between expected and actual bank amount.
-        expected_bank_amount = gross - fee - tax - refund
+        Uses canonical calculate_expected_bank_amount for consistency.
         """
         if not self._is_gateway_bank_pair(txn1, txn2):
             return 0.0
@@ -141,9 +143,11 @@ class FeatureExtractor:
         if gateway_txn is None or bank_txn is None:
             return 0.0
         
-        fee = gateway_txn.fee or Decimal("0")
-        tax = gateway_txn.tax or Decimal("0")
-        expected_bank = gateway_txn.amount - fee - tax
+        # Use canonical financial calculation
+        expected_bank = calculate_expected_bank_amount(gateway_txn)
+        
+        if expected_bank is None:
+            return 0.0
         
         diff = abs(expected_bank - bank_txn.amount)
         return float(diff)
