@@ -124,8 +124,8 @@ export default function ReconciliationPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                {runsData.runs.map((run) => (
-                  <tr key={run.id} className="hover:bg-[#171a23] transition-colors">
+                {runsData.runs.map((run, idx) => (
+                  <tr key={run.id ? `${run.id}-${idx}` : `run-${idx}`} className="hover:bg-[#171a23] transition-colors">
                     <td className="py-3 px-3 font-bold text-zinc-100">{run.run_id}</td>
                     <td className="py-3 px-3">
                       <StatusBadge status={run.status} />
@@ -209,8 +209,8 @@ export default function ReconciliationPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                {filteredTxns.map((t) => (
-                  <tr key={t.id} className="hover:bg-[#171a23] transition-colors">
+                {filteredTxns.map((t, idx) => (
+                  <tr key={t.id ? `${t.id}-${idx}` : `txn-${idx}`} className="hover:bg-[#171a23] transition-colors">
                     <td className="py-3 px-3 font-semibold text-zinc-100">
                       <div>{t.domain_transaction_id}</div>
                       {t.reference_number && (

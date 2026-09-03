@@ -114,8 +114,8 @@ export default function ActionsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {actionsList.map((action) => (
-            <ActionCard key={action.id} action={action} />
+          {actionsList.map((action, idx) => (
+            <ActionCard key={action.id ? `${action.id}-${idx}` : `action-${idx}`} action={action} />
           ))}
         </div>
       )}

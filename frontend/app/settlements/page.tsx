@@ -92,8 +92,8 @@ export default function SettlementsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                {settlements.map((s) => (
-                  <tr key={s.settlement_id} className="hover:bg-[#171a23] transition-colors">
+                {settlements.map((s, idx) => (
+                  <tr key={s.settlement_id ? `${s.settlement_id}-${idx}` : `settlement-${idx}`} className="hover:bg-[#171a23] transition-colors">
                     <td className="py-3 px-3 font-bold text-zinc-100">{s.settlement_id}</td>
                     <td className="py-3 px-3 text-zinc-400">{s.utr || "Pending UTR"}</td>
                     <td className="py-3 px-3">

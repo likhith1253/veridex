@@ -131,8 +131,8 @@ export default function SettlementDetailPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                {linkage.payments.map((p) => (
-                  <tr key={p.payment_id} className="hover:bg-[#171a23] transition-colors">
+                {linkage.payments.map((p, idx) => (
+                  <tr key={p.payment_id ? `${p.payment_id}-${idx}` : `payment-${idx}`} className="hover:bg-[#171a23] transition-colors">
                     <td className="py-3 px-3 font-bold text-zinc-100">{p.payment_id}</td>
                     <td className="py-3 px-3 text-zinc-400">{p.order_id || "—"}</td>
                     <td className="py-3 px-3">

@@ -195,8 +195,8 @@ export default function ExceptionsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                {exceptions.map((ex) => (
-                  <tr key={ex.id} className="hover:bg-[#171a23] transition-colors">
+                {exceptions.map((ex, idx) => (
+                  <tr key={ex.id ? `${ex.id}-${idx}` : `exception-${idx}`} className="hover:bg-[#171a23] transition-colors">
                     <td className="py-3 px-3 font-semibold text-zinc-100">
                       <div>{ex.id}</div>
                       <div className="text-[10px] text-zinc-500">{ex.transaction_id}</div>

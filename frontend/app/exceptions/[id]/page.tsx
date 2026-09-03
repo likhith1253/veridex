@@ -188,7 +188,7 @@ export default function ExceptionDossierPage() {
           <div className="space-y-3">
             {dossier?.root_cause_candidates && dossier.root_cause_candidates.length > 0 ? (
               dossier.root_cause_candidates.map((rc, idx) => (
-                <div key={idx} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-2 text-xs font-mono">
+                <div key={rc.cause ? `${rc.cause}-${idx}` : `rc-${idx}`} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-2 text-xs font-mono">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-zinc-100">{(rc.cause || "UNKNOWN").replace(/_/g, " ")}</span>
                     <ConfidenceBadge confidence={rc.confidence} />
@@ -228,7 +228,7 @@ export default function ExceptionDossierPage() {
           <div className="space-y-2.5">
             {dossier?.claims && dossier.claims.length > 0 ? (
               dossier.claims.map((claim, idx) => (
-                <div key={idx} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-1.5 text-xs font-mono">
+                <div key={claim.statement ? `${claim.statement.slice(0, 20)}-${idx}` : `claim-${idx}`} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-1.5 text-xs font-mono">
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-200">{claim.statement}</span>
                     <span className={cn("text-[10px] px-1.5 py-0.2 rounded border font-semibold", claim.grounded ? "bg-emerald-950 text-emerald-400 border-emerald-800" : "bg-zinc-800 text-zinc-400 border-zinc-700")}>
