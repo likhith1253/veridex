@@ -1,30 +1,37 @@
 "use client";
 
 import React, { useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { RunBatchModal } from "../reconciliation/RunBatchModal";
 import { CopilotDrawer } from "../copilot/CopilotDrawer";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
 
+  // If viewing the public product website at root, omit AppShell
+  if (pathname === "/") {
+    return <>{children}</>;
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#090a0f] text-zinc-100">
-      {/* Sidebar Navigation */}
+    <div className="flex h-screen overflow-hidden bg-[#F7F5F0] text-[#17191C]">
+      {/* Deep Institutional Sidebar Navigation */}
       <Sidebar />
 
-      {/* Main Column */}
+      {/* Main Content Column */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Topbar */}
+        {/* Crisp Topbar */}
         <Topbar
           onOpenBatchModal={() => setIsBatchModalOpen(true)}
           onToggleCopilot={() => setIsCopilotOpen((prev) => !prev)}
         />
 
         {/* Workspace Body */}
-        <main className="flex-1 overflow-y-auto p-6 bg-[#090a0f]">
+        <main className="flex-1 overflow-y-auto p-6 bg-[#F7F5F0]">
           {children}
         </main>
       </div>

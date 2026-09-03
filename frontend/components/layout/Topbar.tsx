@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { RotateCcw, Brain, Shield } from "lucide-react";
+import { RotateCcw, Brain } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { reconciliationApi } from "@/lib/api/reconciliationApi";
@@ -32,7 +32,7 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
   const latestRunId = runsData?.runs?.[0]?.run_id;
 
   const getPageContext = (path: string): { title: string; category?: string } => {
-    if (path === "/") return { title: "Command Center", category: "Operations" };
+    if (path === "/" || path === "/app") return { title: "Command Center", category: "Operations" };
     if (path.startsWith("/exceptions/")) return { title: "Investigation Dossier", category: "Forensic Analysis" };
     if (path.startsWith("/exceptions")) return { title: "Exceptions Queue", category: "Operations" };
     if (path.startsWith("/settlements/") && path.includes("tax-audit")) return { title: "Tax Line Auditor", category: "Statutory Parity" };
@@ -59,42 +59,24 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
   const isConnected = healthData?.status === "ok" && !healthError;
 
   return (
-    <header
-      className="h-14 px-6 flex items-center justify-between gap-4 select-none"
-      style={{
-        background: "var(--surface-1)",
-        borderBottom: "1px solid var(--border-subtle)",
-      }}
-    >
+    <header className="h-14 px-6 flex items-center justify-between gap-4 select-none bg-[#FFFFFF] border-b border-[#D7D3CA]">
       {/* Context & Page Title */}
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex items-baseline gap-2">
           {pageContext.category && (
-            <span
-              className="text-[10px] uppercase font-semibold tracking-wider hidden sm:inline"
-              style={{ color: "var(--text-tertiary)" }}
-            >
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-[#6F747A] hidden sm:inline">
               {pageContext.category} /
             </span>
           )}
-          <h1
-            className="text-sm font-semibold tracking-tight text-[#eceae6] truncate"
-          >
+          <h1 className="text-sm font-semibold tracking-tight text-[#17191C] truncate">
             {pageContext.title}
           </h1>
         </div>
 
         {latestRunId && (
-          <div
-            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-xs text-[10px] font-mono truncate max-w-[220px]"
-            style={{
-              color: "var(--text-tertiary)",
-              background: "var(--surface-2)",
-              border: "1px solid var(--border-subtle)",
-            }}
-          >
-            <span>run:</span>
-            <span className="text-[#9098a2]">{latestRunId}</span>
+          <div className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-xs text-[10px] font-mono truncate max-w-[220px] text-[#555B61] bg-[#F1EFE9] border border-[#D7D3CA]">
+            <span className="text-[#6F747A]">run:</span>
+            <span className="font-semibold text-[#17191C]">{latestRunId}</span>
           </div>
         )}
       </div>
@@ -102,30 +84,23 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
       {/* Right Controls */}
       <div className="flex items-center gap-2.5">
         {/* Backend Connectivity Status */}
-        <div
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-[11px] font-mono"
-          style={{
-            color: "var(--text-secondary)",
-            background: "var(--surface-2)",
-            border: "1px solid var(--border-subtle)",
-          }}
-        >
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-[11px] font-mono text-[#555B61] bg-[#F1EFE9] border border-[#D7D3CA]">
           <span
             style={{
-              width: 5,
-              height: 5,
+              width: 6,
+              height: 6,
               borderRadius: "50%",
               display: "inline-block",
-              background: isConnected ? "var(--matched-text)" : "var(--variance-text)",
+              background: isConnected ? "#1E7B4D" : "#B83A3A",
             }}
           />
-          <span className="text-[11px]">{isConnected ? "Engine Active" : "Disconnected"}</span>
+          <span className="font-medium text-[#17191C]">{isConnected ? "Engine Active" : "Disconnected"}</span>
         </div>
 
         {/* Refresh Trigger */}
         <button
           onClick={handleRefresh}
-          className="p-1.5 rounded-xs transition-micro text-[#545e6a] hover:text-[#eceae6] hover:bg-[#181c22]"
+          className="p-1.5 rounded-xs transition-micro text-[#555B61] hover:text-[#17191C] hover:bg-[#F1EFE9] border border-transparent hover:border-[#D7D3CA]"
           title="Refresh operational telemetry"
         >
           <RotateCcw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
@@ -135,12 +110,9 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
         {onToggleCopilot && (
           <button
             onClick={onToggleCopilot}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs font-medium transition-micro text-[#9098a2] hover:text-[#eceae6] hover:bg-[#181c22]"
-            style={{
-              border: "1px solid var(--border-subtle)",
-            }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs font-medium transition-micro text-[#17191C] bg-[#FFFFFF] border border-[#D7D3CA] hover:bg-[#F1EFE9]"
           >
-            <Brain className="h-3.5 w-3.5 text-[#c9a96e]" />
+            <Brain className="h-3.5 w-3.5 text-[#C9A96E]" />
             <span>Copilot</span>
           </button>
         )}
@@ -149,13 +121,7 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
         {onOpenBatchModal && (
           <button
             onClick={onOpenBatchModal}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-semibold transition-micro"
-            style={{
-              color: "#080a0c",
-              background: "var(--accent)",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-semibold transition-micro text-[#171A1E] bg-[#C9A96E] hover:bg-[#D8BC8A] shadow-xs"
           >
             <span>Run Batch</span>
           </button>

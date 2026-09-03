@@ -1,92 +1,104 @@
-/* ── Typography ──────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+/* ── VERIDEX Institutional Financial Design System ──────────────── */
 @import "tailwindcss";
 
 :root {
-  /* ── Neutral Surfaces (70–80% graphite / charcoal / warm neutral) ── */
-  --bg:          #080a0c;
-  --surface-1:   #0e1012;
-  --surface-2:   #13161a;
-  --surface-3:   #181c22;
-  --surface-4:   #1e242c;
+  /* ─── Institutional Banking & Financial Infrastructure Palette ─────
+     Deep Charcoal Control Surface · Warm White Workspace · Deep Ink Typography · Restrained Gold
+  ─────────────────────────────────────────────────────────────────── */
 
-  /* ── Borders (Subtle, architectural, never overwhelming) ── */
-  --border-subtle:    #1a1e24;
-  --border-standard:  #222831;
-  --border-prominent: #2d3542;
+  /* Application Workspaces */
+  --bg:          #F7F5F0;       /* warm white / very light ivory background */
+  --surface-1:   #FFFFFF;       /* primary card/table/panel surface */
+  --surface-2:   #F1EFE9;       /* secondary nested panel surface */
+  --surface-3:   #E8E5DD;       /* tertiary surface / hover states */
+  --surface-4:   #DFDBD1;       /* deepest surface level */
 
-  /* ── Typography Neutrals (10–15% warm white & muted text) ── */
-  --text-primary:   #eceae6;
-  --text-secondary: #9098a2;
-  --text-tertiary:  #545e6a;
-  --text-mono:      #c4ccd6;
+  /* Borders & Dividers (Crisp, architectural, never washed out) */
+  --border-subtle:    #E2DDD3;  /* crisp subtle border */
+  --border-standard:  #D7D3CA;  /* standard structural border */
+  --border-prominent: #BDB8AE;  /* strong divider / emphasis border */
 
-  /* ── VERIDEX Gold (5–8%): Identity, Authority, Control, Selected Primary ── */
-  --accent:        #c9a96e;
-  --accent-hover:  #d8bc8a;
-  --accent-dim:    rgba(201, 169, 110, 0.09);
-  --accent-border: rgba(201, 169, 110, 0.22);
-  --accent-solid:  #c9a96e;
+  /* High-Contrast Typography (Ink over White / Ivory) */
+  --text-primary:   #17191C;    /* deep dark ink — razor-sharp readability */
+  --text-secondary: #555B61;    /* graphite secondary text */
+  --text-tertiary:  #6F747A;    /* muted institutional neutral */
+  --text-mono:      #17191C;    /* dark ink for telemetry / numbers */
 
-  /* ── Semantic State Colors (2–5% combined) ── */
-  /* Emerald: confirmed, reconciled, matched, healthy */
-  --matched:        #4da882;
-  --matched-text:   #6ecba0;
-  --matched-bg:     rgba(77, 168, 130, 0.08);
-  --matched-border: rgba(77, 168, 130, 0.20);
+  /* Deep Institutional Navigation / Control Surface */
+  --sidebar-bg:        #171A1E; /* deep institutional charcoal */
+  --sidebar-border:    #262A30;
+  --sidebar-text:      #ECEAE6;
+  --sidebar-muted:     #8E96A0;
+  --sidebar-hover:     #21252B;
+  --sidebar-active-bg: rgba(201, 169, 110, 0.12);
 
-  /* Coral: exception, discrepancy, financial variance, critical */
-  --variance:        #c05050;
-  --variance-text:   #e07070;
-  --variance-bg:     rgba(192, 80, 80, 0.08);
-  --variance-border: rgba(192, 80, 80, 0.22);
+  /* ── VERIDEX GOLD (#C9A96E / #D8BC8A / #9E7B35) ── identity · authority */
+  --accent:        #C9A96E;
+  --accent-hover:  #D8BC8A;
+  --accent-deep:   #9E7B35;     /* high contrast gold for light surfaces */
+  --accent-dim:    rgba(201, 169, 110, 0.12);
+  --accent-border: rgba(201, 169, 110, 0.35);
+  --accent-solid:  #C9A96E;
 
-  /* Amber: pending, human review, unresolved uncertainty */
-  --pending:        #b08840;
-  --pending-text:   #d4a84e;
-  --pending-bg:     rgba(176, 136, 64, 0.08);
-  --pending-border: rgba(176, 136, 64, 0.22);
+  /* ── Semantic: Restrained Deep Emerald (confirmed / reconciled / matched) */
+  --matched:        #1E7B4D;
+  --matched-text:   #16653E;
+  --matched-bg:     rgba(30, 123, 77, 0.08);
+  --matched-border: rgba(30, 123, 77, 0.25);
 
-  /* Neutral Slate for Analytical Layer & Incomplete/Unknown Evidence (NO purple/blue) */
-  --ml:        #727d8a;
-  --ml-text:   #9aa5b2;
-  --ml-bg:     rgba(114, 125, 138, 0.08);
-  --ml-border: rgba(114, 125, 138, 0.20);
+  /* ── Semantic: Restrained Brick/Coral (exception / discrepancy / variance) */
+  --variance:        #B83A3A;
+  --variance-text:   #9E2828;
+  --variance-bg:     rgba(184, 58, 58, 0.08);
+  --variance-border: rgba(184, 58, 58, 0.25);
 
-  /* Feed Lineage (Warm neutrals & muted tones) */
-  --gateway: #949da6;
-  --ledger:  #7eaa8e;
-  --bank:    #ab9f90;
+  /* ── Semantic: Warm Amber (pending / review / unresolved / uncertainty) */
+  --pending:        #9C6B19;
+  --pending-text:   #82550E;
+  --pending-bg:     rgba(156, 107, 25, 0.08);
+  --pending-border: rgba(156, 107, 25, 0.25);
+
+  /* ── Analytical layer (neutral slate) */
+  --ml:        #5C6470;
+  --ml-text:   #424954;
+  --ml-bg:     rgba(92, 100, 112, 0.08);
+  --ml-border: rgba(92, 100, 112, 0.25);
+
+  /* ── Feed lineage */
+  --gateway: #555B61;
+  --ledger:  #2D6A4F;
+  --bank:    #826A4A;
 }
 
-/* ── Tailwind theme bridge ───────────────────────────────── */
+/* ─── Tailwind v4 theme bridge ──────────────────────────────────── */
 @theme inline {
-  --color-background: var(--bg);
-  --color-surface-1:  var(--surface-1);
-  --color-surface-2:  var(--surface-2);
-  --color-surface-3:  var(--surface-3);
-  --color-surface-4:  var(--surface-4);
+  --color-background:       var(--bg);
+  --color-surface-1:        var(--surface-1);
+  --color-surface-2:        var(--surface-2);
+  --color-surface-3:        var(--surface-3);
+  --color-surface-4:        var(--surface-4);
 
   --color-border-subtle:    var(--border-subtle);
   --color-border-standard:  var(--border-standard);
   --color-border-prominent: var(--border-prominent);
 
-  --color-text-primary:   var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-tertiary:  var(--text-tertiary);
-  --color-text-mono:      var(--text-mono);
+  --color-text-primary:     var(--text-primary);
+  --color-text-secondary:   var(--text-secondary);
+  --color-text-tertiary:    var(--text-tertiary);
+  --color-text-mono:        var(--text-mono);
 
-  --color-matched:  var(--matched);
-  --color-variance: var(--variance);
-  --color-pending:  var(--pending);
-  --color-ml:       var(--ml);
-  --color-accent:   var(--accent);
-  --color-gateway:  var(--gateway);
-  --color-ledger:   var(--ledger);
-  --color-bank:     var(--bank);
+  --color-matched:          var(--matched);
+  --color-variance:         var(--variance);
+  --color-pending:          var(--pending);
+  --color-ml:               var(--ml);
+  --color-accent:           var(--accent);
+  --color-accent-deep:      var(--accent-deep);
+  --color-gateway:          var(--gateway);
+  --color-ledger:           var(--ledger);
+  --color-bank:             var(--bank);
 }
 
-/* ── Base ────────────────────────────────────────────────── */
+/* ─── Base reset ────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -101,63 +113,57 @@ html {
 body {
   background-color: var(--bg);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont,
+               'Segoe UI', Roboto, sans-serif;
+  font-size: 13.5px;
   line-height: 1.5;
   letter-spacing: -0.011em;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* ── Selective Monospace: strictly for IDs, timestamps, tabular telemetry ── */
+/* ─── Display serif for major website headlines ─────────────────── */
+.font-display {
+  font-family: var(--font-dm-serif), 'DM Serif Display', Georgia, 'Times New Roman', serif;
+}
+
+/* ─── Selective monospace: strictly for IDs, timestamps, telemetry ── */
 .font-mono,
 code,
 kbd,
 samp,
 pre {
-  font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  font-family: var(--font-jetbrains), 'JetBrains Mono', 'IBM Plex Mono',
+               'Cascadia Code', ui-monospace, monospace;
   font-feature-settings: 'ss01', 'ss02', 'zero';
 }
 
-/* Tabular figures for financial numbers */
+/* Tabular figures for all financial numbers */
 .font-tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
 }
 
-/* ── Selection ───────────────────────────────────────────── */
+/* ─── Selection ─────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(201, 169, 110, 0.20);
-  color: var(--accent-hover);
+  background: rgba(201, 169, 110, 0.22);
+  color: #17191C;
 }
 
-/* ── Scrollbar ───────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
+/* ─── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D7D3CA; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #BDB8AE; }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-standard);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-prominent);
-}
-
-/* ── Focus visible: Strict Gold focus ring (no browser blue) ─ */
+/* ─── Focus ring — strict gold, no browser blue ─────────────────── */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-/* ── Status dot ─────────────────────────────────────────── */
+/* ─── Status dots ───────────────────────────────────────────────── */
 .status-dot {
   width: 6px;
   height: 6px;
@@ -165,39 +171,28 @@ pre {
   flex-shrink: 0;
 }
 
-/* ── Motion system: Fast, precise, ZERO idle motion ───────── */
-.transition-micro {
-  transition: all 120ms ease-out;
-}
+/* ─── Motion system (IDLE = STILL, semantic only) ───────────────── */
+.transition-micro    { transition: all 120ms ease-out; }
+.transition-context  { transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1); }
+.transition-signature{ transition: all 350ms cubic-bezier(0.16, 1, 0.3, 1); }
 
-.transition-context {
-  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.transition-signature {
-  transition: all 350ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Settle animation on mount (runs ONCE then stops) */
 @keyframes nodeSettle {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-node-settle {
-  animation: nodeSettle 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: nodeSettle 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Connection line draw (runs ONCE then remains still) */
-@keyframes drawConnection {
-  from { stroke-dashoffset: 120; }
-  to   { stroke-dashoffset: 0; }
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.animate-connection {
-  stroke-dasharray: 6;
-  animation: drawConnection 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-fade-up {
+  animation: fadeSlideUp 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Minimal shimmer for skeletons during active loading only */
+/* Shimmer only during active loading */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
@@ -205,48 +200,106 @@ pre {
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--surface-2) 25%,
-    var(--surface-3) 50%,
-    var(--surface-2) 75%
+    #EDEAE2 25%,
+    #E2DDD3 50%,
+    #EDEAE2 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.8s ease-in-out infinite;
+  animation: shimmer 1.6s ease-in-out infinite;
   border-radius: 2px;
 }
 
-/* ── Reduced motion ──────────────────────────────────────── */
+/* ─── Reduced motion ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
 
-/* ── Utility: hide scrollbar but keep scroll ─────────────── */
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
+/* ─── Utilities ─────────────────────────────────────────────────── */
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
 
-/* ── VERIDEX Mark (Gold Identity Anchor) ─────────────────── */
+/* ─── VERIDEX Mark (gold identity stamp) ────────────────────────── */
 .vx-mark {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-jetbrains), 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 11px;
-  letter-spacing: 0.08em;
-  color: #080a0c;
+  letter-spacing: 0.06em;
+  color: #171A1E;
   background: var(--accent);
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 3px;
   flex-shrink: 0;
+}
+
+/* ─── Golden & Institutional Buttons ────────────────────────────── */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #171A1E;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 120ms ease-out;
+}
+.btn-gold:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #FFFFFF;
+  color: #17191C;
+  font-weight: 500;
+  font-size: 12.5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-standard);
+  cursor: pointer;
+  transition: all 120ms ease-out;
+}
+.btn-secondary:hover {
+  background: #F1EFE9;
+  border-color: var(--border-prominent);
+}
+
+/* ─── Contrast Bridge: Map dark-mode text classes to razor-sharp ink ─ */
+.text-\[\#eceae6\] {
+  color: #17191C !important;
+}
+.text-\[\#8e96a0\] {
+  color: #555B61 !important;
+}
+.text-\[\#545e6a\] {
+  color: #6F747A !important;
+}
+.bg-\[\#13161a\],
+.bg-\[\#0e1012\],
+.bg-\[\#080a0c\],
+.bg-\[\#090a0f\] {
+  background-color: #FFFFFF !important;
+}
+.bg-\[\#181c22\],
+.bg-\[\#1e242c\] {
+  background-color: #F1EFE9 !important;
+}
+.border-\[\#1a1e24\],
+.border-\[\#222831\],
+.border-\[\#2d3542\] {
+  border-color: #D7D3CA !important;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatDateTime, cn } from "@/lib/utils/formatters";
+import { formatDateTime } from "@/lib/utils/formatters";
 import type { AuditTimelineItem } from "@/types/audit";
 import {
   ShieldCheck,
@@ -10,8 +10,6 @@ import {
   FileSpreadsheet,
   AlertOctagon,
   Play,
-  Database,
-  FileText,
 } from "lucide-react";
 
 interface AuditTimelineProps {
@@ -22,13 +20,13 @@ interface AuditTimelineProps {
 export function AuditTimeline({ events, isLoading }: AuditTimelineProps) {
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4 animate-pulse">
+      <div className="space-y-4 p-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex gap-4">
-            <div className="h-6 w-6 rounded-xs skeleton" />
+            <div className="h-7 w-7 rounded-xs skeleton" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-48 skeleton" />
-              <div className="h-3 w-96 skeleton" />
+              <div className="h-5 w-48 skeleton" />
+              <div className="h-4 w-full skeleton" />
             </div>
           </div>
         ))}
@@ -38,127 +36,146 @@ export function AuditTimeline({ events, isLoading }: AuditTimelineProps) {
 
   if (!events || events.length === 0) {
     return (
-      <div className="p-8 text-center text-[#8e96a0] text-xs">
+      <div className="py-12 text-center text-[#6F747A] text-xs">
         No audit events recorded for this operational scope.
       </div>
     );
   }
 
-  const getStageIcon = (stage?: string | null, eventType?: string | null) => {
+  const getStageStyle = (stage?: string | null, eventType?: string | null) => {
     const s = (stage || eventType || "").toUpperCase();
     if (s.includes("HUMAN") || s.includes("APPROVAL")) {
-      return <UserCheck className="h-3.5 w-3.5 text-[#c9a96e]" />;
+      return {
+        icon: <UserCheck className="h-3.5 w-3.5 text-[#171A1E]" />,
+        markerBg: "#C9A96E",
+        markerBorder: "#B89658",
+        badgeBg: "rgba(201, 169, 110, 0.12)",
+        badgeText: "#8A6418",
+        badgeBorder: "rgba(201, 169, 110, 0.4)",
+      };
     }
     if (s.includes("EXECUTION") || s.includes("EXECUTE")) {
-      return <Play className="h-3.5 w-3.5 text-[#6ecba0]" />;
+      return {
+        icon: <Play className="h-3.5 w-3.5 text-[#FFFFFF]" />,
+        markerBg: "#1E7B4D",
+        markerBorder: "#16653E",
+        badgeBg: "rgba(30, 123, 77, 0.10)",
+        badgeText: "#16653E",
+        badgeBorder: "rgba(30, 123, 77, 0.3)",
+      };
     }
     if (s.includes("EXCEPTION") || s.includes("REJECT") || s.includes("FAIL")) {
-      return <AlertOctagon className="h-3.5 w-3.5 text-[#e07070]" />;
+      return {
+        icon: <AlertOctagon className="h-3.5 w-3.5 text-[#FFFFFF]" />,
+        markerBg: "#B83A3A",
+        markerBorder: "#9E2828",
+        badgeBg: "rgba(184, 58, 58, 0.10)",
+        badgeText: "#9E2828",
+        badgeBorder: "rgba(184, 58, 58, 0.3)",
+      };
     }
     if (s.includes("ML") || s.includes("INVESTIGATION") || s.includes("AI")) {
-      return <Cpu className="h-3.5 w-3.5 text-[#9aa5b2]" />;
+      return {
+        icon: <Cpu className="h-3.5 w-3.5 text-[#17191C]" />,
+        markerBg: "#E8E5DD",
+        markerBorder: "#BDB8AE",
+        badgeBg: "#F1EFE9",
+        badgeText: "#424954",
+        badgeBorder: "#D7D3CA",
+      };
     }
-    if (s.includes("RECON") || s.includes("MATCH")) {
-      return <FileSpreadsheet className="h-3.5 w-3.5 text-[#8e96a0]" />;
-    }
-    return <ShieldCheck className="h-3.5 w-3.5 text-[#8e96a0]" />;
+    return {
+      icon: <FileSpreadsheet className="h-3.5 w-3.5 text-[#17191C]" />,
+      markerBg: "#E8E5DD",
+      markerBorder: "#BDB8AE",
+      badgeBg: "#F1EFE9",
+      badgeText: "#555B61",
+      badgeBorder: "#D7D3CA",
+    };
   };
 
   return (
-    <div
-      className="relative ml-3 my-2 space-y-5 select-none"
-      style={{ borderLeft: "1px solid var(--border-subtle)" }}
-    >
+    <div className="relative pl-6 space-y-6 select-none border-l-2 border-[#D7D3CA] ml-3 my-2">
       {events.map((ev, idx) => {
         const eventKey = ev.event_id ? `${ev.event_id}-${idx}` : (ev.id ? `${ev.id}-${idx}` : `audit-ev-${idx}`);
         const eventLabel = (ev.event_type || ev.stage || "AUDIT_RECORD").replace(/_/g, " ");
         const payload = ev.details || ev.evidence;
         const hasPayload = payload && typeof payload === "object" && Object.keys(payload).length > 0;
+        const style = getStageStyle(ev.stage, ev.event_type);
 
         return (
-          <div key={eventKey} className="relative pl-6 text-xs">
-            {/* Chronological Node Marker */}
+          <div key={eventKey} className="relative group">
+            {/* Timeline Node Marker */}
             <div
-              className="absolute -left-3 top-1 flex h-6 w-6 items-center justify-center rounded-xs border"
+              className="absolute -left-[35px] top-1 flex h-6 w-6 items-center justify-center rounded-xs shadow-xs"
               style={{
-                borderColor: "var(--border-standard)",
-                background: "var(--surface-2)",
+                background: style.markerBg,
+                border: `1px solid ${style.markerBorder}`,
               }}
             >
-              {getStageIcon(ev.stage, ev.event_type)}
+              {style.icon}
             </div>
 
-            {/* Event Block (WHEN, WHO, WHAT, WHY, EVIDENCE, OUTCOME) */}
-            <div
-              className="rounded-sm border p-4 text-[#eceae6]"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--surface-1)",
-              }}
-            >
-              {/* Event Header: WHAT + WHO + WHEN */}
-              <div
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 mb-2.5"
-                style={{ borderBottom: "1px solid var(--border-subtle)" }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-xs uppercase tracking-wider text-[#eceae6]">
+            {/* Event Card (Pure white #FFFFFF, crisp border #D7D3CA) */}
+            <div className="bg-[#FFFFFF] border border-[#D7D3CA] hover:border-[#BDB8AE] rounded-xs p-4 shadow-xs transition-micro">
+              {/* Header Row: WHAT + WHO + WHEN */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-[#E2DDD3]">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-xs uppercase tracking-wider text-[#17191C]">
                     {eventLabel}
                   </span>
                   {ev.actor && (
                     <span
-                      className="text-[10px] px-2 py-0.5 rounded-xs border text-[#8e96a0]"
+                      className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-xs border"
                       style={{
-                        borderColor: "var(--border-standard)",
-                        background: "var(--surface-2)",
+                        background: style.badgeBg,
+                        color: style.badgeText,
+                        borderColor: style.badgeBorder,
                       }}
                     >
-                      WHO: <strong className="text-[#eceae6] font-mono">{ev.actor}</strong>
+                      ACTOR: {ev.actor}
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-mono text-[#545e6a]">
-                  WHEN: {ev.timestamp ? formatDateTime(ev.timestamp) : "—"}
-                </span>
+
+                <div className="text-[11px] font-mono text-[#555B61] flex items-center gap-1.5">
+                  <span className="text-[#6F747A]">WHEN:</span>
+                  <span className="font-semibold text-[#17191C]">
+                    {ev.timestamp ? formatDateTime(ev.timestamp) : "—"}
+                  </span>
+                </div>
               </div>
 
-              {/* Event Message (WHAT / WHY) */}
+              {/* Event Description (WHAT / WHY) */}
               {ev.event && (
-                <p className="text-xs text-[#eceae6] leading-relaxed mb-2">
+                <p className="text-xs text-[#17191C] leading-relaxed mb-3 font-normal">
                   {ev.event}
                 </p>
               )}
 
-              {/* Operational Anchors */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono text-[#8e96a0] pt-1">
+              {/* Anchors: TXN ID + RUN ID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono pt-1">
                 {ev.transaction_id && (
-                  <div>
-                    <span className="text-[#545e6a]">ANCHOR TXN: </span>
-                    <span className="text-[#eceae6]">{ev.transaction_id}</span>
+                  <div className="flex items-center gap-1.5 bg-[#F7F5F0] px-2.5 py-1 rounded-xs border border-[#E2DDD3]">
+                    <span className="text-[#6F747A] text-[10px] uppercase">TXN ANCHOR:</span>
+                    <span className="font-semibold text-[#17191C]">{ev.transaction_id}</span>
                   </div>
                 )}
                 {ev.run_id && (
-                  <div>
-                    <span className="text-[#545e6a]">RUN SCOPE: </span>
-                    <span className="text-[#eceae6]">{ev.run_id}</span>
+                  <div className="flex items-center gap-1.5 bg-[#F7F5F0] px-2.5 py-1 rounded-xs border border-[#E2DDD3]">
+                    <span className="text-[#6F747A] text-[10px] uppercase">RUN SCOPE:</span>
+                    <span className="font-semibold text-[#17191C]">{ev.run_id}</span>
                   </div>
                 )}
               </div>
 
-              {/* Immutable Evidence Payload */}
+              {/* Evidence Record */}
               {hasPayload && (
-                <div
-                  className="mt-3 pt-2 text-[10px] font-mono space-y-1"
-                  style={{ borderTop: "1px solid var(--border-subtle)" }}
-                >
-                  <span className="text-[#545e6a] uppercase block tracking-wider">EVIDENCE RECORD:</span>
-                  <pre
-                    className="p-2 rounded-xs border overflow-x-auto text-[10px] text-[#8e96a0]"
-                    style={{
-                      borderColor: "var(--border-subtle)",
-                      background: "var(--surface-2)",
-                    }}
-                  >
+                <div className="mt-3 pt-2.5 border-t border-[#E2DDD3]">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#6F747A] mb-1">
+                    Immutable Evidence Record
+                  </div>
+                  <pre className="p-3 rounded-xs border border-[#D7D3CA] bg-[#F7F5F0] overflow-x-auto text-[10.5px] font-mono text-[#17191C] leading-relaxed">
                     {JSON.stringify(payload, null, 2)}
                   </pre>
                 </div>

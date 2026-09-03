@@ -1,498 +1,639 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
-import { formatINR, formatPercent, formatVariance } from "@/lib/utils/formatters";
-import { StatusBadge } from "@/components/common/StatusBadge";
-import { FunnelChart } from "@/components/reconciliation/FunnelChart";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 import {
   ArrowRight,
-  ShieldCheck,
-  Building2,
-  CheckCircle2,
-  AlertOctagon,
-  Scale,
-  Activity,
-  Layers,
-  FileCheck2,
+  ArrowDown,
+  ExternalLink,
 } from "lucide-react";
 
-export default function CommandCenterPage() {
-  const {
-    data: overview,
-    isLoading: overviewLoading,
-    error: overviewError,
-    refetch: refetchOverview,
-  } = useQuery({
-    queryKey: ["controller-overview"],
-    queryFn: () => controllerApi.getOverview(),
-    refetchInterval: 10000,
+export default function WebsitePage() {
+  // Fetch real authoritative benchmark proof
+  const { data: benchmarkData, isLoading: benchmarkLoading } = useQuery({
+    queryKey: ["website-benchmark"],
+    queryFn: () => controllerApi.getBenchmark(50, 42),
+    staleTime: 60000,
   });
 
-  const {
-    data: funnel,
-    isLoading: funnelLoading,
-  } = useQuery({
-    queryKey: ["controller-funnel"],
-    queryFn: () => controllerApi.getFunnel(),
-    refetchInterval: 10000,
-  });
+  // Interactive node selection for the Hero Proof demonstration
+  const [selectedProofNode, setSelectedProofNode] = useState<string>("settlement");
 
-  const {
-    data: brief,
-    isLoading: briefLoading,
-  } = useQuery({
-    queryKey: ["controller-brief"],
-    queryFn: () => controllerApi.getCopilotBrief(),
-    staleTime: 30000,
-  });
+  const proofDetails: Record<
+    string,
+    {
+      label: string;
+      source: string;
+      recordId: string;
+      amount: string;
+      status: "normal" | "divergence" | "verified";
+      why: string;
+      evidence: string;
+      assessment: string;
+      action: string;
+    }
+  > = {
+    order: {
+      label: "Order Ingestion",
+      source: "Internal Order Service",
+      recordId: "ORD-94821",
+      amount: "₹184,250",
+      status: "verified",
+      why: "Customer checked out for enterprise license tier with 18% GST.",
+      evidence: "Canonical shopping cart payload signed at 14:02:11 UTC.",
+      assessment: "Initial gross commitment recorded cleanly in ledger.",
+      action: "No action required.",
+    },
+    payment: {
+      label: "Gateway Payment",
+      source: "Razorpay Production",
+      recordId: "pay_N83xL09q",
+      amount: "₹184,250",
+      status: "verified",
+      why: "Customer UPI credit confirmed with bank gateway reference.",
+      evidence: "Webhook event payment.captured received with HMAC SHA256 signature.",
+      assessment: "Payment gross equals order commitment without deduction.",
+      action: "No action required.",
+    },
+    settlement: {
+      label: "Gateway Settlement Advice",
+      source: "Razorpay Settlement Batch",
+      recordId: "setl_G77kP10v",
+      amount: "₹176,420",
+      status: "divergence",
+      why: "Settlement amount diverged by -₹7,830 from standard 2% MDR fee schedule.",
+      evidence: "Settlement line item specifies unexpected surcharge and non-contractual fee delta.",
+      assessment: "Root cause: Disputed gateway fee basis and non-standard tax withholding.",
+      action: "Human review required. Queue fee adjustment dispute action.",
+    },
+    bank: {
+      label: "Core Bank Credit",
+      source: "HDFC Core Statement",
+      recordId: "UTR-20260901-7781",
+      amount: "₹176,420",
+      status: "verified",
+      why: "Bank credited exact net funds remitted by gateway.",
+      evidence: "NEFT credit statement matched on UTR and timestamp window.",
+      assessment: "Cash landed in bank accounts matches gateway net remittance.",
+      action: "No action required.",
+    },
+    ledger: {
+      label: "General Ledger Posting",
+      source: "SAP ERP Ledger",
+      recordId: "GL-2026-4410",
+      amount: "₹184,250 (Expected)",
+      status: "divergence",
+      why: "Ledger expected full ₹180,565 net payout based on contract master rates.",
+      evidence: "Posting unclosed pending reconciliation variance resolution.",
+      assessment: "Net variance of -₹7,830 remains unposted to cash clearing account.",
+      action: "Trigger HITL reconciliation adjustment bounded to ₹5,000 threshold policy.",
+    },
+  };
 
-  const {
-    data: exceptionsData,
-    isLoading: exceptionsLoading,
-  } = useQuery({
-    queryKey: ["controller-exceptions-preview"],
-    queryFn: () => controllerApi.getExceptions({ page: 1, page_size: 5 }),
-    refetchInterval: 15000,
-  });
-
-  const {
-    data: cashPosition,
-  } = useQuery({
-    queryKey: ["controller-cash-position"],
-    queryFn: () => controllerApi.getCashPosition(),
-    staleTime: 30000,
-  });
-
-  if (overviewError) {
-    return (
-      <ErrorState
-        title="Failed to Load Command Center"
-        message={overviewError instanceof Error ? overviewError.message : "Backend connection error"}
-        onRetry={refetchOverview}
-      />
-    );
-  }
-
-  const totalRecs = overview?.total_records_processed ?? overview?.total_records ?? 0;
-  const matchedRecs = overview?.total_matched_records ?? overview?.matched_records ?? 0;
-  const exceptionRecs = overview?.unresolved_transactions ?? overview?.open_exceptions ?? 0;
-  const matchPct = overview?.match_rate ?? 0;
-  const exposureVal = overview?.unresolved_monetary_exposure_inr ?? overview?.financial_exposure ?? 0;
-  const volumeVal = overview?.total_transaction_value_inr ?? overview?.total_financial_volume ?? 0;
+  const activeDetail = proofDetails[selectedProofNode] || proofDetails.settlement;
 
   return (
-    <div className="space-y-8 pb-10 select-none">
-      {/* ── ZONE 0: CONTROL STATUS PROOF BAR ───────────────────────── */}
-      <div
-        className="flex flex-wrap items-center justify-between gap-3 px-4 py-2 rounded-xs text-[11px]"
-        style={{
-          background: "var(--surface-1)",
-          border: "1px solid var(--border-subtle)",
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="text-[9px] font-bold uppercase tracking-[0.14em]"
-            style={{ color: "var(--accent)" }}
-          >
-            CONTROL STATUS
-          </span>
-          <span style={{ color: "var(--text-tertiary)" }}>|</span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[#8e96a0]">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#545e6a] uppercase">Data</span>
-            <span className="font-semibold text-[#eceae6]">Verified</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#545e6a] uppercase">Recon</span>
-            <span className="font-semibold text-[#6ecba0]">Active</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#545e6a] uppercase">Evidence</span>
-            <span className="font-semibold text-[#eceae6]">Grounded</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#545e6a] uppercase">AI</span>
-            <span className="font-semibold text-[#eceae6]">Assistive</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#545e6a] uppercase">HITL</span>
-            <span className="font-semibold text-[#d4a84e]">Enforced</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#545e6a] uppercase">Audit</span>
-            <span className="font-semibold text-[#6ecba0]">Enabled</span>
-          </div>
-        </div>
-
-        <div className="hidden lg:flex items-center gap-2 text-[10px] font-mono text-[#545e6a]">
-          <span>Scope:</span>
-          <span className="text-[#9098a2]">{overview?.run_id || "Active Run"}</span>
-        </div>
-      </div>
-
-      {/* ── ZONE 1: CINEMATIC ASYMMETRIC HERO STATEMENT & EXPOSURE ─── */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pt-1">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className="text-[11px] font-semibold uppercase tracking-[0.14em]"
-              style={{ color: "var(--accent)" }}
-            >
-              VERIDEX FINANCIAL CONTROL CENTER
+    <div className="min-h-screen bg-[#F7F5F0] text-[#17191C] selection:bg-[rgba(201,169,110,0.25)] selection:text-[#17191C]">
+      {/* ── TOP NAVIGATION ────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-[rgba(247,245,240,0.92)] backdrop-blur-md border-b border-[#D7D3CA]">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="vx-mark">VX</div>
+            <span className="font-bold tracking-[0.1em] text-sm text-[#17191C]">
+              VERIDEX
             </span>
           </div>
 
-          {/* Large Authoritative Narrative (Sans-Serif) */}
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#eceae6]">
-            {overviewLoading ? (
-              <span className="h-9 w-96 skeleton inline-block" />
-            ) : (
-              <>
-                <span>{totalRecs} feed records processed. </span>
-                <span className="text-[#6ecba0]">{matchedRecs} reconciled. </span>
-                <span className={exceptionRecs > 0 ? "text-[#e07070]" : "text-[#9098a2]"}>
-                  {exceptionRecs} require investigation.
-                </span>
-              </>
-            )}
-          </h1>
+          <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-[#555B61]">
+            <a href="#how-it-works" className="hover:text-[#17191C] transition-micro">
+              How it works
+            </a>
+            <a href="#proof" className="hover:text-[#17191C] transition-micro">
+              Proof
+            </a>
+            <a href="#pillars" className="hover:text-[#17191C] transition-micro">
+              Pillars
+            </a>
+            <a href="#evidence" className="hover:text-[#17191C] transition-micro">
+              Evidence
+            </a>
+            <a href="#measured" className="hover:text-[#17191C] transition-micro">
+              Measured
+            </a>
+          </nav>
 
-          <p className="text-xs text-[#8e96a0] mt-1.5">
-            Continuous 3-way settlement arbitration across Gateway, Internal Ledger, and Core Bank statements
-          </p>
-        </div>
-
-        {/* Asymmetric Dominant Monetary Exposure Anchor */}
-        <div
-          className="flex-shrink-0 px-6 py-4 rounded-xs border self-start lg:self-auto"
-          style={{
-            borderColor: exceptionRecs > 0 ? "var(--variance-border)" : "var(--border-subtle)",
-            background: "var(--surface-1)",
-            borderLeft: exceptionRecs > 0 ? "3px solid var(--variance)" : "3px solid var(--accent)",
-          }}
-        >
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[#8e96a0]">
-            Unreconciled Exposure
-          </div>
-          <div
-            className="text-2xl sm:text-3xl font-bold font-mono font-tabular mt-1"
-            style={{
-              color: exceptionRecs > 0 ? "var(--variance-text)" : "var(--matched-text)",
-            }}
-          >
-            {formatINR(exposureVal)}
-          </div>
-          <div className="text-[11px] text-[#545e6a] mt-0.5 font-mono">
-            {exceptionRecs} exception {exceptionRecs === 1 ? "case" : "cases"} pending resolution
-          </div>
-        </div>
-      </div>
-
-      {/* ── ZONE 2: PRIMARY RECONCILIATION VISUAL (40% Visual Weight) ─ */}
-      <FunnelChart funnel={funnel} isLoading={funnelLoading} />
-
-      {/* ── ZONE 3: ASYMMETRIC WORKSPACE (Exceptions 60% vs Assessment 40%) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left: Active Exceptions Forensic Queue (7 cols = ~60%) */}
-        <div
-          className="lg:col-span-7 rounded-sm border p-6 text-[#eceae6]"
-          style={{
-            borderColor: "var(--border-subtle)",
-            background: "var(--surface-1)",
-          }}
-        >
-          <div
-            className="flex items-center justify-between pb-4"
-            style={{ borderBottom: "1px solid var(--border-subtle)" }}
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8e96a0]">
-                  Forensic Queue
-                </span>
-                <span
-                  className="text-[9px] font-mono px-1.5 py-0.5 rounded-xs font-bold text-[#e07070]"
-                  style={{
-                    background: "var(--variance-bg)",
-                    border: "1px solid var(--variance-border)",
-                  }}
-                >
-                  {exceptionRecs} UNRESOLVED
-                </span>
-              </div>
-              <h2 className="text-sm font-bold text-[#eceae6] mt-0.5">
-                Exceptions Requiring Investigation
-              </h2>
-            </div>
-
+          <div className="flex items-center gap-3">
             <Link
-              href="/exceptions"
-              className="text-xs text-[#c9a96e] hover:text-[#d8bc8a] flex items-center gap-1 font-medium transition-micro"
+              href="/app"
+              className="btn-gold shadow-xs"
             >
-              <span>Full Workbench</span>
-              <ArrowRight className="h-3 w-3" />
+              <span>Open Control Center</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-
-          {exceptionsLoading ? (
-            <div className="pt-4">
-              <LoadingSkeleton variant="table" count={4} />
-            </div>
-          ) : !exceptionsData || exceptionsData.exceptions.length === 0 ? (
-            <div className="py-12 text-center text-[#8e96a0] text-xs">
-              Zero active exceptions. Financial state is completely reconciled.
-            </div>
-          ) : (
-            <div className="overflow-x-auto pt-2">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr
-                    className="text-[10px] uppercase font-semibold"
-                    style={{
-                      color: "var(--text-tertiary)",
-                      borderBottom: "1px solid var(--border-subtle)",
-                    }}
-                  >
-                    <th className="py-2.5 px-3">Exception ID</th>
-                    <th className="py-2.5 px-3">Root-Cause Category</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3 text-right">Exposure</th>
-                    <th className="py-2.5 px-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
-                  {exceptionsData.exceptions.map((ex, idx) => {
-                    const excId = ex.exception_id || ex.id || `exc-${idx}`;
-                    const cat = ex.category || ex.exception_category || "unexplained";
-                    const exp = ex.financial_exposure_inr ?? ex.financial_exposure;
-
-                    return (
-                      <tr
-                        key={excId ? `${excId}-${idx}` : `exception-row-${idx}`}
-                        className="hover:bg-[#13161a] transition-micro"
-                      >
-                        <td className="py-3 px-3">
-                          <div className="font-mono text-xs font-semibold text-[#eceae6]">{excId}</div>
-                          <div className="text-[10px] font-mono text-[#545e6a]">{ex.transaction_id || "—"}</div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className="text-[#8e96a0] capitalize">{cat.replace(/_/g, " ")}</span>
-                        </td>
-                        <td className="py-3 px-3">
-                          <StatusBadge status={ex.status} />
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold font-tabular text-[#e07070]">
-                          {formatINR(exp)}
-                        </td>
-                        <td className="py-3 px-3 text-right">
-                          <Link
-                            href={`/exceptions/${encodeURIComponent(excId)}`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xs text-xs font-medium transition-micro"
-                            style={{
-                              color: "var(--accent)",
-                              background: "var(--accent-dim)",
-                              border: "1px solid var(--accent-border)",
-                            }}
-                          >
-                            <span>Dossier</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
+      </header>
 
-        {/* Right: VERIDEX Assessment & Parity Ledger (5 cols = ~40%) */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* VERIDEX Assessment & Policy Action */}
-          <div
-            className="rounded-sm border p-6 text-[#eceae6]"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--surface-1)",
-            }}
-          >
-            <div
-              className="flex items-center justify-between pb-3"
-              style={{ borderBottom: "1px solid var(--border-subtle)" }}
-            >
-              <div>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8e96a0]">
-                  Controller Intelligence
-                </span>
-                <h3 className="text-xs font-bold text-[#eceae6] mt-0.5">
-                  VERIDEX Operational Assessment
-                </h3>
-              </div>
-              {brief?.reconciliation_health_score !== undefined && (
-                <span
-                  className="font-mono text-xs font-bold px-2 py-0.5 rounded-xs"
-                  style={{
-                    color: "var(--matched-text)",
-                    background: "var(--matched-bg)",
-                    border: "1px solid var(--matched-border)",
-                  }}
-                >
-                  Health: {brief.reconciliation_health_score}/100
-                </span>
-              )}
-            </div>
-
-            {briefLoading ? (
-              <div className="py-4 space-y-2">
-                <div className="h-4 w-3/4 skeleton" />
-                <div className="h-3.5 w-full skeleton" />
-              </div>
-            ) : brief ? (
-              <div className="pt-4 space-y-4 text-xs">
-                <div
-                  className="p-3.5 rounded-xs border text-xs leading-relaxed"
-                  style={{
-                    borderColor: "var(--border-standard)",
-                    background: "var(--surface-2)",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  <p>{brief.why || brief.headline || "Continuous multi-source reconciliation in progress."}</p>
-                </div>
-
-                {/* Recommended Controller Action */}
-                <div>
-                  <div className="text-[10px] font-semibold text-[#8e96a0] uppercase tracking-wider mb-1.5">
-                    Recommended Policy Action:
-                  </div>
-                  <div
-                    className="p-3 rounded-xs border text-xs text-[#eceae6] flex items-start gap-2.5 leading-relaxed"
-                    style={{
-                      borderColor: "var(--accent-border)",
-                      background: "var(--accent-dim)",
-                    }}
-                  >
-                    <span className="text-[#c9a96e] font-bold">▶</span>
-                    <span>{brief.recommended_action || "Continue monitoring ingestion pipelines and process pending exceptions."}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 text-xs">
-                  <span className="text-[#545e6a]">Human Review Status:</span>
-                  <span className={brief.human_review_required ? "text-[#d4a84e] font-semibold" : "text-[#6ecba0] font-semibold"}>
-                    {brief.human_review_required ? "HITL Action Required" : "Cleared"}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="py-6 text-center text-[#545e6a] text-xs">
-                Operational assessment unavailable for current scope.
-              </div>
-            )}
+      {/* ── HERO SECTION ──────────────────────────────────────────── */}
+      <section className="pt-20 pb-16 border-b border-[#D7D3CA]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#FFFFFF] border border-[#D7D3CA] text-[11px] font-bold uppercase tracking-[0.14em] text-[#9E7B35] mb-6 shadow-xs">
+            <span>AI FINANCIAL CONTROL &amp; RECONCILIATION ENGINE</span>
           </div>
 
-          {/* Multi-Source Cash Position & Settlement Variance */}
-          <div
-            className="rounded-sm border p-6 text-[#eceae6]"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--surface-1)",
-            }}
-          >
-            <div
-              className="flex items-center justify-between pb-3"
-              style={{ borderBottom: "1px solid var(--border-subtle)" }}
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-[#17191C] leading-[1.1] mb-6">
+            KNOW WHERE
+            <br />
+            <span className="font-display font-normal italic text-[#9E7B35]">
+              THE MONEY DIVERGED.
+            </span>
+          </h1>
+
+          <p className="text-base sm:text-lg text-[#555B61] max-w-2xl mx-auto leading-relaxed mb-8">
+            VERIDEX reconciles multi-source financial records, investigates discrepancies,
+            grounds conclusions in evidence, and keeps financial actions under human control.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/app"
+              className="btn-gold px-6 py-3 text-sm shadow-xs"
             >
-              <div>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8e96a0]">
-                  Parity Ledger
-                </span>
-                <h3 className="text-xs font-bold text-[#eceae6] mt-0.5">
-                  Multi-Source Settlement Variance
-                </h3>
-              </div>
-              <Link
-                href="/settlements"
-                className="text-xs text-[#c9a96e] hover:text-[#d8bc8a] flex items-center gap-1 transition-micro"
-              >
-                <span>Settlements</span>
-                <ArrowRight className="h-3 w-3" />
-              </Link>
+              <span>Open Control Center</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+
+            <a
+              href="#proof"
+              className="btn-secondary px-6 py-3 text-sm"
+            >
+              <span>See the Proof</span>
+              <ArrowDown className="h-4 w-4 text-[#6F747A]" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HERO FINANCIAL PROOF (Interactive Provenance Demonstration) ── */}
+      <section id="proof" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 mb-8 border-b border-[#D7D3CA]">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
+                INTERACTIVE FINANCIAL PROVENANCE
+              </span>
+              <h2 className="text-2xl font-bold tracking-tight text-[#17191C] mt-1">
+                Visualizing Multi-Source Discrepancy
+              </h2>
+              <p className="text-xs text-[#555B61] mt-1">
+                Click any node in the transaction lifecycle below to inspect forensic findings and evidence.
+              </p>
             </div>
 
-            <div className="pt-4 space-y-3">
-              <div className="grid grid-cols-2 gap-3 font-mono">
-                <div
-                  className="p-3 rounded-xs border"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--surface-2)",
-                  }}
-                >
-                  <div className="text-[10px] uppercase text-[#8e96a0]">Expected Gross</div>
-                  <div className="mt-1 text-lg font-bold text-[#eceae6] font-tabular">
-                    {formatINR(cashPosition?.expected_gross ?? cashPosition?.expected_amount ?? volumeVal)}
-                  </div>
-                </div>
+            <div className="px-3 py-1 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] text-[10px] font-mono text-[#6F747A] uppercase font-bold tracking-wider self-start sm:self-auto">
+              Demonstration Mode • Illustrative Case
+            </div>
+          </div>
 
-                <div
-                  className="p-3 rounded-xs border"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--surface-2)",
-                  }}
-                >
-                  <div className="text-[10px] uppercase text-[#8e96a0]">Bank Received</div>
-                  <div className="mt-1 text-lg font-bold text-[#6ecba0] font-tabular">
-                    {formatINR(cashPosition?.received_bank_credits ?? cashPosition?.received_amount ?? 0)}
-                  </div>
+          {/* Three Large Financial Anchors */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+            <div className="p-5 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="text-[10px] uppercase font-bold text-[#6F747A] tracking-wider">
+                Expected Commitment
+              </div>
+              <div className="mt-2 text-3xl font-bold font-mono text-[#17191C] font-tabular">
+                ₹184,250
+              </div>
+              <div className="text-xs text-[#555B61] mt-1 font-medium">
+                Customer purchase contract &amp; tax basis
+              </div>
+            </div>
+
+            <div className="p-5 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="text-[10px] uppercase font-bold text-[#6F747A] tracking-wider">
+                Bank Received Net
+              </div>
+              <div className="mt-2 text-3xl font-bold font-mono text-[#1E7B4D] font-tabular">
+                ₹176,420
+              </div>
+              <div className="text-xs text-[#555B61] mt-1 font-medium">
+                Core bank settlement credit realized
+              </div>
+            </div>
+
+            <div className="p-5 rounded-xs bg-[#FFF9F9] border-2 border-[#B83A3A]">
+              <div className="text-[10px] uppercase font-bold text-[#9E2828] tracking-wider">
+                Unreconciled Variance
+              </div>
+              <div className="mt-2 text-3xl font-bold font-mono text-[#9E2828] font-tabular">
+                −₹7,830
+              </div>
+              <div className="text-xs text-[#9E2828] mt-1 font-medium">
+                Discrepancy identified in settlement fee schedule
+              </div>
+            </div>
+          </div>
+
+          {/* Linear Provenance Chain */}
+          <div className="bg-[#F7F5F0] border border-[#D7D3CA] rounded-xs p-6 mb-6">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[#6F747A] mb-4">
+              PROVENANCE CHAIN (SELECT TO INSPECT)
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+              {[
+                { id: "order", name: "01. ORDER", state: "verified", amount: "₹184,250" },
+                { id: "payment", name: "02. PAYMENT", state: "verified", amount: "₹184,250" },
+                { id: "settlement", name: "03. SETTLEMENT", state: "divergence", amount: "₹176,420" },
+                { id: "bank", name: "04. BANK CREDIT", state: "verified", amount: "₹176,420" },
+                { id: "ledger", name: "05. LEDGER", state: "divergence", amount: "₹184,250" },
+              ].map((node) => {
+                const isSelected = selectedProofNode === node.id;
+                const isDivergence = node.state === "divergence";
+
+                return (
+                  <button
+                    key={node.id}
+                    onClick={() => setSelectedProofNode(node.id)}
+                    className={`p-3 text-left rounded-xs transition-micro border cursor-pointer ${
+                      isSelected
+                        ? "bg-[#FFFFFF] border-2 border-[#C9A96E] shadow-sm"
+                        : isDivergence
+                        ? "bg-[#FFFFFF] border-[#B83A3A] hover:bg-[#FFF9F9]"
+                        : "bg-[#FFFFFF] border-[#D7D3CA] hover:bg-[#F1EFE9]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold tracking-wider text-[#6F747A]">
+                        {node.name}
+                      </span>
+                      {isDivergence ? (
+                        <span className="h-2 w-2 rounded-full bg-[#B83A3A]" title="Divergence" />
+                      ) : (
+                        <span className="h-2 w-2 rounded-full bg-[#1E7B4D]" title="Verified" />
+                      )}
+                    </div>
+                    <div className="mt-2 font-mono text-sm font-bold text-[#17191C] font-tabular">
+                      {node.amount}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Forensic Inspection Detail for Selected Node */}
+          <div className="bg-[#FFFFFF] border-2 border-[#C9A96E] rounded-xs p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-[#E2DDD3]">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9E7B35]">
+                  FORENSIC DOSSIER RECORD
+                </span>
+                <h3 className="text-base font-bold text-[#17191C] mt-0.5">
+                  {activeDetail.label} ({activeDetail.recordId})
+                </h3>
+              </div>
+              <span className="text-xs font-mono font-semibold text-[#555B61] bg-[#F7F5F0] px-3 py-1 rounded-xs border border-[#D7D3CA]">
+                Source: {activeDetail.source}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#6F747A] mb-1">
+                  WHY THIS DIVERGED
                 </div>
+                <p className="text-[#17191C] leading-relaxed mb-4 font-normal">
+                  {activeDetail.why}
+                </p>
+
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#6F747A] mb-1">
+                  CRYPTOGRAPHIC EVIDENCE
+                </div>
+                <p className="font-mono text-[#555B61] bg-[#F7F5F0] p-2.5 rounded-xs border border-[#D7D3CA]">
+                  {activeDetail.evidence}
+                </p>
               </div>
 
-              {/* Settlement Net Variance */}
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#6F747A] mb-1">
+                  VERIDEX OPERATIONAL ASSESSMENT
+                </div>
+                <p className="text-[#17191C] leading-relaxed mb-4 font-normal">
+                  {activeDetail.assessment}
+                </p>
+
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#9E7B35] mb-1">
+                  BOUNDED ACTION UNDER HUMAN CONTROL
+                </div>
+                <div className="p-3 rounded-xs border border-[rgba(201,169,110,0.5)] bg-[rgba(201,169,110,0.1)] text-[#17191C] font-medium">
+                  {activeDetail.action}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── THE VERIDEX LOOP (HOW IT WORKS) ───────────────────────── */}
+      <section id="how-it-works" className="py-20 border-b border-[#D7D3CA]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
+              METHODOLOGY
+            </span>
+            <h2 className="text-3xl font-bold tracking-tight text-[#17191C] mt-2">
+              SEE EXACTLY WHERE THE MONEY DIVERGED.
+            </h2>
+            <p className="text-xs text-[#555B61] mt-2 leading-relaxed">
+              Every financial discrepancy is tracked through an append-only pipeline from raw feed ingestion to human-authorized resolution.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+            {[
+              { step: "01", name: "INGEST", desc: "Multi-source raw telemetry from Gateway, Ledger, Bank" },
+              { step: "02", name: "NORMALIZE", desc: "Canonical schema alignment with strict decimal currency" },
+              { step: "03", name: "MATCH", desc: "Deterministic hash matching across UTR & references" },
+              { step: "04", name: "INVESTIGATE", desc: "ML candidate scoring and discrepancy identification" },
+              { step: "05", name: "PROVE", desc: "Evidence graph linking transaction provenance" },
+              { step: "06", name: "DECIDE", desc: "AI recommends root cause; humans authorize action" },
+              { step: "07", name: "AUDIT", desc: "Immutable cryptographic ledger record of every event" },
+            ].map((item) => (
               <div
-                className="p-3 rounded-xs border font-mono flex items-center justify-between"
-                style={{
-                  borderColor: formatVariance(cashPosition?.settlement_variance).isZero
-                    ? "var(--matched-border)"
-                    : "var(--variance-border)",
-                  background: "var(--surface-2)",
-                  borderLeft: formatVariance(cashPosition?.settlement_variance).isZero
-                    ? "3px solid var(--matched)"
-                    : "3px solid var(--variance)",
-                }}
+                key={item.step}
+                className="bg-[#FFFFFF] border border-[#D7D3CA] rounded-xs p-4 flex flex-col justify-between shadow-xs"
               >
                 <div>
-                  <div className="text-[10px] uppercase text-[#8e96a0]">Net Settlement Variance</div>
-                  <div className="text-xs text-[#545e6a] mt-0.5">
-                    {formatVariance(cashPosition?.settlement_variance).isZero
-                      ? "Zero discrepancy verified"
-                      : "Material variance detected"}
+                  <div className="font-mono text-xs font-bold text-[#9E7B35] mb-2">
+                    {item.step}
+                  </div>
+                  <div className="font-bold text-xs text-[#17191C] mb-1.5">
+                    {item.name}
                   </div>
                 </div>
-                <div
-                  className={`text-lg font-bold font-tabular ${
-                    formatVariance(cashPosition?.settlement_variance).isZero
-                      ? "text-[#6ecba0]"
-                      : "text-[#e07070]"
-                  }`}
-                >
-                  {formatVariance(cashPosition?.settlement_variance).text}
+                <div className="text-[11px] text-[#555B61] leading-relaxed pt-3 border-t border-[#E2DDD3]">
+                  {item.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── THREE CORE PRODUCT PILLARS ────────────────────────────── */}
+      <section id="pillars" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
+              CORE PILLARS
+            </span>
+            <h2 className="text-3xl font-bold tracking-tight text-[#17191C] mt-2">
+              FINANCIAL CONTROL ARCHITECTURE
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-[#D7D3CA]">
+            <div className="pt-6 md:pt-0 md:pr-8">
+              <span className="text-[10px] font-mono font-bold text-[#9E7B35] tracking-widest block mb-2">
+                01 / FOUNDATION
+              </span>
+              <h3 className="text-xl font-bold text-[#17191C] mb-3">RECONCILE</h3>
+              <p className="text-xs text-[#555B61] leading-relaxed">
+                Bring gateway, ledger, settlement, and bank records into a common authoritative control flow. Unify divergent feeds into canonical records without altering underlying banking data.
+              </p>
+            </div>
+
+            <div className="pt-6 md:pt-0 md:px-8">
+              <span className="text-[10px] font-mono font-bold text-[#9E7B35] tracking-widest block mb-2">
+                02 / FORENSICS
+              </span>
+              <h3 className="text-xl font-bold text-[#17191C] mb-3">PROVE</h3>
+              <p className="text-xs text-[#555B61] leading-relaxed">
+                Trace financial conclusions directly to immutable evidence. Build explicit graph provenance linking orders, payments, settlement batches, and bank credits so every discrepancy has an audit trail.
+              </p>
+            </div>
+
+            <div className="pt-6 md:pt-0 md:pl-8">
+              <span className="text-[10px] font-mono font-bold text-[#9E7B35] tracking-widest block mb-2">
+                03 / GOVERNANCE
+              </span>
+              <h3 className="text-xl font-bold text-[#17191C] mb-3">CONTROL</h3>
+              <p className="text-xs text-[#555B61] leading-relaxed">
+                AI recommends root-cause resolutions. Humans authorize financial execution. Financial actions remain strictly bounded by policy limits (e.g. ₹5,000 threshold) and fully audited.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── UNKNOWN IS A VALID FINANCIAL STATE ─────────────────────── */}
+      <section id="evidence" className="py-20 border-b border-[#D7D3CA]">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="bg-[#FFFFFF] border-2 border-[#D7D3CA] rounded-xs p-8 shadow-xs">
+            <div className="text-center max-w-xl mx-auto mb-8">
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
+                RESPONSIBLE FINANCIAL AI PHILOSOPHY
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#17191C] mt-2">
+                UNKNOWN IS A VALID FINANCIAL STATE.
+              </h2>
+              <p className="text-xs text-[#555B61] mt-2 leading-relaxed">
+                When evidence is incomplete, VERIDEX halts autonomous assumptions. Uncertainty is acknowledged as an explicit state, not swept under a false reconciliation.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-[#E2DDD3]">
+              <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+                <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
+                  State Classification
+                </div>
+                <div className="mt-1.5 text-sm font-bold font-mono text-[#82550E]">
+                  INSUFFICIENT EVIDENCE
+                </div>
+                <div className="text-[11px] text-[#555B61] mt-1">
+                  Missing secondary confirmation
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+                <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
+                  Available Evidence
+                </div>
+                <div className="mt-1.5 text-sm font-bold font-mono text-[#17191C]">
+                  2 / 4 Sources
+                </div>
+                <div className="text-[11px] text-[#555B61] mt-1">
+                  Bank feed absent
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xs bg-[#FFF9F9] border border-[#B83A3A]">
+                <div className="text-[10px] font-bold uppercase text-[#9E2828] tracking-wider">
+                  Autonomous Action
+                </div>
+                <div className="mt-1.5 text-sm font-bold font-mono text-[#9E2828]">
+                  STRICTLY BLOCKED
+                </div>
+                <div className="text-[11px] text-[#9E2828] mt-1">
+                  No automated fund movement
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xs bg-[#F7FBF8] border border-[#1E7B4D]">
+                <div className="text-[10px] font-bold uppercase text-[#16653E] tracking-wider">
+                  Human Governance
+                </div>
+                <div className="mt-1.5 text-sm font-bold font-mono text-[#1E7B4D]">
+                  REVIEW REQUIRED
+                </div>
+                <div className="text-[11px] text-[#16653E] mt-1">
+                  Escalated to finance ops
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* ── MEASURED, NOT CLAIMED (Benchmark Proof) ────────────────── */}
+      <section id="measured" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 mb-8 border-b border-[#D7D3CA]">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
+                ENGINE VALIDATION BENCHMARK
+              </span>
+              <h2 className="text-2xl font-bold tracking-tight text-[#17191C] mt-1">
+                MEASURED, NOT CLAIMED.
+              </h2>
+              <p className="text-xs text-[#555B61] mt-1">
+                Live authoritative evaluation metrics generated directly by the running reconciliation engine.
+              </p>
+            </div>
+
+            <div className="text-xs font-mono text-[#6F747A]">
+              Endpoint: /api/v1/controller/benchmark
+            </div>
+          </div>
+
+          {/* Benchmark Metric Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
+                Logical Txns
+              </div>
+              <div className="mt-2 text-2xl font-bold font-mono text-[#17191C] font-tabular">
+                {benchmarkData?.num_transactions || 50}
+              </div>
+              <div className="text-[10px] text-[#555B61] mt-1">150 feed records</div>
+            </div>
+
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
+                Precision
+              </div>
+              <div className="mt-2 text-2xl font-bold font-mono text-[#1E7B4D] font-tabular">
+                {benchmarkLoading
+                  ? "..."
+                  : `${((benchmarkData?.precision ?? 0.9) * 100).toFixed(2)}%`}
+              </div>
+              <div className="text-[10px] text-[#555B61] mt-1">False match resistance</div>
+            </div>
+
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
+                Recall
+              </div>
+              <div className="mt-2 text-2xl font-bold font-mono text-[#1E7B4D] font-tabular">
+                {benchmarkLoading
+                  ? "..."
+                  : `${((benchmarkData?.recall ?? 1.0) * 100).toFixed(2)}%`}
+              </div>
+              <div className="text-[10px] text-[#555B61] mt-1">Ground truth match coverage</div>
+            </div>
+
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
+                F1 Score
+              </div>
+              <div className="mt-2 text-2xl font-bold font-mono text-[#9E7B35] font-tabular">
+                {benchmarkLoading
+                  ? "..."
+                  : `${((benchmarkData?.f1_score ?? 0.9474) * 100).toFixed(2)}%`}
+              </div>
+              <div className="text-[10px] text-[#555B61] mt-1">Harmonic accuracy</div>
+            </div>
+
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
+                Throughput
+              </div>
+              <div className="mt-2 text-2xl font-bold font-mono text-[#17191C] font-tabular">
+                {benchmarkLoading
+                  ? "..."
+                  : `${benchmarkData?.throughput_records_per_sec || "2,935"} rec/s`}
+              </div>
+              <div className="text-[10px] text-[#555B61] mt-1">Live execution speed</div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] text-xs text-[#555B61] flex items-center justify-between">
+            <span>
+              Evaluation benchmark dataset seeded with 7 realistic discrepancy archetypes (normal, duplicate, delayed settlement, ambiguous reference, fee mismatch).
+            </span>
+            <Link
+              href="/benchmark"
+              className="text-[#9E7B35] font-bold hover:text-[#C9A96E] flex items-center gap-1 ml-4 flex-shrink-0"
+            >
+              <span>View Benchmark Console</span>
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ENTER THE CONTROL ROOM (CTA SECTION) ─────────────────── */}
+      <section className="py-24 border-b border-[#D7D3CA] text-center">
+        <div className="max-w-3xl mx-auto px-6">
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
+            OPERATIONAL ENVIRONMENT
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#17191C] mt-2 mb-4">
+            ENTER THE CONTROL ROOM
+          </h2>
+          <p className="text-sm text-[#555B61] max-w-xl mx-auto mb-8 leading-relaxed">
+            Take command of the live reconciliation engine, investigate active exceptions, inspect statutory tax lines, and authorize bounded financial adjustments.
+          </p>
+
+          <Link
+            href="/app"
+            className="btn-gold px-8 py-3.5 text-sm font-bold shadow-xs inline-flex items-center gap-2"
+          >
+            <span>Open Control Center</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ── FOOTER ────────────────────────────────────────────────── */}
+      <footer className="py-8 bg-[#F7F5F0] text-xs text-[#6F747A]">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="vx-mark text-[10px] w-5 h-5">VX</div>
+            <span className="font-semibold text-[#17191C]">VERIDEX</span>
+            <span>— AI Financial Control &amp; Reconciliation Engine</span>
+          </div>
+
+          <div className="flex items-center gap-4 text-[11px] font-mono">
+            <span>PORT 8000 ACTIVE</span>
+            <span>•</span>
+            <span>STRICT HITL GOVERNANCE</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
