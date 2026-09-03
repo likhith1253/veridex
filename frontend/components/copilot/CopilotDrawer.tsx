@@ -33,7 +33,7 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
         ...prev,
         {
           role: "assistant",
-          text: data.direct_answer,
+          text: data.direct_answer || data.answer || data.interpretation || "Query completed.",
           data: data,
         },
       ]);

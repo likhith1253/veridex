@@ -136,7 +136,7 @@ export default function SettlementDetailPage() {
                     <td className="py-3 px-3 font-bold text-zinc-100">{p.payment_id}</td>
                     <td className="py-3 px-3 text-zinc-400">{p.order_id || "—"}</td>
                     <td className="py-3 px-3">
-                      <StatusBadge status={p.status} />
+                      <StatusBadge status={p.status || "LINKED"} />
                     </td>
                     <td className="py-3 px-3 text-right font-bold font-tabular text-zinc-100">
                       {formatINR(p.amount)}

@@ -111,10 +111,10 @@ export default function BenchmarkPage() {
               <Zap className="h-4 w-4 text-purple-400" />
             </div>
             <div className="text-2xl font-bold text-purple-300 font-tabular">
-              {benchmark?.throughput_records_per_sec ? benchmark.throughput_records_per_sec.toFixed(0) : 0} <span className="text-xs font-normal">rec/sec</span>
+              {typeof benchmark?.throughput_records_per_sec === "number" && Number.isFinite(benchmark.throughput_records_per_sec) ? benchmark.throughput_records_per_sec.toFixed(0) : "0"} <span className="text-xs font-normal">rec/sec</span>
             </div>
             <div className="text-[11px] text-zinc-500 mt-1">
-              Latency: {benchmark?.duration_ms ? benchmark.duration_ms.toFixed(1) : 0} ms
+              Latency: {typeof benchmark?.duration_ms === "number" && Number.isFinite(benchmark.duration_ms) ? benchmark.duration_ms.toFixed(1) : "0.0"} ms
             </div>
           </div>
 

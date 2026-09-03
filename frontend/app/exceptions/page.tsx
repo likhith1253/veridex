@@ -195,37 +195,43 @@ export default function ExceptionsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                {exceptions.map((ex, idx) => (
-                  <tr key={ex.id ? `${ex.id}-${idx}` : `exception-${idx}`} className="hover:bg-[#171a23] transition-colors">
-                    <td className="py-3 px-3 font-semibold text-zinc-100">
-                      <div>{ex.id}</div>
-                      <div className="text-[10px] text-zinc-500">{ex.transaction_id}</div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="text-zinc-200">{(ex.exception_category || "UNKNOWN").replace(/_/g, " ")}</span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <StatusBadge status={ex.status} />
-                    </td>
-                    <td className="py-3 px-3">
-                      <ConfidenceBadge confidence={ex.confidence} />
-                    </td>
-                    <td className="py-3 px-3 text-right font-bold font-tabular text-rose-300">
-                      {formatINR(ex.financial_exposure)}
-                    </td>
-                    <td className="py-3 px-3 text-zinc-400 max-w-xs truncate text-[11px]">
-                      {ex.recommended_action || "Manual Review"}
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      <Link
-                        href={`/exceptions/${encodeURIComponent(ex.id)}`}
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded bg-sky-950/80 hover:bg-sky-900 border border-sky-800/60 text-sky-300 text-xs font-semibold transition-colors"
-                      >
-                        Investigate <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {exceptions.map((ex, idx) => {
+                  const excId = ex.exception_id || ex.id || `exc-${idx}`;
+                  const cat = ex.category || ex.exception_category || "unexplained";
+                  const exp = ex.financial_exposure_inr ?? ex.financial_exposure;
+
+                  return (
+                    <tr key={excId ? `${excId}-${idx}` : `exception-${idx}`} className="hover:bg-[#171a23] transition-colors">
+                      <td className="py-3 px-3 font-semibold text-zinc-100">
+                        <div>{excId}</div>
+                        <div className="text-[10px] text-zinc-500">{ex.transaction_id || "—"}</div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="text-zinc-200">{cat.replace(/_/g, " ")}</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <StatusBadge status={ex.status} />
+                      </td>
+                      <td className="py-3 px-3">
+                        <ConfidenceBadge confidence={ex.confidence} />
+                      </td>
+                      <td className="py-3 px-3 text-right font-bold font-tabular text-rose-300">
+                        {formatINR(exp)}
+                      </td>
+                      <td className="py-3 px-3 text-zinc-400 max-w-xs truncate text-[11px]">
+                        {ex.recommended_action || "Manual Review"}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <Link
+                          href={`/exceptions/${encodeURIComponent(excId)}`}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded bg-sky-950/80 hover:bg-sky-900 border border-sky-800/60 text-sky-300 text-xs font-semibold transition-colors"
+                        >
+                          Investigate <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 

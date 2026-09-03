@@ -24,12 +24,17 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
     );
   }
 
-  const totalMatches = funnel.deterministic_matches + funnel.ml_matches;
-  const totalItems = totalMatches + funnel.unmatched_exceptions;
-  const matchRate = totalItems > 0 ? (totalMatches / totalItems) * 100 : 0;
-  const deterministicPct = totalItems > 0 ? (funnel.deterministic_matches / totalItems) * 100 : 0;
-  const mlPct = totalItems > 0 ? (funnel.ml_matches / totalItems) * 100 : 0;
-  const exceptionPct = totalItems > 0 ? (funnel.unmatched_exceptions / totalItems) * 100 : 0;
+  const detMatches = funnel.deterministic_matches ?? 0;
+  const mlMatches = funnel.ml_recovered ?? funnel.ml_matches ?? 0;
+  const exceptions = funnel.unresolved ?? funnel.unmatched_exceptions ?? 0;
+  const totalMatches = detMatches + mlMatches;
+  const totalItems = funnel.incoming_records ?? (totalMatches + exceptions);
+  const matchRate = totalItems > 0
+    ? (totalMatches / totalItems) * 100
+    : (funnel.final_match_rate ? (funnel.final_match_rate > 1 ? funnel.final_match_rate : funnel.final_match_rate * 100) : 0);
+  const deterministicPct = totalItems > 0 ? (detMatches / totalItems) * 100 : 0;
+  const mlPct = totalItems > 0 ? (mlMatches / totalItems) * 100 : 0;
+  const exceptionPct = totalItems > 0 ? (exceptions / totalItems) * 100 : 0;
 
   return (
     <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5 text-zinc-100">
@@ -46,7 +51,7 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-zinc-400">Total Volume:</span>
           <span className="font-mono text-sm font-bold text-zinc-100 font-tabular">
-            {formatINR(funnel.total_volume_inr)}
+            {funnel.total_volume_inr ? formatINR(funnel.total_volume_inr) : `${totalItems} Records`}
           </span>
         </div>
       </div>
@@ -59,10 +64,12 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
             <span className="flex items-center gap-1.5 font-mono">
               <CheckCircle2 className="h-3.5 w-3.5" /> Stage 1: Deterministic
             </span>
-            <span className="font-mono text-emerald-300">{deterministicPct.toFixed(1)}%</span>
+            <span className="font-mono text-emerald-300">
+              {Number.isFinite(deterministicPct) ? deterministicPct.toFixed(1) : "0.0"}%
+            </span>
           </div>
           <div className="font-mono text-2xl font-bold text-emerald-200">
-            {funnel.deterministic_matches}
+            {detMatches}
           </div>
           <p className="mt-1 text-[11px] text-zinc-400">
             Exact UTR / RRN / Account parity matches
@@ -75,10 +82,12 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
             <span className="flex items-center gap-1.5 font-mono">
               <Cpu className="h-3.5 w-3.5" /> Stage 2: ML Recovered
             </span>
-            <span className="font-mono text-purple-300">{mlPct.toFixed(1)}%</span>
+            <span className="font-mono text-purple-300">
+              {Number.isFinite(mlPct) ? mlPct.toFixed(1) : "0.0"}%
+            </span>
           </div>
           <div className="font-mono text-2xl font-bold text-purple-200">
-            {funnel.ml_matches}
+            {mlMatches}
           </div>
           <p className="mt-1 text-[11px] text-zinc-400">
             XGBoost candidate probability scoring
@@ -91,10 +100,12 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
             <span className="flex items-center gap-1.5 font-mono">
               <AlertTriangle className="h-3.5 w-3.5" /> Stage 3: Exceptions
             </span>
-            <span className="font-mono text-rose-300">{exceptionPct.toFixed(1)}%</span>
+            <span className="font-mono text-rose-300">
+              {Number.isFinite(exceptionPct) ? exceptionPct.toFixed(1) : "0.0"}%
+            </span>
           </div>
           <div className="font-mono text-2xl font-bold text-rose-200">
-            {funnel.unmatched_exceptions}
+            {exceptions}
           </div>
           <p className="mt-1 text-[11px] text-zinc-400">
             Routed to forensic investigation dossiers

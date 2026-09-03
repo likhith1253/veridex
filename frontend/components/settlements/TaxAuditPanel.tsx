@@ -102,7 +102,7 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
           >
             {taxAudit.tax_variance !== null && taxAudit.tax_variance !== undefined
               ? formatINR(taxAudit.tax_variance)
-              : "0.00"}
+              : "Insufficient Data"}
           </div>
         </div>
       </div>

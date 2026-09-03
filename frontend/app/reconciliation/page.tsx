@@ -52,10 +52,10 @@ export default function ReconciliationPage() {
   const filteredTxns =
     sourceFilter === "all"
       ? transactions
-      : transactions.filter((t) => t.source.toLowerCase() === sourceFilter.toLowerCase());
+      : transactions.filter((t) => (t.source || "").toLowerCase() === (sourceFilter || "").toLowerCase());
 
-  const getSourceIcon = (source: string) => {
-    switch (source.toLowerCase()) {
+  const getSourceIcon = (source?: string | null) => {
+    switch ((source || "").toLowerCase()) {
       case "gateway":
         return <CreditCard className="h-3.5 w-3.5 text-sky-400" />;
       case "ledger":

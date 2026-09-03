@@ -132,8 +132,8 @@ export default function ExceptionDossierPage() {
               <ConfidenceBadge confidence={exception.confidence} />
             </div>
             <p className="text-xs font-mono text-zinc-400 mt-1">
-              Transaction Ref: <strong className="text-zinc-200">{exception.transaction_id}</strong> | Category:{" "}
-              <strong className="text-zinc-200">{(exception.exception_category || "UNKNOWN").replace(/_/g, " ")}</strong>
+              Transaction Ref: <strong className="text-zinc-200">{exception.transaction_id || "—"}</strong> | Category:{" "}
+              <strong className="text-zinc-200">{(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}</strong>
             </p>
           </div>
 
@@ -141,13 +141,13 @@ export default function ExceptionDossierPage() {
             <div className="text-right font-mono">
               <span className="text-[10px] text-zinc-500 uppercase block">Financial Exposure</span>
               <span className="text-2xl font-bold font-tabular text-rose-400">
-                {formatINR(exception.financial_exposure)}
+                {formatINR(exception.financial_exposure_inr ?? exception.financial_exposure)}
               </span>
             </div>
             <div className="text-right font-mono pl-4 border-l border-zinc-800">
               <span className="text-[10px] text-zinc-500 uppercase block">Expected Cost</span>
               <span className="text-base font-bold font-tabular text-amber-300">
-                {formatINR(exception.expected_cost)}
+                {formatINR(exception.expected_cost_inr ?? exception.expected_cost)}
               </span>
             </div>
           </div>
@@ -191,9 +191,9 @@ export default function ExceptionDossierPage() {
                 <div key={rc.cause ? `${rc.cause}-${idx}` : `rc-${idx}`} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-2 text-xs font-mono">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-zinc-100">{(rc.cause || "UNKNOWN").replace(/_/g, " ")}</span>
-                    <ConfidenceBadge confidence={rc.confidence} />
+                    <ConfidenceBadge confidence={typeof rc.confidence === "string" ? parseFloat(rc.confidence) : rc.confidence} />
                   </div>
-                  <p className="text-[11px] text-zinc-400">{rc.evidence_summary}</p>
+                  <p className="text-[11px] text-zinc-400">{rc.evidence_summary || rc.evidence}</p>
                   {rc.features_cited && rc.features_cited.length > 0 && (
                     <div className="pt-1 flex flex-wrap gap-1">
                       {rc.features_cited.map((feat, fIdx) => (
@@ -207,7 +207,7 @@ export default function ExceptionDossierPage() {
               ))
             ) : (
               <div className="p-4 text-center text-zinc-500 font-mono text-xs">
-                Root cause classified as: <strong>{exception.exception_category}</strong> (100% confidence)
+                Root cause classified as: <strong>{(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}</strong> (100% confidence)
               </div>
             )}
           </div>

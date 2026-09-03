@@ -44,21 +44,21 @@ export function AuditTimeline({ events, isLoading }: AuditTimelineProps) {
     );
   }
 
-  const getStageIcon = (stage: string) => {
-    const s = stage.toUpperCase();
+  const getStageIcon = (stage?: string | null, eventType?: string | null) => {
+    const s = (stage || eventType || "").toUpperCase();
     if (s.includes("HUMAN") || s.includes("APPROVAL")) {
       return <UserCheck className="h-4 w-4 text-emerald-400" />;
     }
-    if (s.includes("EXECUTION")) {
+    if (s.includes("EXECUTION") || s.includes("EXECUTE")) {
       return <Play className="h-4 w-4 text-sky-400" />;
     }
-    if (s.includes("EXCEPTION")) {
+    if (s.includes("EXCEPTION") || s.includes("REJECT") || s.includes("FAIL")) {
       return <AlertOctagon className="h-4 w-4 text-rose-400" />;
     }
     if (s.includes("ML") || s.includes("INVESTIGATION") || s.includes("AI")) {
       return <Cpu className="h-4 w-4 text-purple-400" />;
     }
-    if (s.includes("RECON")) {
+    if (s.includes("RECON") || s.includes("MATCH")) {
       return <FileSpreadsheet className="h-4 w-4 text-indigo-400" />;
     }
     return <ShieldCheck className="h-4 w-4 text-zinc-400" />;
@@ -66,54 +66,69 @@ export function AuditTimeline({ events, isLoading }: AuditTimelineProps) {
 
   return (
     <div className="relative border-l border-zinc-800 ml-4 my-2 space-y-6">
-      {events.map((ev, idx) => (
-        <div key={idx} className="relative pl-6 text-xs">
-          {/* Node Icon Circle */}
-          <div className="absolute -left-3.5 top-0.5 flex h-7 w-7 items-center justify-center rounded-full border border-zinc-800 bg-[#11131a] shadow-xs">
-            {getStageIcon(ev.stage)}
-          </div>
+      {events.map((ev, idx) => {
+        const eventKey = ev.event_id ? `${ev.event_id}-${idx}` : (ev.id ? `${ev.id}-${idx}` : `audit-ev-${idx}`);
+        const eventLabel = (ev.event_type || ev.stage || "AUDIT_RECORD").replace(/_/g, " ");
+        const payload = ev.details || ev.evidence;
+        const hasPayload = payload && typeof payload === "object" && Object.keys(payload).length > 0;
 
-          {/* Event Content Box */}
-          <div className="rounded-lg border border-zinc-800/80 bg-[#11131a] p-4 text-zinc-200">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-zinc-100">
-                  {(ev.stage || "STAGE").replace(/_/g, " ")}
-                </span>
-                {ev.actor && (
-                  <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">
-                    Actor: {ev.actor}
-                  </span>
-                )}
-              </div>
-              <span className="font-mono text-[11px] text-zinc-500">
-                {formatDateTime(ev.timestamp)}
-              </span>
+        return (
+          <div key={eventKey} className="relative pl-6 text-xs">
+            {/* Node Icon Circle */}
+            <div className="absolute -left-3.5 top-0.5 flex h-7 w-7 items-center justify-center rounded-full border border-zinc-800 bg-[#11131a] shadow-xs">
+              {getStageIcon(ev.stage, ev.event_type)}
             </div>
 
-            <p className="mt-1 text-xs text-zinc-300 font-mono leading-relaxed">
-              {ev.event}
-            </p>
-
-            {ev.transaction_id && (
-              <div className="mt-2 text-[11px] font-mono text-zinc-500">
-                Entity Ref: <span className="text-zinc-300">{ev.transaction_id}</span>
+            {/* Event Content Box */}
+            <div className="rounded-lg border border-zinc-800/80 bg-[#11131a] p-4 text-zinc-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-zinc-100">
+                    {eventLabel}
+                  </span>
+                  {ev.actor && (
+                    <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">
+                      Actor: {ev.actor}
+                    </span>
+                  )}
+                </div>
+                <span className="font-mono text-[11px] text-zinc-500">
+                  {ev.timestamp ? formatDateTime(ev.timestamp) : "—"}
+                </span>
               </div>
-            )}
 
-            {ev.evidence && Object.keys(ev.evidence).length > 0 && (
-              <details className="mt-2 text-[11px] font-mono text-zinc-400">
-                <summary className="cursor-pointer text-sky-400 hover:underline">
-                  View Grounded Evidence Payload
-                </summary>
-                <pre className="mt-1.5 p-2 rounded bg-black/50 border border-zinc-800 text-[10px] text-zinc-300 overflow-x-auto">
-                  {JSON.stringify(ev.evidence, null, 2)}
-                </pre>
-              </details>
-            )}
+              {ev.event && (
+                <p className="mt-1 text-xs text-zinc-300 font-mono leading-relaxed">
+                  {ev.event}
+                </p>
+              )}
+
+              {ev.transaction_id && (
+                <div className="mt-2 text-[11px] font-mono text-zinc-500">
+                  Entity Ref: <span className="text-zinc-300">{ev.transaction_id}</span>
+                </div>
+              )}
+
+              {ev.run_id && (
+                <div className="mt-1 text-[11px] font-mono text-zinc-500">
+                  Run ID: <span className="text-zinc-400">{ev.run_id}</span>
+                </div>
+              )}
+
+              {hasPayload && (
+                <details className="mt-2 text-[11px] font-mono text-zinc-400">
+                  <summary className="cursor-pointer text-sky-400 hover:underline">
+                    View Grounded Evidence Payload
+                  </summary>
+                  <pre className="mt-1.5 p-2 rounded bg-black/50 border border-zinc-800 text-[10px] text-zinc-300 overflow-x-auto">
+                    {JSON.stringify(payload, null, 2)}
+                  </pre>
+                </details>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

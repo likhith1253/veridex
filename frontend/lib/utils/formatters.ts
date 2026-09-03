@@ -9,14 +9,14 @@ export function cn(...inputs: ClassValue[]) {
  * Decimal-safe formatter for Indian Rupee currency strings/numbers.
  * Formats: 500000 -> "INR 5,00,000.00"
  */
-export function formatINR(value: number | string | null | undefined): string {
+export function formatINR(value: number | string | null | undefined, fallback: string = "—"): string {
   if (value === null || value === undefined || value === "") {
-    return "INR 0.00";
+    return fallback;
   }
 
   const num = typeof value === "string" ? parseFloat(value) : value;
   if (isNaN(num)) {
-    return "INR 0.00";
+    return fallback;
   }
 
   const isNegative = num < 0;
@@ -40,7 +40,7 @@ export function formatINR(value: number | string | null | undefined): string {
 
 /**
  * Explicit signed variance formatter:
- * e.g. "+INR 150.00", "-INR 42.00", "INR 0.00"
+ * e.g. "+INR 150.00", "-INR 42.00", "INR 0.00", or "—"
  */
 export function formatVariance(value: number | string | null | undefined): {
   text: string;
@@ -49,11 +49,15 @@ export function formatVariance(value: number | string | null | undefined): {
   isZero: boolean;
 } {
   if (value === null || value === undefined || value === "") {
-    return { text: "INR 0.00", isPositive: false, isNegative: false, isZero: true };
+    return { text: "—", isPositive: false, isNegative: false, isZero: false };
   }
 
   const num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num) || Math.abs(num) < 0.001) {
+  if (isNaN(num)) {
+    return { text: "—", isPositive: false, isNegative: false, isZero: false };
+  }
+
+  if (Math.abs(num) < 0.001) {
     return { text: "INR 0.00", isPositive: false, isNegative: false, isZero: true };
   }
 
@@ -68,12 +72,12 @@ export function formatVariance(value: number | string | null | undefined): {
 /**
  * Format decimal as percentage (e.g. 0.9474 -> "94.74%", 94.74 -> "94.74%")
  */
-export function formatPercent(value: number | string | null | undefined): string {
+export function formatPercent(value: number | string | null | undefined, fallback: string = "—"): string {
   if (value === null || value === undefined || value === "") {
-    return "0.00%";
+    return fallback;
   }
   let num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num)) return "0.00%";
+  if (isNaN(num)) return fallback;
 
   // Normalize if fraction (e.g. 0.95 -> 95.00)
   if (num <= 1.0 && num > 0) {

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, Play, Loader2, CheckCircle2, AlertTriangle, Database } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
+import type { BatchIngestResponse } from "@/types/controller";
 
 interface RunBatchModalProps {
   isOpen: boolean;
@@ -14,13 +15,7 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
   const queryClient = useQueryClient();
   const [batchId, setBatchId] = useState(`run_ui_${Date.now().toString().slice(-6)}`);
   const [batchSize, setBatchSize] = useState(50);
-  const [result, setResult] = useState<{
-    status: string;
-    total_processed: number;
-    matches_found: number;
-    exceptions_detected: number;
-    duration_seconds: number;
-  } | null>(null);
+  const [result, setResult] = useState<BatchIngestResponse | null>(null);
 
   const runMutation = useMutation({
     mutationFn: async () => {
@@ -138,22 +133,40 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
             </select>
           </div>
 
-          {result && (
-            <div className="p-3 rounded border border-emerald-800/60 bg-emerald-950/30 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-semibold font-mono">
-                <CheckCircle2 className="h-4 w-4" />
-                Batch Reconciled Successfully
+          {result && (() => {
+            const processedCount = result.records_received ?? result.total_processed ?? 0;
+            const matchesCount = (result.auto_matched_count !== undefined
+              ? (result.auto_matched_count + (result.ml_recovered_count || 0))
+              : result.matches_found) ?? 0;
+            const exceptionsCount = result.unresolved_count ?? result.exceptions_detected ?? 0;
+            const durationMs = result.processing_duration_ms;
+            const durationSec = durationMs !== undefined ? durationMs / 1000 : result.duration_seconds;
+
+            let throughputDisplay = "Duration: Unavailable";
+            if (durationSec !== undefined && Number.isFinite(durationSec) && durationSec > 0) {
+              const tps = processedCount / durationSec;
+              throughputDisplay = `Throughput: ${Number.isFinite(tps) ? tps.toFixed(0) : "—"} records/sec (${durationSec.toFixed(3)}s)`;
+            } else if (durationMs !== undefined && Number.isFinite(durationMs)) {
+              throughputDisplay = `Processing Latency: ${durationMs.toFixed(1)}ms`;
+            }
+
+            return (
+              <div className="p-3 rounded border border-emerald-800/60 bg-emerald-950/30 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-emerald-400 font-semibold font-mono">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Batch Reconciled Successfully
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
+                  <div>Processed: <span className="text-zinc-100 font-bold">{processedCount}</span></div>
+                  <div>Matches: <span className="text-emerald-300 font-bold">{matchesCount}</span></div>
+                  <div>Exceptions: <span className="text-rose-400 font-bold">{exceptionsCount}</span></div>
+                </div>
+                <div className="text-[10px] text-zinc-400 font-mono">
+                  {throughputDisplay}
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
-                <div>Processed: <span className="text-zinc-100 font-bold">{result.total_processed}</span></div>
-                <div>Matches: <span className="text-emerald-300 font-bold">{result.matches_found}</span></div>
-                <div>Exceptions: <span className="text-rose-400 font-bold">{result.exceptions_detected}</span></div>
-              </div>
-              <div className="text-[10px] text-zinc-400">
-                Throughput: {(result.total_processed / Math.max(result.duration_seconds, 0.001)).toFixed(0)} records/sec ({result.duration_seconds.toFixed(3)}s)
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {runMutation.isError && (
             <div className="p-3 rounded border border-rose-800/60 bg-rose-950/30 text-rose-300 text-xs flex items-center gap-2">

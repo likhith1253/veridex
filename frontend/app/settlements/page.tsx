@@ -100,13 +100,13 @@ export default function SettlementsPage() {
                       <StatusBadge status={s.status} />
                     </td>
                     <td className="py-3 px-3 text-right font-bold font-tabular text-zinc-100">
-                      {formatINR(s.amount)}
+                      {formatINR(s.expected_net_amount ?? s.gross_amount ?? s.amount)}
                     </td>
                     <td className="py-3 px-3 text-right text-zinc-400 font-tabular text-[11px]">
-                      {s.fees ? formatINR(s.fees) : "—"} / {s.tax ? formatINR(s.tax) : "—"}
+                      {s.gross_amount ? `Gross: ${formatINR(s.gross_amount)}` : (s.fees ? `${formatINR(s.fees)} / ${formatINR(s.tax)}` : "—")}
                     </td>
                     <td className="py-3 px-3 text-right text-zinc-500 text-[11px]">
-                      {formatDateTime(s.created_at)}
+                      {formatDateTime(s.settlement_date ?? s.created_at)}
                     </td>
                     <td className="py-3 px-3 text-right space-x-2">
                       <Link
