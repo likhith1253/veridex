@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Any, Optional
 
 from app.database.models import Transaction as TransactionORM, TransactionSource, TransactionStatus
 from app.models.transaction import Transaction as TransactionDomain
@@ -17,10 +17,17 @@ _DOMAIN_TO_ORM_STATUS: dict[DomainStatus, TransactionStatus] = {
     DomainStatus.PARTIALLY_REFUNDED: TransactionStatus.PROCESSED,
 }
 
-_ORM_TO_DOMAIN_STATUS: dict[TransactionStatus, DomainStatus] = {
+_ORM_TO_DOMAIN_STATUS: dict[Any, DomainStatus] = {
     TransactionStatus.PENDING: DomainStatus.PENDING,
     TransactionStatus.PROCESSED: DomainStatus.COMPLETED,
     TransactionStatus.EXCEPTION: DomainStatus.FAILED,
+    "pending": DomainStatus.PENDING,
+    "processed": DomainStatus.COMPLETED,
+    "completed": DomainStatus.COMPLETED,
+    "exception": DomainStatus.FAILED,
+    "failed": DomainStatus.FAILED,
+    "refunded": DomainStatus.REFUNDED,
+    "partially_refunded": DomainStatus.PARTIALLY_REFUNDED,
 }
 
 
@@ -31,11 +38,15 @@ def _domain_status_to_orm(domain_status: DomainStatus) -> TransactionStatus:
     return orm_status
 
 
-def _orm_status_to_domain(orm_status: TransactionStatus) -> DomainStatus:
-    domain_status = _ORM_TO_DOMAIN_STATUS.get(orm_status)
-    if domain_status is None:
-        raise ValueError(f"Unmapped ORM TransactionStatus: {orm_status!r}")
-    return domain_status
+def _orm_status_to_domain(orm_status: Any) -> DomainStatus:
+    if orm_status in _ORM_TO_DOMAIN_STATUS:
+        return _ORM_TO_DOMAIN_STATUS[orm_status]
+    str_status = (orm_status.value if hasattr(orm_status, "value") else str(orm_status)).lower()
+    domain_status = _ORM_TO_DOMAIN_STATUS.get(str_status)
+    if domain_status is not None:
+        return domain_status
+    return DomainStatus.COMPLETED
+
 
 
 def domain_to_orm(domain: TransactionDomain, id: str, created_at: datetime) -> TransactionORM:

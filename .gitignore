@@ -62,3 +62,7 @@ htmlcov/
 
 # Streamlit
 .streamlit/
+
+# Local development data & logs
+scratch_pg_data/
+*.log

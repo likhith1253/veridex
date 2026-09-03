@@ -27,3 +27,13 @@ class InvestigationResponse(BaseModel):
     historical_cases_used: int = Field(default=0, description="Number of historical cases used")
     status: InvestigationStatus = Field(default=InvestigationStatus.COMPLETED, description="Status of investigation")
     created_at: datetime = Field(..., description="Timestamp of investigation creation")
+
+
+from app.models.investigation_dossier import (
+    InvestigationDossier,
+    RelatedIDs,
+    RootCauseCandidate,
+)
+
+InvestigationDossierResponse = InvestigationDossier
+
