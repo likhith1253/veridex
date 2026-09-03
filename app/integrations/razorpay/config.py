@@ -8,6 +8,9 @@ Ensures sensitive secrets (KEY_SECRET, WEBHOOK_SECRET) are never leaked to logs,
 import os
 from typing import Any, Optional
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 class RazorpayConfig:
     """Razorpay configuration provider with safe metadata extraction."""
