@@ -8,6 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.dependencies import verify_api_key
 from app.api.routes.controller import router as controller_router
+from app.api.routes.finance_actions import router as finance_actions_router
 from app.api.routes.health import router as health_router
 from app.api.routes.integrations import router as integrations_router
 from app.api.routes.investigations import router as investigations_router
@@ -28,24 +29,16 @@ def create_app() -> FastAPI:
         version="0.2.0",
     )
 
-    # 1. CORS Configuration (AUD-061)
-    allowed_origins_raw = os.environ.get(
-        "ALLOWED_ORIGINS",
-        "http://localhost:8501,http://127.0.0.1:8501,http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000",
-    )
-    allowed_origins = [o.strip() for o in allowed_origins_raw.split(",") if o.strip()]
-    if not allowed_origins or allowed_origins == ["*"]:
-        allowed_origins = ["*"]
-
+    # 1. Configure CORS middleware (AUD-059)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=allowed_origins,
-        allow_credentials=True if allowed_origins != ["*"] else False,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # 2. Security Headers Middleware (AUD-063)
+    # 2. Add Security Headers Middleware (AUD-058)
     @app.middleware("http")
     async def add_security_headers(request: Request, call_next):
         response = await call_next(request)
@@ -59,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(webhooks_router)
     app.include_router(controller_router, dependencies=[Depends(verify_api_key)])
+    app.include_router(finance_actions_router, dependencies=[Depends(verify_api_key)])
     app.include_router(integrations_router, dependencies=[Depends(verify_api_key)])
     app.include_router(investigations_router, dependencies=[Depends(verify_api_key)])
     app.include_router(runs_router, dependencies=[Depends(verify_api_key)])

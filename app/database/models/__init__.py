@@ -15,6 +15,7 @@ from .exception import (
 from .audit import AuditEvent
 from .investigation import Investigation
 from .webhook_event import WebhookEvent
+from .finance_action import ActionLifecycleState, FinanceAction, FinanceActionType
 
 __all__ = [
     "Base",
@@ -35,4 +36,7 @@ __all__ = [
     "Investigation",
     "AuditEvent",
     "WebhookEvent",
+    "FinanceAction",
+    "ActionLifecycleState",
+    "FinanceActionType",
 ]

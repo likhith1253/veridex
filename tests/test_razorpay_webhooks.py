@@ -56,14 +56,14 @@ async def test_webhook_processing_and_idempotency():
 
     # Mock database session
     session = AsyncMock()
-    # First query for idempotency: None (not yet processed)
-    res_none = MagicMock()
-    res_none.scalar_one_or_none.return_value = None
-    # Second query for run check: None (creates new run)
-    res_run = MagicMock()
-    res_run.scalars.return_value.first.return_value = None
-    res_run.scalars.return_value.all.return_value = []
-    session.execute.side_effect = [res_none, res_run, res_none, res_none, res_run, res_none]
+    def mock_execute(*args, **kwargs):
+        res = MagicMock()
+        res.scalar_one_or_none.return_value = None
+        res.scalars.return_value.first.return_value = None
+        res.scalars.return_value.all.return_value = []
+        return res
+
+    session.execute.side_effect = mock_execute
     session.add = MagicMock()
     session.flush = AsyncMock()
 

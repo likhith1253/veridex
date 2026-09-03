@@ -6,6 +6,7 @@ event dispatching (settlement.processed, payment.captured), and incremental reco
 """
 
 from datetime import datetime, timezone
+from decimal import Decimal
 import hashlib
 import hmac
 import json
@@ -120,9 +121,9 @@ class RazorpayWebhookHandler:
 
         # 5. Extract and Normalize Entity
         entity_payload = payload.get("payload", {})
-        txn = None
+        is_settlement_event = "settlement" in entity_payload or event_type.startswith("settlement.")
 
-        if "settlement" in entity_payload or event_type.startswith("settlement."):
+        if is_settlement_event:
             settlement_data = entity_payload.get("settlement", {}).get("entity", payload)
             txn = RazorpayNormalizer.normalize_settlement(settlement_data)
         elif "payment" in entity_payload or event_type.startswith("payment."):
@@ -137,12 +138,173 @@ class RazorpayWebhookHandler:
         # Ensure run exists for incremental recon and audit
         await ensure_run_exists(session, run_id)
 
-        # 6. Incrementally Reconcile
-        incremental_service = IncrementalReconciliationService(
-            session=session,
-            investigation_service=investigation_service,
-        )
-        recon_result = await incremental_service.ingest_and_reconcile(txn, run_id=run_id)
+        # 6. Reconcile Entity
+        from app.database.repositories.transaction_repository import TransactionRepository
+        txn_repo = TransactionRepository(session)
+        existing_txn = await txn_repo.get_orm_by_source_and_domain_id(txn.source.value, txn.txn_id)
+        if existing_txn:
+            orm_txn_id = existing_txn.id
+        else:
+            orm_txn_id = await txn_repo.create(txn)
+
+        if is_settlement_event:
+            # Reconcile settlement payout against bank statement
+            from app.database.models import (
+                Exception as ExceptionORM,
+                ExceptionCategory,
+                Match as MatchORM,
+                MatchTransaction as MatchTransactionORM,
+                Transaction as TransactionORM,
+            )
+            from app.services.razorpay_settlement_intelligence_service import (
+                RazorpaySettlementIntelligenceService,
+                SettlementVarianceType,
+            )
+
+            settle_service = RazorpaySettlementIntelligenceService(session)
+            try:
+                financial = await settle_service.get_settlement_financial_breakdown(txn.txn_id)
+            except Exception:
+                from app.services.razorpay_settlement_intelligence_service import SettlementFinancialBreakdown
+                gross = txn.amount or Decimal("0")
+                fee = txn.fee or Decimal("0")
+                tax = txn.tax or Decimal("0")
+                expected_net = gross - fee - tax
+                financial = SettlementFinancialBreakdown(
+                    settlement_id=txn.txn_id,
+                    gross_amount=gross,
+                    fee_amount=fee,
+                    tax_amount=tax,
+                    adjustment_amount=Decimal("0"),
+                    expected_net_amount=expected_net,
+                    bank_received_amount=Decimal("0"),
+                    variance=Decimal("0"),
+                    currency=txn.currency,
+                    variance_type=SettlementVarianceType.MISSING_BANK_CREDIT,
+                )
+
+            try:
+                bank_recon = await settle_service.get_settlement_bank_reconciliation(txn.txn_id)
+            except Exception:
+                from app.services.razorpay_settlement_intelligence_service import RazorpaySettlementState, SettlementBankReconciliation
+                bank_recon = SettlementBankReconciliation(
+                    settlement_id=txn.txn_id,
+                    settlement_status=RazorpaySettlementState.RAZORPAY_PROCESSED,
+                    utr=txn.reference_number,
+                    bank_matched=False,
+                    bank_transaction_id=None,
+                    bank_amount=None,
+                    bank_date=None,
+                    bank_match_confidence=None,
+                )
+
+            # Never claim bank credit merely because Razorpay says settlement.processed
+            if not bank_recon.bank_matched:
+                # Bank credit not yet received or matched
+                recon_status = "EXCEPTION"
+                action_name = "ESCALATE_EXCEPTION"
+                match_id = None
+                matched_txn_id = None
+                msg = f"Settlement processed by gateway, but bank statement credit not yet verified (UTR: {bank_recon.utr}). Exception created."
+
+                # Create exception for unverified bank credit
+                stmt_exc = select(ExceptionORM).where(ExceptionORM.transaction_id == orm_txn_id)
+                existing_exc = (await session.execute(stmt_exc)).scalars().first()
+                if not existing_exc:
+                    exc_id = f"exc_wh_{uuid.uuid4().hex[:12]}"
+                    exc_orm = ExceptionORM(
+                        id=exc_id,
+                        run_id=run_id,
+                        transaction_id=orm_txn_id,
+                        exception_category=ExceptionCategory.MISSING_SOURCE,
+                        status="open",
+                        confidence=Decimal("0.85"),
+                        financial_exposure=financial.expected_net_amount,
+                        expected_cost=financial.expected_net_amount * Decimal("0.05"),
+                        explanation=f"Settlement {txn.txn_id} processed by Razorpay (expected net: INR {financial.expected_net_amount}), but bank statement credit not yet confirmed in bank statement (UTR: {bank_recon.utr}).",
+                        recommended_action="Monitor bank statement feed for matching UTR credit or file inquiry with bank",
+                        resolved=False,
+                        created_at=utcnow(),
+                    )
+                    session.add(exc_orm)
+            else:
+                # Bank credit confirmed
+                if abs(financial.variance) <= Decimal("0.01"):
+                    # Zero variance -> Full Reconciliation Match
+                    recon_status = "MATCHED"
+                    action_name = "AUTO_MATCH"
+                    match_id = f"match_wh_{uuid.uuid4().hex[:12]}"
+                    matched_txn_id = bank_recon.bank_transaction_id
+                    msg = "Settlement reconciled with verified bank credit."
+
+                    m_orm = MatchORM(
+                        id=match_id,
+                        run_id=run_id,
+                        match_type="exact",
+                        confidence=Decimal("1.00"),
+                        reason=f"Settlement reconciled with bank statement via UTR {bank_recon.utr}",
+                        evidence={
+                            "settlement_id": txn.txn_id,
+                            "bank_transaction_id": bank_recon.bank_transaction_id,
+                            "expected_net": str(financial.expected_net_amount),
+                            "bank_amount": str(bank_recon.bank_amount),
+                            "utr": bank_recon.utr,
+                        },
+                        created_at=utcnow(),
+                    )
+                    session.add(m_orm)
+
+                    stmt_bk_orm = select(TransactionORM.id).where(TransactionORM.domain_transaction_id == bank_recon.bank_transaction_id)
+                    bk_orm_id = (await session.execute(stmt_bk_orm)).scalars().first()
+                    if bk_orm_id:
+                        session.add(MatchTransactionORM(match_id=match_id, transaction_id=orm_txn_id))
+                        session.add(MatchTransactionORM(match_id=match_id, transaction_id=bk_orm_id))
+
+                    # Resolve any previous open exceptions for this settlement
+                    stmt_exc = select(ExceptionORM).where(ExceptionORM.transaction_id == orm_txn_id)
+                    for exc in (await session.execute(stmt_exc)).scalars().all():
+                        exc.resolved = True
+                        exc.status = "resolved"
+                        exc.resolved_at = utcnow()
+                else:
+                    # Variance detected
+                    recon_status = "VARIANCE_DETECTED"
+                    action_name = "ESCALATE_EXCEPTION"
+                    match_id = None
+                    matched_txn_id = bank_recon.bank_transaction_id
+                    msg = f"Settlement matched bank credit with variance INR {financial.variance} ({financial.variance_type.value}). Exception created."
+
+                    exc_id = f"exc_wh_{uuid.uuid4().hex[:12]}"
+                    exc_orm = ExceptionORM(
+                        id=exc_id,
+                        run_id=run_id,
+                        transaction_id=orm_txn_id,
+                        exception_category=ExceptionCategory.AMOUNT_MISMATCH,
+                        status="open",
+                        confidence=Decimal("0.90"),
+                        financial_exposure=abs(financial.variance),
+                        expected_cost=abs(financial.variance),
+                        explanation=f"Settlement {txn.txn_id} matched bank credit of INR {bank_recon.bank_amount}, but expected net is INR {financial.expected_net_amount} (variance: INR {financial.variance}, type: {financial.variance_type.value}).",
+                        recommended_action=f"Investigate {financial.variance_type.value} variance against Razorpay fee schedule",
+                        resolved=False,
+                        created_at=utcnow(),
+                    )
+                    session.add(exc_orm)
+
+            recon_transaction_id = txn.txn_id
+        else:
+            # Incremental reconciliation for standard payments
+            incremental_service = IncrementalReconciliationService(
+                session=session,
+                investigation_service=investigation_service,
+            )
+            recon_result = await incremental_service.ingest_and_reconcile(txn, run_id=run_id)
+            recon_status = recon_result.status
+            action_name = recon_result.action
+            match_id = recon_result.match_id
+            matched_txn_id = recon_result.matched_transaction_id
+            recon_transaction_id = recon_result.transaction_id
+            msg = "Webhook event verified, persisted, and reconciled."
 
         # 7. Update Webhook Record & Audit Trail
         webhook_event_orm.status = "PROCESSED"
@@ -152,29 +314,30 @@ class RazorpayWebhookHandler:
         await audit_repo.create(
             AuditDomain(
                 run_id=run_id,
-                transaction_id=None,
+                transaction_id=orm_txn_id,
                 stage="GATEWAY_WEBHOOK",
                 event="RAZORPAY_WEBHOOK_PROCESSED",
                 evidence={
                     "event_id": event_id,
                     "event_type": event_type,
-                    "transaction_id": recon_result.transaction_id,
-                    "recon_status": recon_result.status,
-                    "action": recon_result.action,
+                    "transaction_id": recon_transaction_id,
+                    "recon_status": recon_status,
+                    "action": action_name,
                 },
             )
         )
+        await session.commit()
 
         duration_ms = (time.perf_counter() - t0) * 1000.0
         return RazorpayWebhookResponse(
             event_id=event_id,
             event_type=event_type,
             status="PROCESSED",
-            transaction_id=recon_result.transaction_id,
-            reconciliation_status=recon_result.status,
-            action=recon_result.action,
-            match_id=recon_result.match_id,
-            matched_transaction_id=recon_result.matched_transaction_id,
+            transaction_id=recon_transaction_id,
+            reconciliation_status=recon_status,
+            action=action_name,
+            match_id=match_id,
+            matched_transaction_id=matched_txn_id,
             processing_time_ms=duration_ms,
-            message="Webhook event verified, persisted, and reconciled.",
+            message=msg,
         )
