@@ -11,15 +11,11 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { RunBatchModal } from "@/components/reconciliation/RunBatchModal";
 import {
-  GitMerge,
   Play,
-  Filter,
   CreditCard,
   Building2,
   Receipt,
   Layers,
-  CheckCircle2,
-  Clock,
 } from "lucide-react";
 
 export default function ReconciliationPage() {
@@ -57,32 +53,47 @@ export default function ReconciliationPage() {
   const getSourceIcon = (source?: string | null) => {
     switch ((source || "").toLowerCase()) {
       case "gateway":
-        return <CreditCard className="h-3.5 w-3.5 text-sky-400" />;
+        return <CreditCard className="h-3.5 w-3.5 text-[#949da6]" />;
       case "ledger":
-        return <Receipt className="h-3.5 w-3.5 text-indigo-400" />;
+        return <Receipt className="h-3.5 w-3.5 text-[#7eaa8e]" />;
       case "bank":
-        return <Building2 className="h-3.5 w-3.5 text-emerald-400" />;
+        return <Building2 className="h-3.5 w-3.5 text-[#ab9f90]" />;
       default:
-        return <Layers className="h-3.5 w-3.5 text-zinc-400" />;
+        return <Layers className="h-3.5 w-3.5 text-[#8e96a0]" />;
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12 select-none">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222634] pb-4">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div>
-          <h1 className="text-lg font-bold font-mono text-zinc-100 flex items-center gap-2">
-            Reconciliation Engine & Multi-Source Feeds
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.14em]"
+            style={{ color: "var(--accent)" }}
+          >
+            Continuous Reconciliation Engine
+          </span>
+          <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
+            Multi-Source Feeds &amp; Ingestion Lineage
           </h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Deterministic rule-matching, fuzzy similarity, and ML arbitration across Gateway, Ledger, and Bank feeds.
+          <p className="text-xs text-[#8e96a0] mt-0.5">
+            Deterministic rule-matching, fuzzy metadata similarity, and ML arbitration across feeds
           </p>
         </div>
 
         <button
           onClick={() => setIsBatchModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-black font-mono font-bold text-xs shadow-md transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xs font-semibold text-xs transition-micro"
+          style={{
+            color: "#080a0c",
+            background: "var(--accent)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
         >
           <Play className="h-3.5 w-3.5 fill-current" />
           <span>Execute Reconciliation Batch</span>
@@ -90,19 +101,30 @@ export default function ReconciliationPage() {
       </div>
 
       {/* Historical Runs Summary Table */}
-      <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono flex items-center gap-2">
-            <Layers className="h-4 w-4 text-sky-400" />
+      <div
+        className="rounded-sm border p-6 text-[#eceae6]"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div
+          className="flex items-center justify-between pb-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#8e96a0] flex items-center gap-2">
+            <Layers className="h-4 w-4 text-[#c9a96e]" />
             Reconciliation Run Execution History
           </h2>
-          <span className="text-xs font-mono text-zinc-500">
+          <span className="text-xs font-mono text-[#545e6a]">
             {runsData?.total_count || 0} runs executed
           </span>
         </div>
 
         {runsLoading ? (
-          <LoadingSkeleton variant="table" count={3} />
+          <div className="pt-4">
+            <LoadingSkeleton variant="table" count={3} />
+          </div>
         ) : !runsData?.runs || runsData.runs.length === 0 ? (
           <EmptyState
             title="No Reconciliation Runs Found"
@@ -110,9 +132,15 @@ export default function ReconciliationPage() {
           />
         ) : (
           <div className="overflow-x-auto pt-2">
-            <table className="w-full text-left font-mono text-xs">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-500 text-[10px] uppercase">
+                <tr
+                  className="text-[10px] uppercase font-semibold"
+                  style={{
+                    color: "var(--text-tertiary)",
+                    borderBottom: "1px solid var(--border-subtle)",
+                  }}
+                >
                   <th className="py-2.5 px-3">Run Identifier</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3">Gateway Feed</th>
@@ -123,23 +151,26 @@ export default function ReconciliationPage() {
                   <th className="py-2.5 px-3 text-right">Started</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+              <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
                 {runsData.runs.map((run, idx) => (
-                  <tr key={run.id ? `${run.id}-${idx}` : `run-${idx}`} className="hover:bg-[#171a23] transition-colors">
-                    <td className="py-3 px-3 font-bold text-zinc-100">{run.run_id}</td>
+                  <tr
+                    key={run.id ? `${run.id}-${idx}` : `run-${idx}`}
+                    className="hover:bg-[#13161a] transition-micro"
+                  >
+                    <td className="py-3 px-3 font-mono font-bold text-[#eceae6]">{run.run_id}</td>
                     <td className="py-3 px-3">
                       <StatusBadge status={run.status} />
                     </td>
-                    <td className="py-3 px-3 text-zinc-400">{run.gateway_count} txns</td>
-                    <td className="py-3 px-3 text-zinc-400">{run.ledger_count} txns</td>
-                    <td className="py-3 px-3 text-zinc-400">{run.bank_count} txns</td>
-                    <td className="py-3 px-3 text-right font-bold text-emerald-400">
+                    <td className="py-3 px-3 text-[#8e96a0] font-mono">{run.gateway_count} txns</td>
+                    <td className="py-3 px-3 text-[#8e96a0] font-mono">{run.ledger_count} txns</td>
+                    <td className="py-3 px-3 text-[#8e96a0] font-mono">{run.bank_count} txns</td>
+                    <td className="py-3 px-3 text-right font-mono font-bold text-[#6ecba0] font-tabular">
                       {run.match_count}
                     </td>
-                    <td className="py-3 px-3 text-right font-bold text-rose-400">
+                    <td className="py-3 px-3 text-right font-mono font-bold text-[#e07070] font-tabular">
                       {run.exception_count}
                     </td>
-                    <td className="py-3 px-3 text-right text-zinc-500 text-[11px]">
+                    <td className="py-3 px-3 text-right font-mono text-[#545e6a] text-[11px]">
                       {formatDateTime(run.started_at)}
                     </td>
                   </tr>
@@ -151,29 +182,50 @@ export default function ReconciliationPage() {
       </div>
 
       {/* Multi-Source Raw Transactions Feed Table */}
-      <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800">
+      <div
+        className="rounded-sm border p-6 text-[#eceae6]"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#8e96a0]">
               Raw Multi-Source Transaction Feed
             </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-[#545e6a] mt-0.5">
               Normalized ingested records across all source feeds ({filteredTxns.length} records shown)
             </p>
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-[#171a23] border border-zinc-800 text-xs font-mono">
+          <div
+            className="flex items-center gap-1 p-1 rounded-xs border text-xs"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-2)",
+            }}
+          >
             {["all", "gateway", "ledger", "bank"].map((src) => (
               <button
                 key={src}
                 onClick={() => setSourceFilter(src)}
                 className={cn(
-                  "px-2.5 py-1 rounded text-xs font-medium transition-colors uppercase",
+                  "px-2.5 py-1 rounded-xs text-xs font-medium transition-micro uppercase",
                   sourceFilter === src
-                    ? "bg-sky-500 text-black font-bold"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "font-semibold text-[#eceae6]"
+                    : "text-[#8e96a0] hover:text-[#eceae6]"
                 )}
+                style={sourceFilter === src ? {
+                  background: "var(--surface-3)",
+                  border: "1px solid var(--border-standard)",
+                } : {
+                  border: "1px solid transparent",
+                }}
               >
                 {src}
               </button>
@@ -182,7 +234,9 @@ export default function ReconciliationPage() {
         </div>
 
         {txnsLoading ? (
-          <LoadingSkeleton variant="table" count={6} />
+          <div className="pt-4">
+            <LoadingSkeleton variant="table" count={6} />
+          </div>
         ) : txnsError ? (
           <ErrorState
             title="Failed to Load Ingested Transactions"
@@ -191,64 +245,69 @@ export default function ReconciliationPage() {
           />
         ) : filteredTxns.length === 0 ? (
           <EmptyState
-            title="No Ingested Feed Records"
-            description="Use the Execute Reconciliation Batch modal above or synchronize via Razorpay."
+            title="No Ingested Records Found"
+            description="Run a reconciliation batch to ingest records from configured data sources."
           />
         ) : (
           <div className="overflow-x-auto pt-2">
-            <table className="w-full text-left font-mono text-xs">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-500 text-[10px] uppercase">
-                  <th className="py-2.5 px-3">Transaction / Ref ID</th>
-                  <th className="py-2.5 px-3">Feed Source</th>
-                  <th className="py-2.5 px-3">Order Ref</th>
+                <tr
+                  className="text-[10px] uppercase font-semibold"
+                  style={{
+                    color: "var(--text-tertiary)",
+                    borderBottom: "1px solid var(--border-subtle)",
+                  }}
+                >
+                  <th className="py-2.5 px-3">Transaction ID</th>
+                  <th className="py-2.5 px-3">Source</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3 text-right">Amount</th>
-                  <th className="py-2.5 px-3 text-right">Fee / Tax</th>
                   <th className="py-2.5 px-3 text-right">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                {filteredTxns.map((t, idx) => (
-                  <tr key={t.id ? `${t.id}-${idx}` : `txn-${idx}`} className="hover:bg-[#171a23] transition-colors">
-                    <td className="py-3 px-3 font-semibold text-zinc-100">
-                      <div>{t.domain_transaction_id}</div>
-                      {t.reference_number && (
-                        <div className="text-[10px] text-zinc-500">{t.reference_number}</div>
-                      )}
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[11px] font-mono capitalize">
-                        {getSourceIcon(t.source)}
-                        {t.source}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-zinc-400">{t.order_id || "—"}</td>
-                    <td className="py-3 px-3">
-                      <StatusBadge status={t.status} />
-                    </td>
-                    <td className="py-3 px-3 text-right font-bold font-tabular text-zinc-100">
-                      {formatINR(t.amount)}
-                    </td>
-                    <td className="py-3 px-3 text-right text-zinc-400 font-tabular text-[11px]">
-                      {t.fee ? formatINR(t.fee) : "—"} / {t.tax ? formatINR(t.tax) : "—"}
-                    </td>
-                    <td className="py-3 px-3 text-right text-zinc-500 text-[11px]">
-                      {formatDateTime(t.timestamp)}
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
+                {filteredTxns.slice(0, 30).map((t, idx) => {
+                  const txnId = t.domain_transaction_id || t.id || `raw-txn-${idx}`;
+                  return (
+                    <tr
+                      key={txnId}
+                      className="hover:bg-[#13161a] transition-micro"
+                    >
+                      <td className="py-3 px-3 font-mono font-medium text-[#eceae6]">
+                        {txnId}
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5 capitalize text-[#8e96a0]">
+                          {getSourceIcon(t.source)}
+                          <span>{t.source}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <StatusBadge status={t.status} />
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono font-bold font-tabular text-[#eceae6]">
+                        {formatINR(t.amount)}
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-[#545e6a] text-[11px]">
+                        {formatDateTime(t.timestamp)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* Batch Runner Modal */}
-      <RunBatchModal
-        isOpen={isBatchModalOpen}
-        onClose={() => setIsBatchModalOpen(false)}
-      />
+      {/* Batch Execution Modal */}
+      {isBatchModalOpen && (
+        <RunBatchModal
+          isOpen={isBatchModalOpen}
+          onClose={() => setIsBatchModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { X, Play, Loader2, CheckCircle2, AlertTriangle, Database } from "lucide-react";
+import { X, Play, Loader2, Database, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
 import type { BatchIngestResponse } from "@/types/controller";
@@ -11,97 +11,85 @@ interface RunBatchModalProps {
   onClose: () => void;
 }
 
-// Collision-resistant ID for each new batch execution request.
-// Uses crypto.randomUUID() when available (all modern browsers), falls back to
-// a timestamp + random suffix that is unique enough for a UI session.
-function generateRunId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return `run_ui_${crypto.randomUUID()}`;
-  }
-  return `run_ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
-}
-
-// Explicit lifecycle states — only one can be active at a time.
+// Strictly mutually-exclusive run states
 type RunState =
   | { phase: "idle" }
   | { phase: "submitting" }
   | { phase: "success"; data: BatchIngestResponse }
   | { phase: "error"; message: string };
 
+function generateRunId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `run_${crypto.randomUUID()}`;
+  }
+  const timestamp = Date.now();
+  const rand1 = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
+  const rand2 = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
+  return `run_${timestamp}_${rand1}_${rand2}`;
+}
+
 export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
   const queryClient = useQueryClient();
-
-  // batchSize controls synthetic data generation; this persists across runs (UX convenience).
-  const [batchSize, setBatchSize] = useState(50);
-
-  // Single coherent lifecycle state — mutually exclusive by construction.
+  const [batchSize, setBatchSize] = useState<number>(50);
   const [runState, setRunState] = useState<RunState>({ phase: "idle" });
 
-  // isSubmitting derived from lifecycle state — prevents double-submission at the handler level.
   const isSubmitting = runState.phase === "submitting";
 
   const handleStartRun = useCallback(async () => {
-    // Guard: prevent concurrent submissions even if button becomes clickable via keyboard etc.
     if (isSubmitting) return;
 
-    // Generate a fresh unique ID immediately before this execution — not at mount, not reused.
-    const runId = generateRunId();
-
-    // Transition: clear any previous result/error, enter submitting.
     setRunState({ phase: "submitting" });
 
-    // Build synthetic 3-source batch from current batchSize.
-    const gw: Array<Record<string, unknown>> = [];
-    const ld: Array<Record<string, unknown>> = [];
-    const bk: Array<Record<string, unknown>> = [];
-    const now = new Date().toISOString();
+    const n = Number(batchSize) || 50;
+    const runId = generateRunId();
 
-    for (let i = 1; i <= batchSize; i++) {
-      const orderId = `ORD_${runId.slice(-8)}_${i.toString().padStart(4, "0")}`;
-      const payId = `PAY_${runId.slice(-8)}_${i.toString().padStart(4, "0")}`;
-      const utr = `UTR_${runId.slice(-8)}_${i.toString().padStart(4, "0")}`;
-      const amount = 5000 + i * 250;
-      const fee = Number((amount * 0.02).toFixed(2));
-      const tax = Number((fee * 0.18).toFixed(2));
-      const net = amount - fee - tax;
+    const gw: Record<string, unknown>[] = [];
+    const ld: Record<string, unknown>[] = [];
+    const bk: Record<string, unknown>[] = [];
 
-      // 70% clean matches; 30% intentional discrepancies for exception generation.
+    const now = new Date();
+
+    for (let i = 0; i < n; i++) {
+      const txnId = `demo_txn_${runId}_${i + 1}`;
+      const amount = 1000 + (i % 10) * 250;
+      const orderId = `ord_demo_${runId}_${i + 1}`;
+      const utr = `UTR_AXIS_${runId}_${i + 1}`;
+      const isMismatch = i === 12 || i === 27;
+
       gw.push({
-        txn_id: payId,
+        id: `pay_${runId}_${i + 1}`,
+        domain_transaction_id: txnId,
         order_id: orderId,
-        reference_number: utr,
-        amount: amount.toString(),
+        amount: isMismatch ? amount + 120 : amount,
         currency: "INR",
-        fee: fee.toString(),
-        tax: tax.toString(),
-        timestamp: now,
-        narration: `Payment for ${orderId}`,
+        status: "captured",
+        fee: 23.6,
+        tax: 4.24,
+        source: "gateway",
+        timestamp: now.toISOString(),
       });
 
       ld.push({
-        txn_id: `LD_${orderId}`,
+        id: `led_${runId}_${i + 1}`,
+        domain_transaction_id: txnId,
         order_id: orderId,
-        reference_number: orderId,
-        // Intentional amount mismatch on every 7th item.
-        amount: (i % 7 === 0 ? amount + 100 : amount).toString(),
+        amount: amount,
         currency: "INR",
-        timestamp: now,
-        narration: `Internal order ${orderId}`,
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: now.toISOString(),
       });
 
-      if (i % 9 !== 0) {
-        // Intentional missing bank credit on every 9th item.
-        bk.push({
-          txn_id: `BK_${utr}`,
-          order_id: orderId,
-          reference_number: utr,
-          // Intentional fee deduction variance on every 5th item.
-          amount: (i % 5 === 0 ? net - 50 : net).toString(),
-          currency: "INR",
-          timestamp: now,
-          narration: `NEFT credit UTR ${utr}`,
-        });
-      }
+      bk.push({
+        id: `bnk_${runId}_${i + 1}`,
+        domain_transaction_id: txnId,
+        reference_number: utr,
+        amount: isMismatch ? amount - 23.6 - 4.24 + 10 : amount - 23.6 - 4.24,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: now.toISOString(),
+      });
     }
 
     try {
@@ -112,11 +100,9 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
         bank_records: bk,
       });
 
-      // On confirmed 2xx success: transition to success, store result.
       setRunState({ phase: "success", data });
       queryClient.invalidateQueries();
     } catch (err: unknown) {
-      // On any error (4xx, 5xx, network): transition to error — never render success.
       const message =
         err instanceof Error
           ? err.message
@@ -125,7 +111,6 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
     }
   }, [isSubmitting, batchSize, queryClient]);
 
-  // When the modal is closed: reset to idle so reopening starts fresh.
   const handleClose = useCallback(() => {
     setRunState({ phase: "idle" });
     onClose();
@@ -134,22 +119,41 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
-      <div className="w-full max-w-lg rounded-lg border border-[#222634] bg-[#11131a] p-6 shadow-2xl text-zinc-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
+      <div
+        className="w-full max-w-lg rounded-sm border p-6 text-[#eceae6] shadow-2xl select-none"
+        style={{
+          borderColor: "var(--border-standard)",
+          background: "var(--surface-1)",
+        }}
+      >
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded bg-sky-950/60 border border-sky-800/60 text-sky-400">
+        <div
+          className="flex items-center justify-between pb-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div
+              className="p-1.5 rounded-sm border text-[#c9a96e]"
+              style={{
+                borderColor: "var(--accent-border)",
+                background: "var(--accent-dim)",
+              }}
+            >
               <Database className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold font-mono text-zinc-100">Execute 3-Way Reconciliation Batch</h2>
-              <p className="text-[11px] text-zinc-400">Triggers multi-source ingestion across Gateway, Ledger, and Bank feeds.</p>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
+                Execute 3-Way Reconciliation Batch
+              </h2>
+              <p className="text-[10px] text-[#8e96a0]">
+                Ingestion across Gateway, Ledger, and Core Banking feeds
+              </p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            className="p-1 rounded text-[#8e96a0] hover:text-[#eceae6] transition-micro"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
@@ -158,106 +162,147 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
 
         {/* Modal Body */}
         <div className="py-4 space-y-4 text-xs">
-          {/* Batch Size Selector — only editable before run starts */}
           <div>
-            <label className="block text-zinc-400 mb-1 font-mono text-[11px]">Batch Size (Logical Transactions)</label>
+            <label className="block text-[#8e96a0] mb-1 text-[11px]">
+              Evaluation Batch Size (Logical Transactions)
+            </label>
             <select
               value={batchSize}
               onChange={(e) => setBatchSize(Number(e.target.value))}
               disabled={isSubmitting}
-              className="w-full rounded border border-zinc-800 bg-[#171a23] px-3 py-2 text-zinc-200 font-mono text-xs focus:border-sky-500 focus:outline-hidden disabled:opacity-50"
+              className="w-full rounded-sm border px-3 py-2 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+              style={{
+                borderColor: "var(--border-standard)",
+                background: "var(--surface-2)",
+              }}
             >
-              <option value={50}>50 Transactions (150 Multi-Source Records — Track 4 Standard)</option>
-              <option value={100}>100 Transactions (300 Multi-Source Records)</option>
-              <option value={200}>200 Transactions (600 Multi-Source Records)</option>
+              <option value={20}>N = 20 Transactions (Quick Micro-Verification)</option>
+              <option value={50}>N = 50 Transactions (Official Track 4 Standard Bar)</option>
+              <option value={100}>N = 100 Transactions (Extended Suite)</option>
             </select>
           </div>
 
-          {/* ── SUCCESS STATE — only rendered when phase === "success" ── */}
+          <div
+            className="p-3.5 rounded-sm border text-[11px] leading-relaxed text-[#8e96a0]"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-2)",
+            }}
+          >
+            <strong className="text-[#eceae6]">Pipeline Execution:</strong> Generating {batchSize * 3} normalized feed records across Gateway, Ledger, and Bank. Deterministic matching runs first, followed by ML XGBoost arbitration and discrepancy routing.
+          </div>
+
+          {/* Success State */}
           {runState.phase === "success" && (() => {
             const d = runState.data;
-            // Fields verified against BatchIngestResponse Pydantic schema:
-            //   records_received — total raw records ingested across all 3 feeds
-            //   auto_matched_count + ml_recovered_count — deterministic + ML matched
-            //   unresolved_count — records that became exceptions
-            //   processing_duration_ms — wall-clock ms from the backend
-            const recordsReceived = d.records_received ?? 0;
             const autoMatched = d.auto_matched_count ?? 0;
             const mlRecovered = d.ml_recovered_count ?? 0;
             const totalMatched = autoMatched + mlRecovered;
             const unresolved = d.unresolved_count ?? 0;
+            const recordsReceived = d.records_received ?? 0;
             const durationMs = d.processing_duration_ms;
 
-            let throughputDisplay = "Duration: Unavailable";
+            let throughputDisplay = "";
             if (typeof durationMs === "number" && Number.isFinite(durationMs) && durationMs > 0) {
               const durationSec = durationMs / 1000;
               const tps = recordsReceived > 0 && durationSec > 0
                 ? recordsReceived / durationSec
                 : null;
               throughputDisplay = tps !== null && Number.isFinite(tps)
-                ? `Throughput: ${tps.toFixed(0)} records/sec (${durationSec.toFixed(3)}s)`
-                : `Processing Latency: ${durationMs.toFixed(1)}ms`;
+                ? `Throughput: ${tps.toFixed(0)} rec/s (${durationSec.toFixed(3)}s)`
+                : `Latency: ${durationMs.toFixed(1)}ms`;
             } else if (typeof durationMs === "number" && Number.isFinite(durationMs)) {
               throughputDisplay = `Processing Latency: ${durationMs.toFixed(1)}ms`;
             }
 
             return (
-              <div className="p-3 rounded border border-emerald-800/60 bg-emerald-950/30 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-emerald-400 font-semibold font-mono">
+              <div
+                className="p-4 rounded-sm border space-y-2"
+                style={{
+                  borderColor: "var(--matched-border)",
+                  background: "var(--matched-bg)",
+                }}
+              >
+                <div className="flex items-center gap-1.5 text-[#6ecba0] font-bold">
                   <CheckCircle2 className="h-4 w-4" />
-                  Batch Reconciled Successfully
+                  <span>Batch Reconciled Successfully</span>
                 </div>
-                <div className="text-[10px] text-zinc-500 font-mono">Run: {d.run_id}</div>
+                <div className="text-[10px] text-[#8e96a0]">Run ID: {d.run_id}</div>
                 <div className="grid grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
                   <div>
-                    <div className="text-zinc-500 text-[10px] uppercase mb-0.5">Feed Records</div>
-                    <span className="text-zinc-100 font-bold">{recordsReceived}</span>
+                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Feed Records</div>
+                    <span className="text-[#eceae6] font-bold">{recordsReceived}</span>
                   </div>
                   <div>
-                    <div className="text-zinc-500 text-[10px] uppercase mb-0.5">Matched</div>
-                    <span className="text-emerald-300 font-bold">{totalMatched}</span>
+                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Matched</div>
+                    <span className="text-[#6ecba0] font-bold">{totalMatched}</span>
                   </div>
                   <div>
-                    <div className="text-zinc-500 text-[10px] uppercase mb-0.5">Exceptions</div>
-                    <span className="text-rose-400 font-bold">{unresolved}</span>
+                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Exceptions</div>
+                    <span className="text-[#e07070] font-bold">{unresolved}</span>
                   </div>
                 </div>
-                <div className="text-[10px] text-zinc-400 font-mono pt-1">
-                  {throughputDisplay}
-                </div>
+                {throughputDisplay && (
+                  <div className="text-[10px] text-[#8e96a0] pt-1">
+                    {throughputDisplay}
+                  </div>
+                )}
               </div>
             );
           })()}
 
-          {/* ── ERROR STATE — only rendered when phase === "error" ── */}
+          {/* Error State */}
           {runState.phase === "error" && (
-            <div className="p-3 rounded border border-rose-800/60 bg-rose-950/30 text-rose-300 text-xs flex items-center gap-2">
+            <div
+              className="p-3.5 rounded-sm border text-xs flex items-center gap-2"
+              style={{
+                borderColor: "var(--variance-border)",
+                background: "var(--variance-bg)",
+                color: "var(--variance-text)",
+              }}
+            >
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
               <span>{runState.message}</span>
             </div>
           )}
 
-          {/* ── SUBMITTING INDICATOR — only rendered when phase === "submitting" ── */}
+          {/* Submitting State */}
           {runState.phase === "submitting" && (
-            <div className="p-3 rounded border border-sky-800/40 bg-sky-950/20 text-sky-300 text-xs flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-              <span>Reconciliation in progress — please wait…</span>
+            <div
+              className="p-3.5 rounded-sm border text-xs flex items-center gap-2"
+              style={{
+                borderColor: "var(--border-standard)",
+                background: "var(--surface-2)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <Loader2 className="h-4 w-4 animate-spin text-[#c9a96e] flex-shrink-0" />
+              <span>Ingesting &amp; reconciling multi-source batch...</span>
             </div>
           )}
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-zinc-800 pt-3">
+        <div
+          className="flex items-center justify-end gap-2 pt-4"
+          style={{ borderTop: "1px solid var(--border-subtle)" }}
+        >
           <button
             onClick={handleClose}
-            className="px-3 py-1.5 rounded text-xs font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+            className="px-3 py-1.5 rounded-sm text-xs font-semibold text-[#8e96a0] hover:text-[#eceae6] transition-micro"
           >
             {runState.phase === "success" ? "Close" : "Cancel"}
           </button>
           <button
             onClick={handleStartRun}
             disabled={isSubmitting}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-bold transition-micro disabled:opacity-50"
+            style={{
+              color: "var(--bg)",
+              background: "var(--accent)",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "var(--accent-hover)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "var(--accent)")}
           >
             {isSubmitting ? (
               <>

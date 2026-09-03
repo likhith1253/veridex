@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark h-full antialiased">
-      <body className="h-full bg-[#090a0f] text-zinc-100 selection:bg-sky-500/20 selection:text-sky-300">
+      <body className="h-full">
         <QueryProvider>
           <AppShell>{children}</AppShell>
         </QueryProvider>

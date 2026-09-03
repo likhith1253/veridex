@@ -10,11 +10,8 @@ import {
   CreditCard,
   RefreshCw,
   CheckCircle2,
-  AlertTriangle,
   Radio,
-  Layers,
   ShieldCheck,
-  Play,
   Loader2,
 } from "lucide-react";
 import type { RazorpayUnifiedSyncResponse } from "@/types/integrations";
@@ -45,27 +42,42 @@ export default function RazorpayPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12 select-none">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222634] pb-4">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div>
-          <h1 className="text-lg font-bold font-mono text-zinc-100 flex items-center gap-2">
-            Razorpay Payment Gateway Connector
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.14em]"
+            style={{ color: "var(--accent)" }}
+          >
+            Infrastructure Connector
+          </span>
+          <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
+            Razorpay Gateway Connector &amp; Webhooks
           </h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Real-time API ingestion, webhook listener telemetry, and multi-entity normalization pipeline.
+          <p className="text-xs text-[#8e96a0] mt-0.5">
+            Direct API synchronization, webhook listener telemetry, and canonical normalization
           </p>
         </div>
 
         <button
           onClick={() => syncMutation.mutate()}
           disabled={syncMutation.isPending || !status?.configured}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-black font-mono font-bold text-xs shadow-md disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xs font-semibold text-xs transition-micro disabled:opacity-50"
+          style={{
+            color: "#080a0c",
+            background: "var(--accent)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
         >
           {syncMutation.isPending ? (
             <>
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              <span>Synchronizing Razorpay...</span>
+              <span>Synchronizing Gateway…</span>
             </>
           ) : (
             <>
@@ -86,117 +98,140 @@ export default function RazorpayPage() {
           onRetry={refetch}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 font-mono text-xs">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs">
           {/* API Connectivity */}
-          <div className="rounded-lg border border-zinc-800 bg-[#11131a] p-4">
-            <div className="flex items-center justify-between text-zinc-500 uppercase text-[10px] pb-2">
-              <span>API Gateway Reachability</span>
-              <Radio className={`h-4 w-4 ${status?.api_reachable ? "text-emerald-400 animate-pulse" : "text-rose-500"}`} />
+          <div
+            className="rounded-sm border p-4"
+            style={{
+              borderColor: status?.api_reachable ? "var(--matched-border)" : "var(--border-subtle)",
+              background: "var(--surface-1)",
+              borderTop: status?.api_reachable ? "2px solid var(--matched)" : "2px solid var(--variance)",
+            }}
+          >
+            <div className="flex items-center justify-between text-[#8e96a0] uppercase text-[10px] pb-2 font-semibold">
+              <span>API Reachability</span>
+              <Radio
+                className="h-4 w-4"
+                style={{ color: status?.api_reachable ? "var(--matched-text)" : "var(--variance-text)" }}
+              />
             </div>
-            <div className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-              <span className={`h-2.5 w-2.5 rounded-full ${status?.api_reachable ? "bg-emerald-400" : "bg-rose-500"}`} />
-              {status?.api_reachable ? "Connected" : "Unreachable"}
+            <div
+              className="text-lg font-bold font-mono"
+              style={{ color: status?.api_reachable ? "var(--matched-text)" : "var(--variance-text)" }}
+            >
+              {status?.api_reachable ? "REACHABLE (200 OK)" : "UNREACHABLE"}
             </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
-              Mode: <strong className="text-zinc-300 uppercase">{status?.mode || "Test"}</strong>
-            </div>
-          </div>
-
-          {/* Credentials Status */}
-          <div className="rounded-lg border border-zinc-800 bg-[#11131a] p-4">
-            <div className="flex items-center justify-between text-zinc-500 uppercase text-[10px] pb-2">
-              <span>Authentication State</span>
-              <ShieldCheck className="h-4 w-4 text-sky-400" />
-            </div>
-            <div className="text-xl font-bold text-zinc-100">
-              {status?.configured ? "Key Configured" : "Missing Key"}
-            </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
-              Key Prefix: <span className="text-zinc-300">{status?.key_id_prefix || "rzp_test_***"}</span>
+            <div className="text-[11px] text-[#545e6a] mt-1 font-mono">
+              Status: {status?.api_reachable ? "Online" : "Unreachable"}
             </div>
           </div>
 
-          {/* Webhook Status */}
-          <div className="rounded-lg border border-zinc-800 bg-[#11131a] p-4">
-            <div className="flex items-center justify-between text-zinc-500 uppercase text-[10px] pb-2">
-              <span>Webhook Telemetry</span>
-              <CheckCircle2 className={`h-4 w-4 ${status?.webhook_configured ? "text-emerald-400" : "text-amber-400"}`} />
+          {/* Configuration State */}
+          <div
+            className="rounded-sm border p-4"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-1)",
+              borderTop: "2px solid var(--accent)",
+            }}
+          >
+            <div className="flex items-center justify-between text-[#8e96a0] uppercase text-[10px] pb-2 font-semibold">
+              <span>Key Provisioning</span>
+              <ShieldCheck className="h-4 w-4 text-[#c9a96e]" />
             </div>
-            <div className="text-xl font-bold text-zinc-100">
-              {status?.webhook_configured ? "Listener Active" : "Polling Only"}
+            <div className="text-lg font-bold text-[#eceae6] font-mono">
+              {status?.configured ? "ACTIVE CREDENTIALS" : "UNCONFIGURED"}
             </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
-              Last event: {status?.last_webhook_at ? formatDateTime(status.last_webhook_at) : "No events"}
+            <div className="text-[11px] text-[#8e96a0] mt-1 font-mono">
+              Prefix: {status?.key_id_prefix || "rzp_test_..."}
             </div>
           </div>
 
-          {/* Last Sync */}
-          <div className="rounded-lg border border-zinc-800 bg-[#11131a] p-4">
-            <div className="flex items-center justify-between text-zinc-500 uppercase text-[10px] pb-2">
-              <span>Last Ingestion Sync</span>
-              <RefreshCw className="h-4 w-4 text-zinc-400" />
+          {/* Webhook Listener Status */}
+          <div
+            className="rounded-sm border p-4"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-1)",
+            }}
+          >
+            <div className="flex items-center justify-between text-[#8e96a0] uppercase text-[10px] pb-2 font-semibold">
+              <span>Webhook Signature</span>
+              <CheckCircle2 className="h-4 w-4 text-[#6ecba0]" />
             </div>
-            <div className="text-sm font-bold text-zinc-100 mt-1">
-              {status?.last_sync_at ? formatDateTime(status.last_sync_at) : "Pending sync"}
+            <div className="text-lg font-bold text-[#eceae6] font-mono">
+              {status?.webhook_configured ? "HMAC SHA256 ACTIVE" : "UNCONFIGURED"}
             </div>
-            <div className="text-[10px] text-zinc-500 mt-1">
-              Idempotency deduping active
+            <div className="text-[11px] text-[#545e6a] mt-1">
+              Cryptographic webhook validation
+            </div>
+          </div>
+
+          {/* Environment Target */}
+          <div
+            className="rounded-sm border p-4"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-1)",
+            }}
+          >
+            <div className="flex items-center justify-between text-[#8e96a0] uppercase text-[10px] pb-2 font-semibold">
+              <span>Deployment Mode</span>
+              <CreditCard className="h-4 w-4 text-[#8e96a0]" />
+            </div>
+            <div className="text-lg font-bold font-mono text-[#c9a96e] uppercase">
+              {status?.mode || "SANDBOX / TEST"}
+            </div>
+            <div className="text-[11px] text-[#545e6a] mt-1">
+              Razorpay standard pipeline
             </div>
           </div>
         </div>
       )}
 
-      {/* Sync Execution Output Panel */}
+      {/* Sync Execution Output */}
       {syncResult && (
-        <div className="rounded-lg border border-emerald-900/60 bg-emerald-950/20 p-5 text-xs font-mono space-y-3">
-          <div className="flex items-center justify-between text-emerald-400 font-bold border-b border-emerald-800/60 pb-2">
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Multi-Entity Synchronization Complete
-            </span>
-            <span className="text-zinc-400 font-normal">
-              Run ID: <strong className="text-zinc-200">{syncResult.run_id}</strong> ({syncResult.total_duration_ms}ms)
+        <div
+          className="rounded-sm border p-6 text-xs text-[#eceae6] space-y-4"
+          style={{
+            borderColor: "var(--matched-border)",
+            background: "var(--surface-1)",
+          }}
+        >
+          <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: "var(--border-subtle)" }}>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-[#6ecba0]" />
+              <span className="font-bold text-sm text-[#eceae6]">
+                Multi-Entity Gateway Sync Completed
+              </span>
+            </div>
+            <span className="font-mono text-[11px] text-[#545e6a]">
+              Duration: {syncResult.total_duration_ms} ms
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-            <div className="p-3 rounded bg-black/40 border border-emerald-900/40">
-              <div className="text-zinc-400 uppercase text-[10px]">Payments Synchronized</div>
-              <div className="text-base font-bold text-zinc-100 mt-1">
-                {syncResult.payments.records_fetched} fetched | {syncResult.payments.records_inserted} new
-              </div>
-              <div className="text-[10px] text-zinc-500">{syncResult.payments.records_skipped} duplicates skipped</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono">
+            <div className="p-3 rounded-xs border" style={{ borderColor: "var(--border-subtle)", background: "var(--surface-2)" }}>
+              <div className="text-[10px] text-[#8e96a0] uppercase">Payments Ingested</div>
+              <div className="text-xl font-bold text-[#eceae6] mt-1">{syncResult.payments?.records_inserted ?? 0}</div>
             </div>
-
-            <div className="p-3 rounded bg-black/40 border border-emerald-900/40">
-              <div className="text-zinc-400 uppercase text-[10px]">Orders Synchronized</div>
-              <div className="text-base font-bold text-zinc-100 mt-1">
-                {syncResult.orders.records_fetched} fetched | {syncResult.orders.records_inserted} new
-              </div>
-              <div className="text-[10px] text-zinc-500">{syncResult.orders.records_skipped} duplicates skipped</div>
+            <div className="p-3 rounded-xs border" style={{ borderColor: "var(--border-subtle)", background: "var(--surface-2)" }}>
+              <div className="text-[10px] text-[#8e96a0] uppercase">Settlements Ingested</div>
+              <div className="text-xl font-bold text-[#eceae6] mt-1">{syncResult.settlements?.records_inserted ?? 0}</div>
             </div>
-
-            <div className="p-3 rounded bg-black/40 border border-emerald-900/40">
-              <div className="text-zinc-400 uppercase text-[10px]">Settlements Synchronized</div>
-              <div className="text-base font-bold text-zinc-100 mt-1">
-                {syncResult.settlements.records_fetched} fetched | {syncResult.settlements.records_inserted} new
+            <div className="p-3 rounded-xs border" style={{ borderColor: "var(--border-subtle)", background: "var(--surface-2)" }}>
+              <div className="text-[10px] text-[#8e96a0] uppercase">Orders Ingested</div>
+              <div className="text-xl font-bold text-[#eceae6] mt-1">{syncResult.orders?.records_inserted ?? 0}</div>
+            </div>
+            <div className="p-3 rounded-xs border" style={{ borderColor: "var(--border-subtle)", background: "var(--surface-2)" }}>
+              <div className="text-[10px] text-[#8e96a0] uppercase">Total Normalized</div>
+              <div className="text-xl font-bold text-[#6ecba0] mt-1">
+                {syncResult.total_records_normalized ?? 0}
               </div>
-              <div className="text-[10px] text-zinc-500">{syncResult.settlements.records_skipped} duplicates skipped</div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Integration Invariants & Documentation Note */}
-      <div className="rounded-lg border border-zinc-800 bg-[#11131a] p-5 text-xs text-zinc-400 font-mono space-y-2">
-        <h2 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
-          Integration Security & Invariant Guarantees
-        </h2>
-        <ul className="space-y-1 text-[11px] list-disc list-inside text-zinc-400">
-          <li>API credentials (<code className="text-zinc-300">RAZORPAY_KEY_ID</code>) are accessed exclusively via secure server-side environment configurations.</li>
-          <li>Secrets and webhook tokens are never exposed or rendered in client-side code.</li>
-          <li>Ingestion uses SHA-256 idempotency hashing to prevent duplicate record processing on re-syncs.</li>
-        </ul>
-      </div>
     </div>
   );
 }

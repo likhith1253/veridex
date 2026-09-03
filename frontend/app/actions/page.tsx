@@ -12,11 +12,7 @@ import { ErrorState } from "@/components/common/ErrorState";
 import {
   ShieldCheck,
   ShieldAlert,
-  Filter,
-  CheckCircle2,
   Clock,
-  Play,
-  ArrowRight,
 } from "lucide-react";
 
 export default function ActionsPage() {
@@ -42,80 +38,111 @@ export default function ActionsPage() {
   ).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12 select-none">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#222634] pb-4">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div>
-          <h1 className="text-lg font-bold font-mono text-zinc-100 flex items-center gap-2">
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.14em]"
+            style={{ color: "var(--accent)" }}
+          >
+            Policy Enforcement
+          </span>
+          <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
             Policy-Gated Action Controls (HITL)
           </h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            AI recommends ledger adjustments and write-offs → Authorized Human Controller approves → Bounded Execution → Immutable Audit.
+          <p className="text-xs text-[#8e96a0] mt-0.5">
+            AI recommends adjustments → Authorized Human Controller approves → Bounded Execution → Immutable Audit
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-zinc-400">Pending Review:</span>
-          <span className="font-mono text-sm font-bold text-amber-400 px-2.5 py-1 rounded bg-amber-950/60 border border-amber-800/60">
+          <span className="text-xs text-[#8e96a0]">Pending Authorization:</span>
+          <span
+            className="font-mono text-xs font-bold px-2.5 py-1 rounded-xs"
+            style={{
+              color: pendingCount > 0 ? "var(--pending-text)" : "var(--matched-text)",
+              background: pendingCount > 0 ? "var(--pending-bg)" : "var(--matched-bg)",
+              border: `1px solid ${pendingCount > 0 ? "var(--pending-border)" : "var(--matched-border)"}`,
+            }}
+          >
             {pendingCount} Actions
           </span>
         </div>
       </div>
 
       {/* Policy Limits Infobar */}
-      <div className="rounded-lg border border-zinc-800 bg-[#11131a] p-4 text-xs font-mono text-zinc-300 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div
+        className="rounded-sm border p-4 text-xs text-[#eceae6] grid grid-cols-1 sm:grid-cols-3 gap-3"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
         <div className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-emerald-400" />
-          <span>Max Single Adjustment: <strong>INR 5,000.00</strong></span>
+          <ShieldCheck className="h-4 w-4 text-[#6ecba0]" />
+          <span>Max Single Adjustment: <strong className="font-mono text-[#eceae6]">INR 5,000.00</strong></span>
         </div>
         <div className="flex items-center gap-2">
-          <ShieldAlert className="h-4 w-4 text-amber-400" />
-          <span>Max Write-off Limit: <strong>INR 100.00</strong></span>
+          <ShieldAlert className="h-4 w-4 text-[#d4a84e]" />
+          <span>Max Write-off Limit: <strong className="font-mono text-[#eceae6]">INR 100.00</strong></span>
         </div>
-        <div className="flex items-center gap-2 text-sky-400">
+        <div className="flex items-center gap-2 text-[#c9a96e]">
           <Clock className="h-4 w-4" />
-          <span>Human-in-the-Loop Approval Required</span>
+          <span>Human-in-the-Loop Approval Mandatory</span>
         </div>
       </div>
 
-      {/* State Filter Pills */}
-      <div className="flex items-center gap-1.5 p-1 rounded-lg bg-[#11131a] border border-zinc-800 text-xs font-mono w-fit">
+      {/* State Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2 text-xs">
         {["all", "PENDING_APPROVAL", "APPROVED", "EXECUTED", "REJECTED"].map((st) => (
           <button
             key={st}
             onClick={() => setStateFilter(st)}
             className={cn(
-              "px-3 py-1 rounded font-medium transition-colors uppercase",
+              "px-3 py-1.5 rounded-xs text-xs font-medium transition-micro",
               stateFilter === st
-                ? "bg-sky-500 text-black font-bold"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "font-semibold text-[#eceae6]"
+                : "text-[#8e96a0] hover:text-[#eceae6]"
             )}
+            style={stateFilter === st ? {
+              background: "var(--surface-3)",
+              border: "1px solid var(--border-standard)",
+            } : {
+              background: "var(--surface-2)",
+              border: "1px solid var(--border-subtle)",
+            }}
           >
-            {st.replace(/_/g, " ")}
+            {st === "all" ? "All States" : st.replace(/_/g, " ")}
           </button>
         ))}
       </div>
 
-      {/* Action Cards Feed */}
+      {/* Actions Feed */}
       {isLoading ? (
         <div className="space-y-4">
-          <LoadingSkeleton variant="card" count={3} />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-40 rounded-sm skeleton" />
+          ))}
         </div>
       ) : error ? (
         <ErrorState
-          title="Failed to Load Finance Actions"
+          title="Failed to Load Actions"
           message={error instanceof Error ? error.message : "Error connecting to backend"}
           onRetry={refetch}
         />
       ) : actionsList.length === 0 ? (
         <EmptyState
-          title="No Finance Actions Found"
-          description="Actions will appear here when recommended from exception dossiers or automated policies."
+          title="No Actions in Selected State"
+          description="Actions recommended during exception investigation will appear here for policy authorization."
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {actionsList.map((action, idx) => (
-            <ActionCard key={action.id ? `${action.id}-${idx}` : `action-${idx}`} action={action} />
+        <div className="space-y-4">
+          {actionsList.map((action) => (
+            <ActionCard key={action.id} action={action} />
           ))}
         </div>
       )}

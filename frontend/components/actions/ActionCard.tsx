@@ -11,9 +11,8 @@ import {
   Play,
   CheckCircle2,
   XCircle,
-  FileText,
-  User,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 
 interface ActionCardProps {
@@ -37,87 +36,181 @@ export function ActionCard({ action }: ActionCardProps) {
 
   return (
     <>
-      <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5 text-zinc-100 hover:border-zinc-700 transition-all">
-        {/* Card Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-zinc-800/80">
-          <div className="flex items-center gap-2">
-            <div className="font-mono text-sm font-bold text-zinc-200">
-              {(action.action_type || "ACTION").replace(/_/g, " ")}
+      <div
+        className="rounded-sm border p-6 text-[#eceae6] transition-micro select-none"
+        style={{
+          borderColor: isPending ? "var(--pending-border)" : "var(--border-subtle)",
+          background: "var(--surface-1)",
+          borderLeft: isPending
+            ? "3px solid var(--accent)"
+            : isApproved || isExecuted
+            ? "3px solid var(--matched)"
+            : isRejected
+            ? "3px solid var(--variance)"
+            : "3px solid var(--border-subtle)",
+        }}
+      >
+        {/* Reusable Action Governance Rail */}
+        <div
+          className="flex items-center justify-between gap-1 pb-4 mb-4 text-[10px] font-mono uppercase tracking-wider"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
+          <div className="flex items-center gap-1.5 text-[#6ecba0]">
+            <CheckCircle2 className="h-3 w-3" />
+            <span>1. RECOMMENDED</span>
+          </div>
+          <span style={{ color: "var(--text-tertiary)" }}>→</span>
+          <div
+            className="flex items-center gap-1.5"
+            style={{
+              color: isPending
+                ? "var(--accent)"
+                : isApproved || isExecuted
+                ? "var(--matched-text)"
+                : isRejected
+                ? "var(--variance-text)"
+                : "var(--text-tertiary)",
+              fontWeight: isPending ? 700 : 500,
+            }}
+          >
+            {isApproved || isExecuted ? (
+              <CheckCircle2 className="h-3 w-3" />
+            ) : isRejected ? (
+              <XCircle className="h-3 w-3" />
+            ) : (
+              <Lock className="h-3 w-3" />
+            )}
+            <span>2. HUMAN AUTH {isPending ? "(ACTIVE)" : ""}</span>
+          </div>
+          <span style={{ color: "var(--text-tertiary)" }}>→</span>
+          <div
+            className="flex items-center gap-1.5"
+            style={{
+              color: isExecuted ? "var(--matched-text)" : "var(--text-tertiary)",
+            }}
+          >
+            <Play className="h-3 w-3" />
+            <span>3. BOUNDED EXECUTION</span>
+          </div>
+          <span style={{ color: "var(--text-tertiary)" }}>→</span>
+          <div
+            className="flex items-center gap-1.5"
+            style={{
+              color: isExecuted ? "var(--matched-text)" : "var(--text-tertiary)",
+            }}
+          >
+            <ShieldCheck className="h-3 w-3" />
+            <span>4. AUDIT LOG</span>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-[#eceae6]">
+                {(action.action_type || "ACTION").replace(/_/g, " ")}
+              </span>
+              <StatusBadge status={action.state} />
             </div>
-            <StatusBadge status={action.state} />
+            <div className="text-xs text-[#8e96a0] mt-0.5 font-mono">
+              ID: <span className="text-[#eceae6]">{action.id}</span> • Target: <span className="text-[#c9a96e]">{action.entity_id}</span>
+            </div>
           </div>
 
-          <div className="font-mono text-lg font-bold text-zinc-100 font-tabular">
+          <div className="font-mono text-xl font-bold font-tabular text-[#eceae6]">
             {formatINR(action.amount)}
           </div>
         </div>
 
         {/* Card Body */}
-        <div className="py-3 space-y-2.5 text-xs font-mono">
-          <div className="grid grid-cols-2 gap-2 text-zinc-400">
-            <div>
-              <span className="text-zinc-500">Action ID:</span>{" "}
-              <span className="text-zinc-300 font-semibold">{action.id}</span>
-            </div>
-            <div>
-              <span className="text-zinc-500">Target Entity:</span>{" "}
-              <span className="text-zinc-300 font-semibold">{action.entity_id}</span>
-            </div>
-          </div>
-
-          {/* AI Recommendation Reason */}
+        <div className="space-y-3 text-xs">
+          {/* Recommendation Rationale (Analytical framing) */}
           {action.recommendation_reason && (
-            <div className="p-2.5 rounded bg-[#171a23] border border-zinc-800 text-zinc-300">
-              <span className="text-[10px] text-zinc-500 uppercase block mb-0.5">
-                AI Recommendation Rationale:
+            <div
+              className="p-3.5 rounded-xs border text-xs"
+              style={{
+                borderColor: "var(--border-subtle)",
+                background: "var(--surface-2)",
+              }}
+            >
+              <span className="text-[10px] font-semibold text-[#8e96a0] uppercase block mb-1">
+                VERIDEX Analytical Rationale:
               </span>
-              <p className="font-sans text-xs leading-relaxed">{action.recommendation_reason}</p>
+              <p className="text-xs text-[#eceae6] leading-relaxed">
+                {action.recommendation_reason}
+              </p>
             </div>
           )}
 
           {/* Policy Bounding Flag */}
           {isOverLimit && (
-            <div className="p-2 rounded bg-amber-950/40 border border-amber-800/50 text-amber-300 text-xs flex items-center gap-1.5">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-400" />
+            <div
+              className="p-3 rounded-xs border text-xs flex items-center gap-2"
+              style={{
+                borderColor: "var(--variance-border)",
+                background: "var(--variance-bg)",
+                color: "var(--variance-text)",
+              }}
+            >
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span>
-                Caution: Amount exceeds standard automated policy threshold. Requires Level 2 review.
+                Policy threshold exceeded: Requires dual Controller Level 2 review.
               </span>
             </div>
           )}
 
           {/* Decision Trail Information */}
           {action.approved_by && (
-            <div className="flex items-center gap-1.5 text-emerald-400 text-[11px]">
+            <div className="flex items-center gap-1.5 text-[#6ecba0] text-xs pt-1">
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>
-                Authorized by <strong className="font-semibold">{action.approved_by}</strong> on{" "}
-                {formatDateTime(action.approved_at)}
+                Authorized by <strong className="font-semibold text-[#eceae6] font-mono">{action.approved_by}</strong> on{" "}
+                <span className="font-mono">{formatDateTime(action.approved_at)}</span>
               </span>
             </div>
           )}
 
           {action.rejected_by && (
-            <div className="flex items-center gap-1.5 text-rose-400 text-[11px]">
+            <div className="flex items-center gap-1.5 text-[#e07070] text-xs pt-1">
               <XCircle className="h-3.5 w-3.5" />
               <span>
-                Rejected by <strong className="font-semibold">{action.rejected_by}</strong> on{" "}
-                {formatDateTime(action.rejected_at)}
+                Rejected by <strong className="font-semibold text-[#eceae6] font-mono">{action.rejected_by}</strong> on{" "}
+                <span className="font-mono">{formatDateTime(action.rejected_at)}</span>
               </span>
             </div>
           )}
 
-          {action.execution_result && (
-            <div className="p-2 rounded bg-sky-950/30 border border-sky-800/40 text-sky-300 text-[11px]">
-              <span className="text-zinc-400">Execution Result:</span>{" "}
-              {action.execution_result.ledger_note || "Ledger adjustment posted."}
+          {(action.approval_reason || action.rejection_reason) && (
+            <div
+              className="p-2.5 rounded-xs text-xs text-[#8e96a0] italic"
+              style={{ background: "var(--surface-2)" }}
+            >
+              &quot;{action.approval_reason || action.rejection_reason}&quot;
+            </div>
+          )}
+
+          {/* Execution Result */}
+          {isExecuted && action.execution_result && (
+            <div
+              className="p-2.5 rounded-xs border text-xs font-mono text-[#6ecba0]"
+              style={{
+                borderColor: "var(--matched-border)",
+                background: "var(--matched-bg)",
+              }}
+            >
+              Execution reference: {JSON.stringify(action.execution_result)}
             </div>
           )}
         </div>
 
-        {/* Card Actions Footer */}
-        <div className="flex items-center justify-between border-t border-zinc-800 pt-3 text-xs">
-          <div className="text-[11px] text-zinc-500 font-mono">
-            Created: {formatDateTime(action.created_at)}
+        {/* Footer: Policy Controls & Action Buttons */}
+        <div
+          className="mt-5 pt-4 flex flex-wrap items-center justify-between gap-3"
+          style={{ borderTop: "1px solid var(--border-subtle)" }}
+        >
+          <div className="text-[11px] text-[#8e96a0]">
+            Policy Ceiling: <span className="text-[#eceae6] font-mono">{action.currency || "INR"} Enforced</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -125,15 +218,28 @@ export function ActionCard({ action }: ActionCardProps) {
               <>
                 <button
                   onClick={() => setModalMode("reject")}
-                  className="px-3 py-1.5 rounded border border-rose-900 bg-rose-950/40 text-rose-400 hover:bg-rose-900/50 font-semibold font-mono text-xs transition-colors"
+                  className="px-3 py-1.5 rounded-xs text-xs font-medium transition-micro"
+                  style={{
+                    color: "var(--variance-text)",
+                    background: "var(--variance-bg)",
+                    border: "1px solid var(--variance-border)",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--variance)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--variance-border)")}
                 >
-                  Reject
+                  Reject Action
                 </button>
                 <button
                   onClick={() => setModalMode("approve")}
-                  className="px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-black font-semibold font-mono text-xs transition-colors"
+                  className="px-3.5 py-1.5 rounded-xs text-xs font-semibold transition-micro"
+                  style={{
+                    color: "#080a0c",
+                    background: "var(--accent)",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
                 >
-                  Authorize Action
+                  Authorize Approval
                 </button>
               </>
             )}
@@ -141,28 +247,34 @@ export function ActionCard({ action }: ActionCardProps) {
             {isApproved && (
               <button
                 onClick={() => setModalMode("execute")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-black font-bold font-mono text-xs shadow-sm transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xs text-xs font-semibold transition-micro"
+                style={{
+                  color: "var(--matched-text)",
+                  background: "var(--matched-bg)",
+                  border: "1px solid var(--matched-border)",
+                }}
               >
-                <Play className="h-3 w-3 fill-current" />
-                Execute Post
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>Execute Bounded Action</span>
               </button>
             )}
 
             {isExecuted && (
-              <span className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4" /> Executed & Audited
+              <span className="text-xs text-[#6ecba0] font-semibold flex items-center gap-1">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Immutable Audit Event Committed
               </span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Decision Modal */}
-      <ApprovalModal
-        action={action}
-        mode={modalMode}
-        onClose={() => setModalMode(null)}
-      />
+      {modalMode && (
+        <ApprovalModal
+          action={action}
+          mode={modalMode}
+          onClose={() => setModalMode(null)}
+        />
+      )}
     </>
   );
 }

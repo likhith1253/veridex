@@ -3,7 +3,7 @@
 import React from "react";
 import { formatINR, cn } from "@/lib/utils/formatters";
 import type { SettlementTaxAudit } from "@/types/settlements";
-import { CheckCircle2, AlertTriangle, HelpCircle, FileCheck, ShieldAlert } from "lucide-react";
+import { CheckCircle2, AlertTriangle, HelpCircle, FileCheck } from "lucide-react";
 
 interface TaxAuditPanelProps {
   taxAudit?: SettlementTaxAudit | null;
@@ -13,9 +13,15 @@ interface TaxAuditPanelProps {
 export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
   if (isLoading || !taxAudit) {
     return (
-      <div className="h-48 rounded-lg border border-zinc-800 bg-[#11131a] p-5 animate-pulse">
-        <div className="h-4 w-40 rounded bg-zinc-800 mb-4" />
-        <div className="h-20 rounded bg-zinc-800" />
+      <div
+        className="rounded-sm border p-6 animate-pulse"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div className="h-4 w-40 skeleton mb-4" />
+        <div className="h-20 skeleton" />
       </div>
     );
   }
@@ -26,109 +32,148 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
     switch (status) {
       case "MATCHED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-bold border bg-emerald-950/60 text-emerald-400 border-emerald-800/60">
-            <CheckCircle2 className="h-3.5 w-3.5" /> MATCHED (0.00% VARIANCE)
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs font-mono font-bold"
+            style={{
+              color: "var(--matched-text)",
+              background: "var(--matched-bg)",
+              border: "1px solid var(--matched-border)",
+            }}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" /> PARITY CONFIRMED (0.00 VARIANCE)
           </span>
         );
       case "VARIANCE":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-bold border bg-rose-950/60 text-rose-400 border-rose-800/60">
-            <AlertTriangle className="h-3.5 w-3.5" /> MATERIAL TAX VARIANCE
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs font-mono font-bold"
+            style={{
+              color: "var(--variance-text)",
+              background: "var(--variance-bg)",
+              border: "1px solid var(--variance-border)",
+            }}
+          >
+            <AlertTriangle className="h-3.5 w-3.5" /> STATUTORY TAX VARIANCE
           </span>
         );
       case "INSUFFICIENT_EVIDENCE":
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-bold border bg-zinc-900 text-zinc-400 border-zinc-700">
-            <HelpCircle className="h-3.5 w-3.5" /> INSUFFICIENT EVIDENCE
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs font-mono font-bold"
+            style={{
+              color: "#8e96a0",
+              background: "var(--surface-3)",
+              border: "1px solid var(--border-subtle)",
+            }}
+          >
+            <HelpCircle className="h-3.5 w-3.5 text-[#545e6a]" /> EVIDENCE UNAVAILABLE
           </span>
         );
     }
   };
 
   return (
-    <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5 text-zinc-100">
+    <div
+      className="rounded-sm border p-6 text-[#eceae6] select-none"
+      style={{
+        borderColor: "var(--border-subtle)",
+        background: "var(--surface-1)",
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">
-            Automated GST Tax-Line Audit (Section 9 CGST / SGST 18%)
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.14em]"
+            style={{ color: "var(--accent)" }}
+          >
+            Statutory Tax Line Auditor
+          </span>
+          <h2 className="text-sm font-bold text-[#eceae6] mt-0.5">
+            Automated Statutory Tax Deduction Verification
           </h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Verifies reported gateway tax invoices against authoritative tax schedules
+          <p className="text-xs text-[#8e96a0] mt-0.5">
+            Verifies gateway invoice deductions against authoritative tax schedules
           </p>
         </div>
         <div>{getStatusBadge()}</div>
       </div>
 
       {/* Audit Metrics Comparison */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-5 font-mono text-xs">
-        <div className="rounded border border-zinc-800 bg-[#171a23] p-3">
-          <div className="text-[10px] text-zinc-500 uppercase">Gross Settlement</div>
-          <div className="text-sm font-bold text-zinc-200 mt-1 font-tabular">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-6 text-xs">
+        <div
+          className="rounded-xs border p-3.5"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-2)",
+          }}
+        >
+          <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Gross Settlement</div>
+          <div className="text-sm font-bold font-mono text-[#eceae6] mt-1 font-tabular">
             {formatINR(taxAudit.gross_amount)}
           </div>
         </div>
 
-        <div className="rounded border border-zinc-800 bg-[#171a23] p-3">
-          <div className="text-[10px] text-zinc-500 uppercase">Reported Gateway Tax</div>
-          <div className="text-sm font-bold text-zinc-200 mt-1 font-tabular">
+        <div
+          className="rounded-xs border p-3.5"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-2)",
+          }}
+        >
+          <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Reported Gateway Tax</div>
+          <div className="text-sm font-bold font-mono text-[#eceae6] mt-1 font-tabular">
             {taxAudit.reported_tax !== null && taxAudit.reported_tax !== undefined
               ? formatINR(taxAudit.reported_tax)
               : "N/A (Unreported)"}
           </div>
         </div>
 
-        <div className="rounded border border-zinc-800 bg-[#171a23] p-3">
-          <div className="text-[10px] text-zinc-500 uppercase">Expected Authoritative Tax</div>
-          <div className="text-sm font-bold text-zinc-200 mt-1 font-tabular">
+        <div
+          className="rounded-xs border p-3.5"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-2)",
+          }}
+        >
+          <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Expected Authoritative Tax</div>
+          <div className="text-sm font-bold font-mono text-[#c9a96e] mt-1 font-tabular">
             {taxAudit.expected_tax !== null && taxAudit.expected_tax !== undefined
               ? formatINR(taxAudit.expected_tax)
-              : "Insufficient Data"}
+              : "N/A"}
           </div>
         </div>
 
-        <div className="rounded border border-zinc-800 bg-[#171a23] p-3">
-          <div className="text-[10px] text-zinc-500 uppercase">Tax Variance Delta</div>
+        <div
+          className="rounded-xs border p-3.5"
+          style={{
+            borderColor: status === "MATCHED" ? "var(--matched-border)" : "var(--variance-border)",
+            background: "var(--surface-2)",
+            borderLeft: status === "MATCHED" ? "3px solid var(--matched)" : "3px solid var(--variance)",
+          }}
+        >
+          <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Statutory Tax Variance</div>
           <div
-            className={cn(
-              "text-sm font-bold mt-1 font-tabular",
-              status === "MATCHED"
-                ? "text-emerald-400"
-                : status === "VARIANCE"
-                ? "text-rose-400"
-                : "text-zinc-400"
-            )}
+            className={`text-sm font-bold font-mono mt-1 font-tabular ${
+              status === "MATCHED" ? "text-[#6ecba0]" : "text-[#e07070]"
+            }`}
           >
             {taxAudit.tax_variance !== null && taxAudit.tax_variance !== undefined
               ? formatINR(taxAudit.tax_variance)
-              : "Insufficient Data"}
+              : "0.00"}
           </div>
         </div>
       </div>
 
-      {/* Explanation & Evidence Citation */}
-      <div className="mt-4 p-3 rounded-lg border border-zinc-800 bg-[#141722] text-xs space-y-2">
-        <div className="flex items-center gap-1.5 text-zinc-400 font-semibold font-mono">
-          <FileCheck className="h-4 w-4 text-sky-400" />
-          Auditor Assessment & Policy Reference:
-        </div>
-        <p className="text-zinc-300 leading-relaxed font-mono text-[11px]">
-          {taxAudit.explanation || "No tax audit explanation available."}
+      {/* Explanation Footnote */}
+      <div className="mt-5 pt-4 border-t text-xs text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
+        <p className="leading-relaxed">
+          <strong className="text-[#eceae6]">Audit Assessment:</strong> {taxAudit.explanation}
         </p>
-
-        {taxAudit.evidence_ids && taxAudit.evidence_ids.length > 0 && (
-          <div className="pt-2 border-t border-zinc-800/80 flex items-center gap-2 text-[10px] font-mono text-zinc-500">
-            <span>Supporting Invoices / Ledger IDs:</span>
-            <div className="flex flex-wrap gap-1">
-              {taxAudit.evidence_ids.map((id, idx) => (
-                <span key={idx} className="px-1.5 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">
-                  {id}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

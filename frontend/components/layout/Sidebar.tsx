@@ -26,8 +26,8 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   badge?: number | string;
-  badgeColor?: string;
-  dot?: string;
+  badgeVariant?: "exception" | "action";
+  dot?: "live" | "offline";
 }
 
 interface NavGroup {
@@ -38,7 +38,6 @@ interface NavGroup {
 export function Sidebar() {
   const pathname = usePathname();
 
-  // Live queries for navigation badges
   const { data: overview } = useQuery({
     queryKey: ["sidebar-overview"],
     queryFn: () => controllerApi.getOverview(),
@@ -58,11 +57,11 @@ export function Sidebar() {
   });
 
   const pendingActionsCount = actions?.length || 0;
-  const openExceptionsCount = overview?.open_exceptions || 0;
+  const openExceptionsCount = overview?.open_exceptions || overview?.unresolved_transactions || 0;
 
   const navGroups: NavGroup[] = [
     {
-      group: "Core Operations",
+      group: "OPERATIONS",
       items: [
         {
           name: "Command Center",
@@ -79,43 +78,48 @@ export function Sidebar() {
           href: "/exceptions",
           icon: AlertOctagon,
           badge: openExceptionsCount > 0 ? openExceptionsCount : undefined,
-          badgeColor: "bg-rose-950 text-rose-400 border-rose-800",
+          badgeVariant: "exception",
         },
         {
-          name: "Settlements & Tax",
+          name: "Settlements",
           href: "/settlements",
           icon: Landmark,
         },
         {
-          name: "Actions & HITL",
+          name: "Actions",
           href: "/actions",
           icon: ShieldCheck,
           badge: pendingActionsCount > 0 ? pendingActionsCount : undefined,
-          badgeColor: "bg-amber-950 text-amber-400 border-amber-800",
+          badgeVariant: "action",
         },
         {
-          name: "Audit Trail",
+          name: "Audit",
           href: "/audit",
           icon: History,
         },
       ],
     },
     {
-      group: "Integrations & Evaluation",
+      group: "INFRASTRUCTURE",
       items: [
         {
-          name: "Razorpay Gateway",
+          name: "Razorpay",
           href: "/razorpay",
           icon: CreditCard,
-          dot: rzpStatus?.api_reachable ? "bg-emerald-400" : "bg-zinc-500",
+          dot: rzpStatus?.api_reachable ? "live" : "offline",
         },
         {
-          name: "Benchmark & Accuracy",
+          name: "Benchmark",
           href: "/benchmark",
           icon: BarChart3,
         },
+      ],
+    },
+    {
+      group: "SYSTEM",
+      items: [
         {
-          name: "System Settings",
+          name: "Settings",
           href: "/settings",
           icon: Settings,
         },
@@ -124,85 +128,158 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 flex flex-col border-r border-[#222634] bg-[#0c0e14] text-zinc-300 select-none">
+    <aside
+      className="w-56 flex-shrink-0 flex flex-col select-none"
+      style={{
+        background: "var(--surface-1)",
+        borderRight: "1px solid var(--border-subtle)",
+      }}
+    >
       {/* Brand Header */}
-      <div className="h-14 flex items-center px-4 border-b border-[#222634]">
+      <div
+        className="h-14 flex items-center px-4"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center font-mono font-bold text-xs text-black shadow-sm">
-            VX
-          </div>
+          <div className="vx-mark">VX</div>
           <div>
-            <div className="font-mono text-sm font-bold tracking-wider text-zinc-100 flex items-center gap-1.5">
+            <div
+              className="text-[13px] font-bold tracking-[0.08em]"
+              style={{ color: "var(--text-primary)" }}
+            >
               VERIDEX
-              <span className="text-[9px] font-sans px-1 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
-                PROD
-              </span>
             </div>
-            <div className="text-[10px] text-zinc-500 tracking-tight">Financial Control Engine</div>
+            <div
+              className="text-[10px] tracking-normal font-normal"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              Financial Control Engine
+            </div>
           </div>
         </div>
       </div>
 
       {/* Navigation Groups */}
-      <div className="flex-1 overflow-y-auto px-2 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-2 py-4 space-y-5 scrollbar-none">
         {navGroups.map((grp) => (
-          <div key={grp.group} className="space-y-1">
-            <div className="px-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          <div key={grp.group} className="space-y-0.5">
+            <div
+              className="px-2.5 pb-1.5 text-[9px] font-semibold uppercase tracking-[0.12em]"
+              style={{ color: "var(--text-tertiary)" }}
+            >
               {grp.group}
             </div>
-            <div className="space-y-0.5 pt-1">
-              {grp.items.map((item) => {
-                const isActive =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(item.href);
-                const Icon = item.icon;
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center justify-between gap-3 px-2.5 py-1.5 rounded text-xs font-medium transition-colors",
-                      isActive
-                        ? "bg-[#171a23] text-sky-400 border border-sky-500/20 shadow-sm"
-                        : "text-zinc-400 hover:bg-[#131620] hover:text-zinc-200"
-                    )}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Icon className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-sky-400" : "text-zinc-500")} />
-                      <span className="truncate">{item.name}</span>
-                    </div>
+            {grp.items.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
+              const Icon = item.icon;
 
-                    {item.badge !== undefined && (
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "group flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-sm text-xs font-medium transition-micro",
+                    isActive
+                      ? "text-[#eceae6]"
+                      : "text-[#8e96a0] hover:text-[#eceae6] hover:bg-[#13161a]"
+                  )}
+                  style={
+                    isActive
+                      ? {
+                          background: "rgba(201, 169, 110, 0.08)",
+                          borderLeft: "2px solid var(--accent)",
+                          paddingLeft: "calc(0.625rem - 2px)",
+                        }
+                      : {
+                          borderLeft: "2px solid transparent",
+                          paddingLeft: "calc(0.625rem - 2px)",
+                        }
+                  }
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon
+                      className="h-3.5 w-3.5 flex-shrink-0"
+                      style={{
+                        color: isActive ? "var(--accent)" : "currentColor",
+                      }}
+                    />
+                    <span className="truncate text-[12px]">{item.name}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {item.badge !== undefined && item.badgeVariant === "exception" && (
                       <span
-                        className={cn(
-                          "px-1.5 py-0.2 rounded font-mono text-[10px] border font-bold",
-                          item.badgeColor
-                        )}
+                        className="px-1.5 py-px rounded-xs font-mono text-[9px] font-bold"
+                        style={{
+                          color: "var(--variance-text)",
+                          background: "var(--variance-bg)",
+                          border: "1px solid var(--variance-border)",
+                        }}
                       >
                         {item.badge}
                       </span>
                     )}
-
-                    {item.dot && (
-                      <span className={cn("h-1.5 w-1.5 rounded-full", item.dot)} />
+                    {item.badge !== undefined && item.badgeVariant === "action" && (
+                      <span
+                        className="px-1.5 py-px rounded-xs font-mono text-[9px] font-bold"
+                        style={{
+                          color: "var(--pending-text)",
+                          background: "var(--pending-bg)",
+                          border: "1px solid var(--pending-border)",
+                        }}
+                      >
+                        {item.badge}
+                      </span>
                     )}
-                  </Link>
-                );
-              })}
-            </div>
+                    {item.dot && (
+                      <span
+                        className="status-dot"
+                        style={{
+                          background:
+                            item.dot === "live"
+                              ? "var(--matched-text)"
+                              : "var(--text-tertiary)",
+                        }}
+                      />
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         ))}
       </div>
 
-      {/* Footer System Status */}
-      <div className="p-3 border-t border-[#222634] bg-[#090a0f] text-[11px] text-zinc-400 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
-          <span className="font-mono text-[10px] text-zinc-400">FastAPI :8000</span>
+      {/* Engine Status Footer (Still, architectural) */}
+      <div
+        className="px-3.5 py-2.5 flex items-center justify-between"
+        style={{
+          borderTop: "1px solid var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <Activity
+            className="h-3 w-3"
+            style={{ color: "var(--matched-text)" }}
+          />
+          <span
+            className="font-mono text-[10px]"
+            style={{ color: "var(--text-tertiary)" }}
+          >
+            Engine Ready :8000
+          </span>
         </div>
-        <span className="font-mono text-[9px] text-zinc-600">v0.2.0</span>
+        <span
+          className="font-mono text-[9px]"
+          style={{ color: "var(--text-tertiary)", opacity: 0.6 }}
+        >
+          v0.2
+        </span>
       </div>
     </aside>
   );

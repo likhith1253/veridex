@@ -24,49 +24,89 @@ export function MetricCard({
   statusBorder = "none",
   className,
 }: MetricCardProps) {
-  const borderStyles = {
-    none: "border-zinc-800/80",
-    emerald: "border-emerald-500/30 bg-emerald-950/10",
-    rose: "border-rose-500/30 bg-rose-950/10",
-    amber: "border-amber-500/30 bg-amber-950/10",
-    indigo: "border-indigo-500/30 bg-indigo-950/10",
-  }[statusBorder];
+  const borderStyles: Record<string, React.CSSProperties> = {
+    none: {
+      borderColor: "var(--border-subtle)",
+      background: "var(--surface-1)",
+    },
+    emerald: {
+      borderColor: "var(--matched-border)",
+      background: "var(--surface-1)",
+      borderTop: "2px solid var(--matched)",
+    },
+    rose: {
+      borderColor: "var(--variance-border)",
+      background: "var(--surface-1)",
+      borderTop: "2px solid var(--variance)",
+    },
+    amber: {
+      borderColor: "var(--pending-border)",
+      background: "var(--surface-1)",
+      borderTop: "2px solid var(--pending)",
+    },
+    indigo: {
+      borderColor: "var(--border-standard)",
+      background: "var(--surface-1)",
+      borderTop: "2px solid var(--accent)",
+    },
+  };
 
-  const deltaColor = {
-    positive: "text-emerald-400 bg-emerald-950/50 border-emerald-800/50",
-    negative: "text-rose-400 bg-rose-950/50 border-rose-800/50",
-    neutral: "text-zinc-400 bg-zinc-800/50 border-zinc-700/50",
-  }[deltaType];
+  const deltaStyles: Record<string, React.CSSProperties> = {
+    positive: {
+      color: "var(--matched-text)",
+      background: "var(--matched-bg)",
+      borderColor: "var(--matched-border)",
+    },
+    negative: {
+      color: "var(--variance-text)",
+      background: "var(--variance-bg)",
+      borderColor: "var(--variance-border)",
+    },
+    neutral: {
+      color: "var(--text-tertiary)",
+      background: "var(--surface-3)",
+      borderColor: "var(--border-subtle)",
+    },
+  };
 
   return (
     <div
       className={cn(
-        "rounded-lg border bg-[#11131a] p-4 text-zinc-100 transition-all hover:border-zinc-700",
-        borderStyles,
+        "rounded-sm border p-4 text-[#eceae6] transition-micro hover:border-[#2d3540]",
         className
       )}
+      style={borderStyles[statusBorder] || borderStyles.none}
     >
       <div className="flex items-center justify-between gap-2 pb-2">
-        <span className="text-xs font-medium uppercase tracking-wider text-zinc-400">
+        <span
+          className="text-[11px] font-semibold uppercase tracking-[0.08em]"
+          style={{ color: "var(--text-tertiary)" }}
+        >
           {title}
         </span>
-        {icon && <div className="text-zinc-500">{icon}</div>}
+        {icon && <div style={{ color: "var(--text-tertiary)" }}>{icon}</div>}
         {badge && <div>{badge}</div>}
       </div>
 
       <div className="flex items-baseline justify-between gap-2 pt-1">
-        <div className="font-mono text-2xl font-bold tracking-tight text-zinc-100 font-tabular">
+        <div className="font-mono text-2xl font-bold tracking-tight text-[#eceae6] font-tabular">
           {value}
         </div>
         {delta && (
-          <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono border", deltaColor)}>
+          <span
+            className="inline-flex items-center px-1.5 py-0.5 rounded-sm text-[10px] font-mono font-medium border"
+            style={deltaStyles[deltaType] || deltaStyles.neutral}
+          >
             {delta}
           </span>
         )}
       </div>
 
       {subtitle && (
-        <p className="mt-1.5 text-xs text-zinc-500 line-clamp-1">
+        <p
+          className="mt-1.5 text-xs line-clamp-1"
+          style={{ color: "var(--text-secondary)" }}
+        >
           {subtitle}
         </p>
       )}

@@ -212,10 +212,28 @@ export const controllerApi = {
 
   /** Answer grounded finance-control questions with PostgreSQL facts */
   queryCopilot: async (req: CopilotQueryRequest): Promise<CopilotQueryResponse> => {
-    return apiClient<CopilotQueryResponse>("/api/v1/controller/copilot/query", {
+    const raw = await apiClient<CopilotQueryResponse>("/api/v1/controller/copilot/query", {
       method: "POST",
       body: JSON.stringify(req),
     });
+
+    // Backend sends fact_summary as { key: value } object; normalize to sql_facts_used string[]
+    const factSummary = (raw as any).fact_summary;
+    let sqlFacts: string[] = raw.sql_facts_used || [];
+    if (!sqlFacts.length && factSummary && typeof factSummary === "object") {
+      sqlFacts = Object.entries(factSummary).map(
+        ([k, v]) => `${k.replace(/_/g, " ")}: ${v}`
+      );
+    }
+
+    return {
+      ...raw,
+      answer: raw.answer || raw.direct_answer,
+      direct_answer: raw.direct_answer || raw.answer,
+      interpretation: raw.interpretation,
+      recommendation: raw.recommendation,
+      sql_facts_used: sqlFacts,
+    };
   },
 
   /** Render executive daily brief from current controller state */
@@ -242,13 +260,20 @@ export const controllerApi = {
     if (params?.transaction_id) searchParams.append("transaction_id", params.transaction_id);
 
     const qs = searchParams.toString();
-    const rawEvents = await apiClient<AuditTimelineItem[]>(`/api/v1/controller/audit/timeline${qs ? `?${qs}` : ""}`);
+    const raw = await apiClient<AuditTimelineItem[] | { value: AuditTimelineItem[] }>(
+      `/api/v1/controller/audit/timeline${qs ? `?${qs}` : ""}`
+    );
 
-    return (rawEvents || []).map((ev) => ({
+    // Backend returns either a direct array or { value: [...] } envelope
+    const rawEvents: AuditTimelineItem[] = Array.isArray(raw)
+      ? raw
+      : (raw as any)?.value ?? [];
+
+    return rawEvents.map((ev) => ({
       ...ev,
       id: ev.event_id || ev.id,
       stage: ev.event_type || ev.stage || "AUDIT_EVENT",
-      event: (ev.details && typeof ev.details === "object" && "explanation" in ev.details ? String(ev.details.explanation) : null) || ev.event || ev.event_type,
+      event: (ev.details && typeof ev.details === "object" && "explanation" in ev.details ? String((ev.details as any).explanation) : null) || ev.event || ev.event_type,
       evidence: ev.details || ev.evidence || {},
     }));
   },
@@ -258,19 +283,35 @@ export const controllerApi = {
     const res = await apiClient<BenchmarkMetricsResponse>(
       `/api/v1/controller/benchmark?num_transactions=${numTransactions}&seed=${seed}`
     );
-    const r = res.result || {};
+    // Backend response shape: { scope, benchmark, result: { overall, dataset, ... } }
+    const overall = (res as any).result?.overall ?? {};
+    const dataset = (res as any).result?.dataset ?? {};
+    const benchmarkMeta = (res as any).benchmark ?? {};
+
+    // Compute throughput from dataset: total_transactions / execution_time_seconds
+    const execSec = dataset.execution_time_seconds ?? 0;
+    const totalRecords = dataset.total_transactions ?? numTransactions * 3;
+    const throughput = execSec > 0 ? Math.round(totalRecords / execSec) : 0;
+    const durationMs = execSec ? execSec * 1000 : 0;
+
+    // Deterministic / ML breakdown from decision_distribution
+    const decisions = (res as any).result?.decision_distribution ?? {};
+    const autoMatch = decisions?.auto_match?.count ?? overall.true_positives ?? 0;
+    const rejected = decisions?.reject?.count ?? 0;
+    const unresolved = decisions?.unresolved?.count ?? overall.false_negatives ?? 0;
+
     return {
       ...res,
-      num_transactions: r.num_transactions ?? numTransactions,
-      accuracy: r.accuracy ?? 0,
-      precision: r.precision ?? 0,
-      recall: r.recall ?? 0,
-      f1_score: r.f1_score ?? 0,
-      deterministic_matches: r.deterministic_matches ?? 0,
-      ml_recovered_matches: r.ml_recovered_matches ?? 0,
-      unresolved_records: r.unresolved_records ?? 0,
-      throughput_records_per_sec: r.throughput_records_per_sec ?? 0,
-      duration_ms: r.duration_ms ?? 0,
+      num_transactions: benchmarkMeta.num_transactions ?? numTransactions,
+      accuracy: overall.accuracy ?? 0,
+      precision: overall.precision ?? 0,
+      recall: overall.recall ?? 0,
+      f1_score: overall.f1_score ?? 0,
+      deterministic_matches: autoMatch,
+      ml_recovered_matches: rejected,
+      unresolved_records: unresolved,
+      throughput_records_per_sec: throughput,
+      duration_ms: durationMs,
     };
   },
 

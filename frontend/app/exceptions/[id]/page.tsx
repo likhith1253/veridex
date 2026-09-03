@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
 import { investigationsApi } from "@/lib/api/investigationsApi";
 import { actionsApi } from "@/lib/api/actionsApi";
-import { formatINR, formatPercent, cn } from "@/lib/utils/formatters";
+import { formatINR, cn } from "@/lib/utils/formatters";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ConfidenceBadge } from "@/components/common/ConfidenceBadge";
 import { EvidenceGraph } from "@/components/exceptions/EvidenceGraph";
@@ -17,14 +17,13 @@ import {
   ArrowLeft,
   ShieldCheck,
   Cpu,
-  FileCheck,
-  AlertTriangle,
   Database,
-  Layers,
-  Sparkles,
   CheckCircle2,
-  XCircle,
   Play,
+  FileSearch,
+  Lock,
+  ChevronRight,
+  AlertOctagon,
 } from "lucide-react";
 
 export default function ExceptionDossierPage() {
@@ -36,6 +35,7 @@ export default function ExceptionDossierPage() {
   const [decisionActor, setDecisionActor] = useState("FinanceOps_Lead");
   const [decisionReason, setDecisionReason] = useState("");
   const [decisionSuccess, setDecisionSuccess] = useState<string | null>(null);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
 
   // Load Exception Details
   const {
@@ -60,39 +60,67 @@ export default function ExceptionDossierPage() {
 
   // Human Decision Mutation
   const decisionMutation = useMutation({
-    mutationFn: (action: string) =>
-      controllerApi.applyHumanDecision(id, {
+    mutationFn: (action: string) => {
+      setDecisionError(null);
+      return controllerApi.applyHumanDecision(id, {
         action,
         actor: decisionActor,
         reason: decisionReason || `Human ${action} decision applied on exception dossier.`,
-      }),
+      });
+    },
     onSuccess: (_, action) => {
-      setDecisionSuccess(`Decision '${action}' successfully committed to immutable audit log.`);
+      setDecisionSuccess(`Decision '${action}' committed to immutable audit trail.`);
+      setDecisionError(null);
       queryClient.invalidateQueries();
+    },
+    onError: (err: Error) => {
+      setDecisionError(err.message || "Failed to commit decision.");
+      setDecisionSuccess(null);
     },
   });
 
   // Recommend Action Mutation
   const recommendActionMutation = useMutation({
-    mutationFn: () =>
-      actionsApi.recommendAction({
+    mutationFn: () => {
+      setDecisionError(null);
+      const rawExposure = exception?.financial_exposure_inr ?? exception?.financial_exposure ?? 0;
+      const exposure = parseFloat(String(rawExposure));
+
+      // Policy bounding: POST_ADJUSTMENT is strictly capped at INR 5,000.00 by backend policy.
+      // If exposure > 5,000.00, recommend FLAG_INVESTIGATION so policy boundary is respected!
+      let actionType = "POST_ADJUSTMENT";
+      if (exposure > 5000) {
+        actionType = "FLAG_INVESTIGATION";
+      } else if (exposure <= 100 && exposure > 0) {
+        actionType = "WRITE_OFF";
+      }
+
+      return actionsApi.recommendAction({
         entity_type: "exception",
         entity_id: id,
-        action_type: "POST_ADJUSTMENT",
-        amount: exception?.financial_exposure || "0",
-        recommendation_reason: exception?.explanation || "Auto-recommended adjustment for exception discrepancy.",
-        run_id: exception?.run_id,
-      }),
+        action_type: actionType,
+        amount: exposure,
+        currency: "INR",
+        recommended_by: "ai_investigation",
+        recommendation_reason: decisionReason || exception?.explanation || "Recommended action for exception discrepancy.",
+        run_id: exception?.run_id || null,
+      });
+    },
     onSuccess: () => {
-      setDecisionSuccess("Finance Action recommended and queued for policy-gated approval.");
+      setDecisionSuccess("Finance Action recommended and queued for policy-gated authorization.");
+      setDecisionError(null);
       queryClient.invalidateQueries();
+    },
+    onError: (err: Error) => {
+      setDecisionError(err.message || "Failed to recommend action due to policy constraints.");
+      setDecisionSuccess(null);
     },
   });
 
   if (exLoading || dossierLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 rounded bg-zinc-800 animate-pulse" />
+        <div className="h-6 w-48 skeleton" />
         <LoadingSkeleton variant="dossier" />
       </div>
     );
@@ -109,223 +137,403 @@ export default function ExceptionDossierPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Breadcrumb & Back */}
+    <div className="space-y-6 pb-12 select-none">
+      {/* Top Breadcrumb */}
       <div className="flex items-center gap-3">
         <Link
           href="/exceptions"
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#171a23] hover:bg-[#1e222e] text-zinc-400 hover:text-zinc-200 border border-zinc-800 font-mono text-xs transition-colors"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs transition-micro text-[#8e96a0] hover:text-[#eceae6]"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border-subtle)",
+          }}
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Exception Queue
         </Link>
-        <span className="text-zinc-600">/</span>
-        <span className="text-xs font-mono text-zinc-400">Forensic Dossier: {id}</span>
+        <span style={{ color: "var(--text-tertiary)" }}>/</span>
+        <span className="text-xs text-[#8e96a0]">Dossier:</span>
+        <span className="text-xs font-mono font-semibold text-[#eceae6]">{id}</span>
       </div>
 
-      {/* Dossier Executive Header */}
-      <div className="rounded-lg border border-[#222634] bg-[#11131a] p-6 text-zinc-100">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
+      {/* Dossier Executive Banner */}
+      <div
+        className="rounded-sm border p-6 text-[#eceae6]"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div
+          className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-5"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
           <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-base font-bold font-mono text-zinc-100">{id}</h1>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <h1 className="text-lg font-bold font-mono text-[#eceae6]">{id}</h1>
               <StatusBadge status={exception.status} />
               <ConfidenceBadge confidence={exception.confidence} />
             </div>
-            <p className="text-xs font-mono text-zinc-400 mt-1">
-              Transaction Ref: <strong className="text-zinc-200">{exception.transaction_id || "—"}</strong> | Category:{" "}
-              <strong className="text-zinc-200">{(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}</strong>
+            <p className="text-xs text-[#8e96a0]">
+              Anchor Transaction: <strong className="font-mono text-[#eceae6]">{exception.transaction_id || "—"}</strong> • Root-Cause Category:{" "}
+              <strong className="text-[#c9a96e]">{(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}</strong>
             </p>
           </div>
 
-          <div className="flex items-baseline gap-4">
-            <div className="text-right font-mono">
-              <span className="text-[10px] text-zinc-500 uppercase block">Financial Exposure</span>
-              <span className="text-2xl font-bold font-tabular text-rose-400">
+          <div className="flex items-baseline gap-6 font-mono">
+            <div className="text-right">
+              <span className="text-[10px] uppercase text-[#8e96a0] block">Monetary Exposure</span>
+              <span className="text-2xl font-bold font-tabular text-[#e07070]">
                 {formatINR(exception.financial_exposure_inr ?? exception.financial_exposure)}
               </span>
             </div>
-            <div className="text-right font-mono pl-4 border-l border-zinc-800">
-              <span className="text-[10px] text-zinc-500 uppercase block">Expected Cost</span>
-              <span className="text-base font-bold font-tabular text-amber-300">
-                {formatINR(exception.expected_cost_inr ?? exception.expected_cost)}
+            <div
+              className="text-right pl-6"
+              style={{ borderLeft: "1px solid var(--border-subtle)" }}
+            >
+              <span className="text-[10px] uppercase text-[#8e96a0] block">Expected Cost</span>
+              <span className="text-lg font-bold font-tabular text-[#d4a84e]">
+                {formatINR(exception.expected_cost_inr ?? exception.expected_cost ?? 0)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* AI Forensic Explanation */}
+        {/* Forensic Diagnosis */}
         <div className="pt-4 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold font-mono text-sky-400">
-            <Sparkles className="h-4 w-4" /> Root-Cause Forensic Diagnosis:
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#c9a96e]">
+            <FileSearch className="h-4 w-4" />
+            <span>Forensic Diagnosis:</span>
           </div>
-          <p className="text-xs font-mono text-zinc-300 leading-relaxed bg-[#171a23] p-3 rounded-lg border border-zinc-800">
-            {exception.explanation || "No automated explanation available for this discrepancy."}
+          <p
+            className="text-xs leading-relaxed p-3.5 rounded-xs border text-[#eceae6]"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-2)",
+            }}
+          >
+            {exception.explanation || "Automated analysis underway. No manual contradiction recorded."}
           </p>
         </div>
       </div>
 
-      {/* Financial Provenance Lineage Graph */}
-      <EvidenceGraph
-        transactionId={exception.transaction_id}
-        nodes={dossier?.evidence_graph?.nodes}
-        edges={dossier?.evidence_graph?.edges}
-      />
-
-      {/* Grid: Root-Cause Probability Ranking & Grounded Fact Claims */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* ML Root Cause Candidates */}
-        <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-            <div className="flex items-center gap-2">
-              <Cpu className="h-4 w-4 text-purple-400" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono">
-                ML Root Cause Candidates
-              </h2>
+      {/* ── 3-COLUMN FORENSIC WORKSPACE ─────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left (3.5 cols): Authoritative Financial Facts */}
+        <div className="lg:col-span-4 space-y-5">
+          <div
+            className="rounded-sm border p-5 space-y-4"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-1)",
+            }}
+          >
+            <div
+              className="flex items-center justify-between pb-3"
+              style={{ borderBottom: "1px solid var(--border-subtle)" }}
+            >
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-[#c9a96e]" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
+                  Authoritative Financial Facts
+                </h2>
+              </div>
+              <span className="text-[10px] font-mono text-[#545e6a]">Ground Truth</span>
             </div>
-            <span className="text-[10px] font-mono text-zinc-500">XGBoost Arbitration</span>
+
+            <div className="space-y-2.5 text-xs">
+              {dossier?.claims && dossier.claims.length > 0 ? (
+                dossier.claims.map((claim, idx) => (
+                  <div
+                    key={claim.statement ? `${claim.statement.slice(0, 20)}-${idx}` : `claim-${idx}`}
+                    className="p-3 rounded-xs border space-y-1.5"
+                    style={{
+                      borderColor: "var(--border-subtle)",
+                      background: "var(--surface-2)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[#eceae6] leading-snug">{claim.statement}</span>
+                      <span
+                        className="text-[9px] font-mono px-1.5 py-0.5 rounded-xs font-bold flex-shrink-0"
+                        style={{
+                          color: claim.grounded ? "var(--matched-text)" : "var(--text-secondary)",
+                          background: claim.grounded ? "var(--matched-bg)" : "var(--surface-3)",
+                          border: `1px solid ${claim.grounded ? "var(--matched-border)" : "var(--border-subtle)"}`,
+                        }}
+                      >
+                        {claim.grounded ? "VERIFIED" : "INFERRED"}
+                      </span>
+                    </div>
+                    {claim.source_reference && (
+                      <div className="text-[10px] font-mono text-[#545e6a]">
+                        Source: <span className="text-[#8e96a0]">{claim.source_reference}</span>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-2 text-xs">
+                  <div
+                    className="p-3 rounded-xs border text-xs"
+                    style={{
+                      borderColor: "var(--border-subtle)",
+                      background: "var(--surface-2)",
+                    }}
+                  >
+                    <span className="text-[#6ecba0] font-bold mr-1.5">✓ Gateway:</span>
+                    Payment <strong className="font-mono text-[#eceae6]">{exception.transaction_id}</strong> captured in settlement feed.
+                  </div>
+                  <div
+                    className="p-3 rounded-xs border text-xs"
+                    style={{
+                      borderColor: "var(--variance-border)",
+                      background: "var(--variance-bg)",
+                    }}
+                  >
+                    <span className="text-[#e07070] font-bold mr-1.5">⚠ Discrepancy:</span>
+                    Exposure of <strong className="font-mono text-[#eceae6]">{formatINR(exception.financial_exposure)}</strong> pending core bank match.
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {dossier?.root_cause_candidates && dossier.root_cause_candidates.length > 0 ? (
-              dossier.root_cause_candidates.map((rc, idx) => (
-                <div key={rc.cause ? `${rc.cause}-${idx}` : `rc-${idx}`} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-2 text-xs font-mono">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-zinc-100">{(rc.cause || "UNKNOWN").replace(/_/g, " ")}</span>
-                    <ConfidenceBadge confidence={typeof rc.confidence === "string" ? parseFloat(rc.confidence) : rc.confidence} />
-                  </div>
-                  <p className="text-[11px] text-zinc-400">{rc.evidence_summary || rc.evidence}</p>
-                  {rc.features_cited && rc.features_cited.length > 0 && (
-                    <div className="pt-1 flex flex-wrap gap-1">
-                      {rc.features_cited.map((feat, fIdx) => (
-                        <span key={fIdx} className="px-1.5 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400">
-                          {feat}
-                        </span>
-                      ))}
+          {/* Root-Cause Assessment */}
+          <div
+            className="rounded-sm border p-5 space-y-4"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-1)",
+            }}
+          >
+            <div
+              className="flex items-center justify-between pb-3"
+              style={{ borderBottom: "1px solid var(--border-subtle)" }}
+            >
+              <div className="flex items-center gap-2">
+                <Cpu className="h-4 w-4 text-[#9aa5b2]" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
+                  Root-Cause Assessment
+                </h2>
+              </div>
+              <span className="text-[10px] font-mono text-[#545e6a]">Model Arbitration</span>
+            </div>
+
+            <div className="space-y-3">
+              {dossier?.root_cause_candidates && dossier.root_cause_candidates.length > 0 ? (
+                dossier.root_cause_candidates.map((rc, idx) => (
+                  <div
+                    key={rc.cause ? `${rc.cause}-${idx}` : `rc-${idx}`}
+                    className="p-3.5 rounded-xs border space-y-2 text-xs"
+                    style={{
+                      borderColor: "var(--border-subtle)",
+                      background: "var(--surface-2)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#eceae6] capitalize">
+                        {(rc.cause || "UNKNOWN").replace(/_/g, " ")}
+                      </span>
+                      <ConfidenceBadge confidence={typeof rc.confidence === "string" ? parseFloat(rc.confidence) : rc.confidence} />
                     </div>
-                  )}
+                    <p className="text-[11px] text-[#8e96a0] leading-snug">
+                      {rc.evidence_summary || rc.evidence}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3.5 rounded-xs border text-xs text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)", background: "var(--surface-2)" }}>
+                  Classified root cause: <strong className="text-[#eceae6] capitalize">{(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}</strong> (Authoritative Grounding)
                 </div>
-              ))
-            ) : (
-              <div className="p-4 text-center text-zinc-500 font-mono text-xs">
-                Root cause classified as: <strong>{(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}</strong> (100% confidence)
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Center (5 cols): Large Hero Evidence Graph Canvas (~50% desktop space) */}
+        <div className="lg:col-span-5 space-y-5">
+          <EvidenceGraph
+            transactionId={exception.transaction_id}
+            nodes={dossier?.evidence_graph?.nodes}
+            edges={dossier?.evidence_graph?.edges}
+          />
+        </div>
+
+        {/* Right (3.5 cols): Governance Rail & Human Controller Boundary */}
+        <div className="lg:col-span-3 space-y-5">
+          {/* Reusable Governance Rail */}
+          <div
+            className="rounded-sm border p-5 space-y-4"
+            style={{
+              borderColor: "var(--accent-border)",
+              background: "var(--surface-1)",
+              borderTop: "2px solid var(--accent)",
+            }}
+          >
+            <div
+              className="flex items-center justify-between pb-3"
+              style={{ borderBottom: "1px solid var(--border-subtle)" }}
+            >
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#c9a96e]" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
+                  Action Governance Rail
+                </h2>
+              </div>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-xs text-[#d4a84e]" style={{ background: "var(--pending-bg)", border: "1px solid var(--pending-border)" }}>
+                HITL MANDATORY
+              </span>
+            </div>
+
+            {/* Stepper sequence */}
+            <div className="space-y-2 text-[11px] font-mono">
+              <div className="flex items-center gap-2 text-[#6ecba0]">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>1. AI ANALYSIS</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#6ecba0]">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>2. RECOMMENDATION</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#c9a96e] font-bold">
+                <div className="w-3.5 h-3.5 rounded-full bg-[#c9a96e] text-[#080a0c] flex items-center justify-center text-[9px]">3</div>
+                <span>3. HUMAN REVIEW (ACTIVE)</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#545e6a]">
+                <Lock className="h-3.5 w-3.5" />
+                <span>4. AUTHORIZED</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#545e6a]">
+                <Play className="h-3.5 w-3.5" />
+                <span>5. EXECUTION</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#545e6a]">
+                <Database className="h-3.5 w-3.5" />
+                <span>6. AUDITED</span>
+              </div>
+            </div>
+
+            {/* Recommended Policy Action */}
+            <div className="pt-2">
+              <span className="text-[10px] text-[#8e96a0] uppercase block mb-1">
+                Recommended Resolution:
+              </span>
+              <div
+                className="p-3 rounded-xs border text-xs text-[#eceae6]"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: "var(--surface-2)",
+                }}
+              >
+                {exception.recommended_action || "Post Ledger Adjustment within tolerance"}
+              </div>
+            </div>
+
+            {decisionSuccess && (
+              <div
+                className="p-3 rounded-xs border text-xs font-mono flex items-center gap-2 text-[#6ecba0]"
+                style={{
+                  borderColor: "var(--matched-border)",
+                  background: "var(--matched-bg)",
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+                <span>{decisionSuccess}</span>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Fact-Grounded Claims & Source Citations */}
-        <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-            <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-sky-400" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono">
-                PostgreSQL Grounded Facts
-              </h2>
-            </div>
-            <span className="text-[10px] font-mono text-zinc-500">Evidence Citations</span>
-          </div>
-
-          <div className="space-y-2.5">
-            {dossier?.claims && dossier.claims.length > 0 ? (
-              dossier.claims.map((claim, idx) => (
-                <div key={claim.statement ? `${claim.statement.slice(0, 20)}-${idx}` : `claim-${idx}`} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-1.5 text-xs font-mono">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-200">{claim.statement}</span>
-                    <span className={cn("text-[10px] px-1.5 py-0.2 rounded border font-semibold", claim.grounded ? "bg-emerald-950 text-emerald-400 border-emerald-800" : "bg-zinc-800 text-zinc-400 border-zinc-700")}>
-                      {claim.grounded ? "GROUNDED" : "INFERRED"}
-                    </span>
-                  </div>
-                  {claim.source_reference && (
-                    <div className="text-[10px] text-zinc-500">
-                      Source: <span className="text-zinc-400">{claim.source_reference}</span>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="space-y-2 text-xs font-mono text-zinc-300">
-                <div className="p-2.5 rounded bg-[#171a23] border border-zinc-800">
-                  <span className="text-emerald-400 font-bold">✓ Gateway Record:</span> Payment ID {exception.transaction_id} captured in Razorpay feed.
-                </div>
-                <div className="p-2.5 rounded bg-[#171a23] border border-zinc-800">
-                  <span className="text-rose-400 font-bold">⚠ Ledger Discrepancy:</span> Financial variance delta of {formatINR(exception.financial_exposure)} detected against ERP balance.
-                </div>
+            {decisionError && (
+              <div
+                className="p-3 rounded-xs border text-xs font-mono flex items-center gap-2 text-[#e07070]"
+                style={{
+                  borderColor: "var(--variance-border)",
+                  background: "var(--variance-bg)",
+                }}
+              >
+                <AlertOctagon className="h-4 w-4 flex-shrink-0" />
+                <span>{decisionError}</span>
               </div>
             )}
+
+            {/* Decision Input Controls */}
+            <div className="space-y-3 pt-2 text-xs">
+              <div>
+                <label className="block text-[#8e96a0] mb-1 text-[11px]">
+                  Authorizing Actor ID:
+                </label>
+                <input
+                  type="text"
+                  value={decisionActor}
+                  onChange={(e) => setDecisionActor(e.target.value)}
+                  className="w-full rounded-xs border px-3 py-1.5 font-mono text-xs text-[#eceae6] focus:outline-hidden"
+                  style={{
+                    borderColor: "var(--border-standard)",
+                    background: "var(--surface-2)",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#8e96a0] mb-1 text-[11px]">
+                  Audit Justification:
+                </label>
+                <textarea
+                  rows={2}
+                  value={decisionReason}
+                  onChange={(e) => setDecisionReason(e.target.value)}
+                  placeholder="Record formal justification..."
+                  className="w-full rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] focus:outline-hidden"
+                  style={{
+                    borderColor: "var(--border-standard)",
+                    background: "var(--surface-2)",
+                  }}
+                />
+              </div>
+
+              {/* Primary Gold Action */}
+              <button
+                onClick={() => recommendActionMutation.mutate()}
+                disabled={recommendActionMutation.isPending}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xs text-xs font-semibold transition-micro disabled:opacity-50"
+                style={{
+                  color: "#080a0c",
+                  background: "var(--accent)",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>Queue Policy Action (HITL)</span>
+              </button>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  onClick={() => decisionMutation.mutate("resolve")}
+                  disabled={decisionMutation.isPending}
+                  className="px-2.5 py-1.5 rounded-xs border text-xs font-medium text-[#eceae6] hover:bg-[#181c22] transition-micro"
+                  style={{
+                    borderColor: "var(--border-standard)",
+                    background: "var(--surface-2)",
+                  }}
+                >
+                  Mark Resolved
+                </button>
+
+                <button
+                  onClick={() => decisionMutation.mutate("escalate")}
+                  disabled={decisionMutation.isPending}
+                  className="px-2.5 py-1.5 rounded-xs border text-xs font-medium text-[#d4a84e] transition-micro"
+                  style={{
+                    borderColor: "var(--pending-border)",
+                    background: "var(--pending-bg)",
+                  }}
+                >
+                  Escalate
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* Controller Decision & Policy Action Section */}
-      <div className="rounded-lg border border-[#222634] bg-[#11131a] p-6 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-100 font-mono">
-              Controller Decision & Policy Action Resolution
-            </h2>
-          </div>
-          <span className="text-xs font-mono text-zinc-400">
-            Recommended Action: <strong className="text-sky-300">{exception.recommended_action || "Manual Adjustment"}</strong>
-          </span>
-        </div>
-
-        {decisionSuccess && (
-          <div className="p-3 rounded bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 text-xs font-mono flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{decisionSuccess}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div>
-            <label className="block text-zinc-400 mb-1 font-mono text-[11px]">Human Controller Actor ID</label>
-            <input
-              type="text"
-              value={decisionActor}
-              onChange={(e) => setDecisionActor(e.target.value)}
-              className="w-full rounded border border-zinc-800 bg-[#171a23] px-3 py-2 text-zinc-100 font-mono text-xs focus:border-sky-500 focus:outline-hidden"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="block text-zinc-400 mb-1 font-mono text-[11px]">Audit Decision Justification</label>
-            <input
-              type="text"
-              value={decisionReason}
-              onChange={(e) => setDecisionReason(e.target.value)}
-              placeholder="Enter justification for the immutable audit trail..."
-              className="w-full rounded border border-zinc-800 bg-[#171a23] px-3 py-2 text-zinc-100 font-mono text-xs focus:border-sky-500 focus:outline-hidden"
-            />
-          </div>
-        </div>
-
-        {/* Action Decision Buttons */}
-        <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-zinc-800">
-          <button
-            onClick={() => decisionMutation.mutate("resolve")}
-            disabled={decisionMutation.isPending}
-            className="px-3.5 py-1.5 rounded border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-mono font-semibold transition-colors"
-          >
-            Mark Resolved
-          </button>
-
-          <button
-            onClick={() => decisionMutation.mutate("escalate")}
-            disabled={decisionMutation.isPending}
-            className="px-3.5 py-1.5 rounded border border-purple-900 bg-purple-950/50 hover:bg-purple-900 text-purple-300 text-xs font-mono font-semibold transition-colors"
-          >
-            Escalate to Senior Auditor
-          </button>
-
-          <button
-            onClick={() => recommendActionMutation.mutate()}
-            disabled={recommendActionMutation.isPending}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-black text-xs font-mono font-bold transition-colors"
-          >
-            <Play className="h-3 w-3 fill-current" />
-            <span>Create Policy Action (HITL)</span>
-          </button>
         </div>
       </div>
     </div>

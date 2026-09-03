@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Send, Sparkles, Loader2, Database, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { X, Send, Brain, Loader2, Database, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
 import type { CopilotQueryResponse } from "@/types/controller";
@@ -22,7 +22,7 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
   >([
     {
       role: "assistant",
-      text: "I am the Veridex Finance Copilot. Ask me about reconciliation status, unreconciled exposure, tax line variances, or exception root causes.",
+      text: "VERIDEX Financial Copilot active. Inquire regarding multi-source reconciliation parity, monetary exposure, fee deductions, or exception root causes.",
     },
   ]);
 
@@ -69,82 +69,161 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
   if (!isOpen) return null;
 
   return (
-    <aside className="fixed inset-y-0 right-0 z-50 w-96 border-l border-[#222634] bg-[#0d0f17] shadow-2xl flex flex-col text-zinc-100">
+    <aside
+      className="fixed inset-y-0 right-0 z-50 w-96 shadow-2xl flex flex-col text-[#eceae6] select-none"
+      style={{
+        borderLeft: "1px solid var(--border-subtle)",
+        background: "var(--surface-1)",
+      }}
+    >
       {/* Header */}
-      <div className="h-14 px-4 border-b border-[#222634] flex items-center justify-between bg-[#11131a]">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded bg-indigo-950/70 border border-indigo-800/60 text-indigo-400">
-            <Sparkles className="h-4 w-4" />
+      <div
+        className="h-14 px-4 flex items-center justify-between"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="p-1.5 rounded-xs border text-[#c9a96e]"
+            style={{
+              borderColor: "var(--accent-border)",
+              background: "var(--accent-dim)",
+            }}
+          >
+            <Brain className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-xs font-bold font-mono text-zinc-100">Grounded Finance Copilot</h2>
-            <p className="text-[10px] text-zinc-500">PostgreSQL fact-verified Q&A</p>
+            <h2 className="text-xs font-bold text-[#eceae6]">
+              Controller Copilot
+            </h2>
+            <p className="text-[10px] text-[#8e96a0]">
+              Authoritative Financial Analyst Layer
+            </p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+          className="p-1 rounded text-[#8e96a0] hover:text-[#eceae6] transition-micro"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
       {/* Messages Feed */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs scrollbar-none">
         {messages.map((m, idx) => (
           <div
             key={idx}
-            className={`p-3 rounded-lg border ${
+            className={`p-3.5 rounded-xs border ${
               m.role === "user"
-                ? "bg-sky-950/30 border-sky-800/40 text-sky-200 ml-6 font-mono"
-                : "bg-[#141722] border-zinc-800/80 text-zinc-300 mr-2"
+                ? "ml-6 text-[#eceae6]"
+                : "mr-2 text-[#eceae6]"
             }`}
+            style={{
+              borderColor: m.role === "user" ? "var(--border-standard)" : "var(--border-subtle)",
+              background: m.role === "user" ? "var(--surface-3)" : "var(--surface-2)",
+            }}
           >
-            <div className="flex items-center justify-between gap-2 mb-1 text-[10px] text-zinc-500 font-mono uppercase">
-              <span>{m.role === "user" ? "Controller" : "Veridex AI"}</span>
+            <div className="flex items-center justify-between gap-2 mb-2 text-[10px] text-[#8e96a0] uppercase font-semibold">
+              <span>{m.role === "user" ? "Controller Operator" : "VERIDEX Assessment"}</span>
               {m.data?.confidence !== undefined && m.data.confidence !== null && (
-                <span className="text-emerald-400">
-                  {(m.data.confidence * 100).toFixed(0)}% Conf
+                <span className="text-[#6ecba0] font-mono font-bold">
+                  {(m.data.confidence * 100).toFixed(0)}% Confidence
                 </span>
               )}
             </div>
-            <p className="leading-relaxed whitespace-pre-wrap">{m.text}</p>
 
-            {/* Evidence References */}
-            {m.data?.sql_facts_used && m.data.sql_facts_used.length > 0 && (
-              <div className="mt-2.5 pt-2 border-t border-zinc-800/60 text-[10px] space-y-1 text-zinc-400 font-mono">
-                <div className="flex items-center gap-1 text-zinc-500 font-semibold">
-                  <Database className="h-3 w-3" /> Grounded Database Facts:
-                </div>
-                {m.data.sql_facts_used.map((fact, fIdx) => (
-                  <div key={fIdx} className="text-zinc-300 bg-zinc-900/80 px-1.5 py-0.5 rounded border border-zinc-800">
-                    {fact}
+            {/* Answer Section */}
+            <div className="leading-relaxed whitespace-pre-wrap text-xs text-[#eceae6]">
+              {m.text}
+            </div>
+
+            {/* Structured Findings (ANSWER -> FINANCIAL FACTS -> EVIDENCE -> INTERPRETATION -> RECOMMENDATION) */}
+            {m.data && (
+              <div className="mt-3 pt-2.5 space-y-2 border-t text-[11px]" style={{ borderColor: "var(--border-subtle)" }}>
+                {/* Interpretation */}
+                {m.data.interpretation && m.data.interpretation !== m.text && (
+                  <div>
+                    <span className="text-[9px] uppercase font-semibold text-[#8e96a0] block tracking-wider">Interpretation:</span>
+                    <p className="text-[#8e96a0] text-xs mt-0.5 leading-snug">{m.data.interpretation}</p>
                   </div>
-                ))}
+                )}
+
+                {/* Grounded Financial Facts (Source: Authoritative records, NOT vendor names) */}
+                {m.data.sql_facts_used && m.data.sql_facts_used.length > 0 && (
+                  <div className="pt-1.5 space-y-1">
+                    <div className="flex items-center gap-1 text-[9px] text-[#c9a96e] uppercase font-semibold tracking-wider">
+                      <Database className="h-3 w-3" /> Authoritative Financial Facts:
+                    </div>
+                    {m.data.sql_facts_used.map((fact, fIdx) => (
+                      <div
+                        key={fIdx}
+                        className="text-[#eceae6] p-1.5 rounded-xs border text-[10px] font-mono"
+                        style={{
+                          borderColor: "var(--border-standard)",
+                          background: "var(--surface-3)",
+                        }}
+                      >
+                        {fact}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Policy Recommendation */}
+                {m.data.recommendation && (
+                  <div
+                    className="p-2 rounded-xs border text-[11px] mt-2"
+                    style={{
+                      borderColor: "var(--accent-border)",
+                      background: "var(--accent-dim)",
+                      color: "var(--accent)",
+                    }}
+                  >
+                    <span className="font-bold mr-1.5">▶ Policy Recommendation:</span>
+                    <span>{m.data.recommendation}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
         ))}
 
         {queryMutation.isPending && (
-          <div className="flex items-center gap-2 p-3 rounded bg-zinc-900/60 border border-zinc-800 text-zinc-400 text-xs">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
-            <span>Verifying PostgreSQL facts & evaluating claims...</span>
+          <div
+            className="flex items-center gap-2 p-3 rounded-xs border text-xs"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-2)",
+              color: "var(--text-secondary)",
+            }}
+          >
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#c9a96e]" />
+            <span>Analyzing authoritative financial records...</span>
           </div>
         )}
       </div>
 
-      {/* Suggested Questions */}
-      <div className="px-4 py-2 border-t border-[#222634] bg-[#0c0e14] space-y-1">
-        <div className="text-[10px] uppercase font-mono font-semibold text-zinc-500">Quick Queries</div>
+      {/* Suggested Inquiries */}
+      <div
+        className="px-4 py-3 space-y-1.5"
+        style={{
+          borderTop: "1px solid var(--border-subtle)",
+          background: "var(--surface-2)",
+        }}
+      >
+        <div className="text-[9px] uppercase font-semibold text-[#8e96a0] tracking-wider">
+          Standard Financial Inquiries
+        </div>
         <div className="flex flex-wrap gap-1">
           {sampleQuestions.map((sq, i) => (
             <button
               key={i}
-              onClick={() => {
-                setQuestion(sq);
+              onClick={() => setQuestion(sq)}
+              className="text-[10px] px-2 py-1 rounded-xs border truncate max-w-full text-left transition-micro text-[#8e96a0] hover:text-[#eceae6]"
+              style={{
+                borderColor: "var(--border-subtle)",
+                background: "var(--surface-1)",
               }}
-              className="text-[10px] px-2 py-1 rounded bg-[#171a23] hover:bg-[#202533] border border-zinc-800 text-zinc-400 hover:text-zinc-200 truncate max-w-full text-left transition-colors"
             >
               {sq}
             </button>
@@ -153,20 +232,37 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
       </div>
 
       {/* Query Input */}
-      <form onSubmit={handleSubmit} className="p-3 border-t border-[#222634] bg-[#11131a] flex gap-2">
+      <form
+        onSubmit={handleSubmit}
+        className="p-3 flex gap-2"
+        style={{
+          borderTop: "1px solid var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
         <input
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask grounded controller question..."
-          className="flex-1 rounded border border-zinc-800 bg-[#171a23] px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:border-sky-500 focus:outline-hidden"
+          placeholder="Query authoritative financial state..."
+          className="flex-1 rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] placeholder-[#545e6a] focus:outline-hidden transition-micro"
+          style={{
+            borderColor: "var(--border-standard)",
+            background: "var(--surface-2)",
+          }}
         />
         <button
           type="submit"
           disabled={!question.trim() || queryMutation.isPending}
-          className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 text-xs font-semibold flex items-center gap-1 transition-colors"
+          className="px-3 py-1.5 rounded-xs text-xs font-semibold flex items-center gap-1 transition-micro disabled:opacity-50"
+          style={{
+            color: "#080a0c",
+            background: "var(--accent)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
         >
-          <Send className="h-3.5 w-3.5" />
+          <Send className="h-3 w-3" />
         </button>
       </form>
     </aside>

@@ -6,17 +6,13 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { settlementsApi } from "@/lib/api/settlementsApi";
 import { formatINR, formatDateTime } from "@/lib/utils/formatters";
-import { StatusBadge } from "@/components/common/StatusBadge";
 import { SettlementDecomposition } from "@/components/settlements/SettlementDecomposition";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import {
   ArrowLeft,
-  Landmark,
   FileCheck,
   CreditCard,
-  Layers,
-  ArrowRight,
 } from "lucide-react";
 
 export default function SettlementDetailPage() {
@@ -57,26 +53,38 @@ export default function SettlementDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb & Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
             href="/settlements"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#171a23] hover:bg-[#1e222e] text-zinc-400 hover:text-zinc-200 border border-zinc-800 font-mono text-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs transition-micro text-[#8e96a0] hover:text-[#eceae6]"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-2)",
+              border: "1px solid var(--border-subtle)",
+            }}
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Settlements
           </Link>
-          <span className="text-zinc-600">/</span>
-          <span className="text-xs font-mono text-zinc-400">Settlement: {id}</span>
+          <span style={{ color: "var(--text-tertiary)" }}>/</span>
+          <span className="text-xs text-[#8e96a0]">Settlement:</span>
+          <span className="text-xs font-mono font-semibold text-[#eceae6]">{id}</span>
         </div>
 
         <Link
           href={`/settlements/${encodeURIComponent(id)}/tax-audit`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-black font-mono font-bold text-xs shadow-sm transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs font-semibold text-xs transition-micro"
+          style={{
+            color: "#080a0c",
+            background: "var(--accent)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
         >
           <FileCheck className="h-3.5 w-3.5" />
-          <span>Inspect GST Tax Line Audit</span>
+          <span>Inspect Statutory Tax Line Audit</span>
         </Link>
       </div>
 
@@ -87,68 +95,81 @@ export default function SettlementDetailPage() {
       />
 
       {/* Linked Transactions Table */}
-      <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+      <div
+        className="rounded-sm border p-6 text-[#eceae6]"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div
+          className="flex items-center justify-between pb-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-sky-400" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#8e96a0] flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-[#c9a96e]" />
               Linked Gateway Payments in Batch
             </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              UTR Reference: <strong className="text-zinc-300 font-mono">{linkage?.utr || "N/A"}</strong> | Payments Count:{" "}
-              <strong className="text-zinc-300 font-mono">{linkage?.total_payments_count || 0}</strong>
+            <p className="text-xs text-[#8e96a0] mt-0.5">
+              UTR Reference: <strong className="text-[#eceae6] font-mono">{linkage?.utr || "N/A"}</strong> | Payments Count:{" "}
+              <strong className="text-[#eceae6] font-mono">{linkage?.total_payments_count || 0}</strong>
             </p>
           </div>
-
-          {linkage?.total_payments_volume_inr && (
-            <div className="text-right font-mono text-xs">
-              <span className="text-zinc-500 block text-[10px]">Total Linked Volume</span>
-              <span className="text-zinc-100 font-bold font-tabular">
-                {formatINR(linkage.total_payments_volume_inr)}
-              </span>
-            </div>
-          )}
         </div>
 
         {linkageLoading ? (
-          <LoadingSkeleton variant="table" count={4} />
+          <div className="pt-4">
+            <LoadingSkeleton variant="table" count={3} />
+          </div>
         ) : !linkage?.payments || linkage.payments.length === 0 ? (
-          <div className="p-8 text-center text-zinc-500 font-mono text-xs">
-            No linked transactions recorded for this settlement.
+          <div className="py-8 text-center text-[#8e96a0] text-xs">
+            No linked individual transaction items found for this settlement batch.
           </div>
         ) : (
           <div className="overflow-x-auto pt-2">
-            <table className="w-full text-left font-mono text-xs">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-500 text-[10px] uppercase">
+                <tr
+                  className="text-[10px] uppercase font-semibold"
+                  style={{
+                    color: "var(--text-tertiary)",
+                    borderBottom: "1px solid var(--border-subtle)",
+                  }}
+                >
                   <th className="py-2.5 px-3">Payment ID</th>
-                  <th className="py-2.5 px-3">Order Ref</th>
+                  <th className="py-2.5 px-3">Internal Order ID</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3 text-right">Gross Amount</th>
-                  <th className="py-2.5 px-3 text-right">MDR Fee</th>
+                  <th className="py-2.5 px-3 text-right">Fee (MDR)</th>
                   <th className="py-2.5 px-3 text-right">Tax</th>
-                  <th className="py-2.5 px-3 text-right">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+              <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
                 {linkage.payments.map((p, idx) => (
-                  <tr key={p.payment_id ? `${p.payment_id}-${idx}` : `payment-${idx}`} className="hover:bg-[#171a23] transition-colors">
-                    <td className="py-3 px-3 font-bold text-zinc-100">{p.payment_id}</td>
-                    <td className="py-3 px-3 text-zinc-400">{p.order_id || "—"}</td>
-                    <td className="py-3 px-3">
-                      <StatusBadge status={p.status || "LINKED"} />
+                  <tr
+                    key={p.payment_id ? `${p.payment_id}-${idx}` : `pay-item-${idx}`}
+                    className="hover:bg-[#13161a] transition-micro"
+                  >
+                    <td className="py-3 px-3 font-mono font-semibold text-[#eceae6]">
+                      {p.payment_id}
                     </td>
-                    <td className="py-3 px-3 text-right font-bold font-tabular text-zinc-100">
+                    <td className="py-3 px-3 font-mono text-[#8e96a0]">
+                      {p.order_id || "N/A"}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="font-mono text-[10px] font-semibold text-[#6ecba0] uppercase">
+                        {p.status || "CAPTURED"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono font-bold font-tabular text-[#eceae6]">
                       {formatINR(p.amount)}
                     </td>
-                    <td className="py-3 px-3 text-right text-rose-300 font-tabular text-[11px]">
-                      {p.fee ? formatINR(p.fee) : "—"}
+                    <td className="py-3 px-3 text-right font-mono text-[#e07070] font-tabular">
+                      {formatINR(p.fee || 0)}
                     </td>
-                    <td className="py-3 px-3 text-right text-amber-300 font-tabular text-[11px]">
-                      {p.tax ? formatINR(p.tax) : "—"}
-                    </td>
-                    <td className="py-3 px-3 text-right text-zinc-500 text-[11px]">
-                      {formatDateTime(p.timestamp)}
+                    <td className="py-3 px-3 text-right font-mono text-[#d4a84e] font-tabular">
+                      {formatINR(p.tax || 0)}
                     </td>
                   </tr>
                 ))}

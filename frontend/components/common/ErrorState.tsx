@@ -18,22 +18,38 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-rose-900/40 bg-rose-950/20 p-6 text-center text-zinc-100",
+        "flex flex-col items-center justify-center rounded-sm border p-6 text-center text-[#eceae6]",
         className
       )}
+      style={{
+        borderColor: "var(--variance-border)",
+        background: "var(--variance-bg)",
+      }}
     >
-      <div className="mb-2 rounded-full bg-rose-950/60 border border-rose-800/60 p-2.5 text-rose-400">
+      <div className="mb-2 text-[#e07070]">
         <AlertTriangle className="h-5 w-5" />
       </div>
-      <h3 className="text-sm font-semibold text-rose-300">{title}</h3>
-      <p className="mt-1 max-w-md text-xs text-zinc-400">{message}</p>
+      <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-[#e07070]">
+        {title}
+      </h3>
+      <p className="mt-1 max-w-md text-xs text-[#8e96a0]">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="mt-4 inline-flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 hover:text-white transition-colors"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-sm border px-3 py-1.5 text-xs font-mono font-medium text-[#eceae6] transition-micro"
+          style={{
+            borderColor: "var(--border-standard)",
+            background: "var(--surface-3)",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = "var(--border-prominent)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = "var(--border-standard)";
+          }}
         >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Retry Request
+          <RefreshCw className="h-3 w-3" />
+          <span>Retry Request</span>
         </button>
       )}
     </div>

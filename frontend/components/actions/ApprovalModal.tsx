@@ -91,19 +91,39 @@ export function ApprovalModal({ action, mode, onClose }: ApprovalModalProps) {
   const error = (approveMutation.error || rejectMutation.error || executeMutation.error) as Error | null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
-      <div className="w-full max-w-md rounded-lg border border-[#222634] bg-[#11131a] p-6 shadow-2xl text-zinc-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
+      <div
+        className="w-full max-w-md rounded-sm border p-6 text-[#eceae6] shadow-2xl text-xs select-none"
+        style={{
+          borderColor: "var(--border-standard)",
+          background: "var(--surface-1)",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div
+          className="flex items-center justify-between pb-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
           <div className="flex items-center gap-2">
             <div
-              className={`p-1.5 rounded border ${
-                mode === "approve"
-                  ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
+              className="p-1.5 rounded-sm border"
+              style={{
+                borderColor: mode === "approve"
+                  ? "var(--accent-border)"
                   : mode === "reject"
-                  ? "bg-rose-950/60 border-rose-800/60 text-rose-400"
-                  : "bg-sky-950/60 border-sky-800/60 text-sky-400"
-              }`}
+                  ? "var(--variance-border)"
+                  : "var(--matched-border)",
+                background: mode === "approve"
+                  ? "var(--accent-dim)"
+                  : mode === "reject"
+                  ? "var(--variance-bg)"
+                  : "var(--matched-bg)",
+                color: mode === "approve"
+                  ? "var(--accent)"
+                  : mode === "reject"
+                  ? "var(--variance-text)"
+                  : "var(--matched-text)",
+              }}
             >
               {mode === "approve" ? (
                 <ShieldCheck className="h-4 w-4" />
@@ -114,120 +134,143 @@ export function ApprovalModal({ action, mode, onClose }: ApprovalModalProps) {
               )}
             </div>
             <div>
-              <h2 className="text-sm font-bold font-mono text-zinc-100">
-                {mode === "approve"
-                  ? "Authorize Finance Action"
-                  : mode === "reject"
-                  ? "Reject Finance Action"
-                  : "Execute Approved Action"}
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
+                {mode === "approve" && "Authorize Financial Action"}
+                {mode === "reject" && "Reject Action Recommendation"}
+                {mode === "execute" && "Trigger Bounded Execution"}
               </h2>
-              <p className="text-[11px] text-zinc-400 font-mono">ID: {action.id}</p>
+              <p className="text-[10px] text-[#8e96a0]">
+                Policy-Gated Human-in-the-Loop Control
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            className="p-1 rounded text-[#8e96a0] hover:text-[#eceae6] transition-micro"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Action Summary Info */}
-        <div className="my-4 p-3 rounded border border-zinc-800 bg-[#171a23] space-y-1.5 text-xs font-mono">
-          <div className="flex justify-between text-zinc-400">
-            <span>Action Type:</span>
-            <span className="text-zinc-100 font-bold">{action.action_type}</span>
+        <div
+          className="my-4 p-3 rounded-sm border text-xs space-y-1.5"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-2)",
+          }}
+        >
+          <div className="flex justify-between">
+            <span className="text-[#8e96a0]">Action:</span>
+            <span className="font-semibold text-[#eceae6]">{action.action_type}</span>
           </div>
-          <div className="flex justify-between text-zinc-400">
-            <span>Target Amount:</span>
-            <span className="text-zinc-100 font-bold font-tabular">{formatINR(action.amount)}</span>
+          <div className="flex justify-between">
+            <span className="text-[#8e96a0]">Target ID:</span>
+            <span className="text-[#eceae6]">{action.entity_id}</span>
           </div>
-          <div className="flex justify-between text-zinc-400">
-            <span>Entity Ref:</span>
-            <span className="text-zinc-300">{action.entity_id}</span>
+          <div className="flex justify-between">
+            <span className="text-[#8e96a0]">Amount:</span>
+            <span className="font-bold text-[#eceae6] font-tabular">{formatINR(action.amount)}</span>
           </div>
         </div>
 
-        {/* Form Inputs */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          {/* Actor Name (Mandatory for audit trail) */}
           <div>
-            <label className="block text-zinc-400 mb-1 font-mono text-[11px]">
-              Authorized Human Controller ID <span className="text-rose-400">*</span>
+            <label className="block text-[#8e96a0] mb-1 text-[11px]">
+              Human Operator ID (Mandatory Audit Identity)
             </label>
             <input
               type="text"
-              required
               value={actorName}
               onChange={(e) => setActorName(e.target.value)}
-              placeholder="e.g. JohnDoe_FinanceOps"
-              className="w-full rounded border border-zinc-800 bg-[#171a23] px-3 py-2 text-zinc-100 font-mono text-xs focus:border-sky-500 focus:outline-hidden"
+              placeholder="e.g. FinanceLead_JohnDoe"
+              disabled={isPending}
+              className="w-full rounded-sm border px-3 py-2 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+              style={{
+                borderColor: "var(--border-standard)",
+                background: "var(--surface-3)",
+              }}
             />
-            <p className="text-[10px] text-zinc-500 mt-0.5">
-              Audited in immutable ledger. AI actor names are strictly rejected by policy bounds.
+            <p className="mt-1 text-[10px] text-[#525c66]">
+              Must identify an authorized human operator. Automated agent usernames are rejected by policy.
             </p>
           </div>
 
+          {/* Decision Rationale */}
           {mode !== "execute" && (
             <div>
-              <label className="block text-zinc-400 mb-1 font-mono text-[11px]">
-                Decision Justification / Ledger Reason
+              <label className="block text-[#8e96a0] mb-1 text-[11px]">
+                Decision Rationale &amp; Audit Explanation
               </label>
               <textarea
-                rows={2}
+                rows={3}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Enter justification for the audit trail..."
-                className="w-full rounded border border-zinc-800 bg-[#171a23] px-3 py-1.5 text-zinc-100 text-xs focus:border-sky-500 focus:outline-hidden resize-none"
+                placeholder={
+                  mode === "approve"
+                    ? "Verified against vendor invoices. Discrepancy confirmed within tolerance."
+                    : "Documentation mismatch. Requiring merchant clarification before adjustment."
+                }
+                disabled={isPending}
+                className="w-full rounded-sm border px-3 py-2 text-xs font-sans text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+                style={{
+                  borderColor: "var(--border-standard)",
+                  background: "var(--surface-3)",
+                }}
               />
             </div>
           )}
 
-          {validationError && (
-            <div className="p-2.5 rounded border border-rose-800/60 bg-rose-950/30 text-rose-300 text-xs flex items-center gap-2 font-mono">
+          {/* Validation or API Error Alert */}
+          {(validationError || error) && (
+            <div
+              className="p-3 rounded-sm border text-xs flex items-center gap-2"
+              style={{
+                borderColor: "var(--variance-border)",
+                background: "var(--variance-bg)",
+                color: "var(--variance-text)",
+              }}
+            >
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span>{validationError}</span>
+              <span>{validationError || error?.message}</span>
             </div>
           )}
 
-          {error && (
-            <div className="p-2.5 rounded border border-rose-800/60 bg-rose-950/30 text-rose-300 text-xs flex items-center gap-2 font-mono">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span>{error.message || "Operation failed."}</span>
-            </div>
-          )}
-
-          {/* Controls */}
-          <div className="flex items-center justify-end gap-2 border-t border-zinc-800 pt-3">
+          {/* Modal Footer Controls */}
+          <div
+            className="flex items-center justify-end gap-2 pt-4"
+            style={{ borderTop: "1px solid var(--border-subtle)" }}
+          >
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 rounded text-xs font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+              disabled={isPending}
+              className="px-3 py-1.5 rounded-sm text-xs font-semibold text-[#8e96a0] hover:text-[#eceae6] transition-micro"
             >
               Cancel
             </button>
+
             <button
               type="submit"
               disabled={isPending}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded text-xs font-bold transition-colors disabled:opacity-50 ${
-                mode === "approve"
-                  ? "bg-emerald-500 hover:bg-emerald-400 text-black"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-bold transition-micro disabled:opacity-50"
+              style={{
+                color: "var(--bg)",
+                background: mode === "approve"
+                  ? "var(--accent)"
                   : mode === "reject"
-                  ? "bg-rose-500 hover:bg-rose-400 text-white"
-                  : "bg-sky-500 hover:bg-sky-400 text-black"
-              }`}
+                  ? "var(--variance-text)"
+                  : "var(--matched-text)",
+              }}
             >
-              {isPending ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Processing...</span>
-                </>
-              ) : mode === "approve" ? (
-                "Authorize Action"
-              ) : mode === "reject" ? (
-                "Reject Action"
-              ) : (
-                "Execute Bounded Action"
-              )}
+              {isPending && <Loader2 className="h-3 w-3 animate-spin" />}
+              <span>
+                {mode === "approve" && "Confirm Human Approval"}
+                {mode === "reject" && "Confirm Rejection"}
+                {mode === "execute" && "Execute Action"}
+              </span>
             </button>
           </div>
         </form>

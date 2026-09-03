@@ -3,7 +3,7 @@
 import React from "react";
 import { formatINR, formatPercent } from "@/lib/utils/formatters";
 import type { ReconciliationFunnel } from "@/types/controller";
-import { CheckCircle2, Cpu, AlertTriangle, Layers } from "lucide-react";
+import { CheckCircle2, Cpu, AlertTriangle, ArrowRight, ShieldCheck, Layers, GitBranch, ArrowDownRight } from "lucide-react";
 
 interface FunnelChartProps {
   funnel?: ReconciliationFunnel | null;
@@ -13,132 +13,318 @@ interface FunnelChartProps {
 export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
   if (isLoading || !funnel) {
     return (
-      <div className="h-64 rounded-lg border border-zinc-800 bg-[#11131a] p-5 animate-pulse">
-        <div className="h-4 w-44 rounded bg-zinc-800 mb-6" />
-        <div className="space-y-4">
-          <div className="h-10 rounded bg-zinc-800" />
-          <div className="h-10 rounded bg-zinc-800" />
-          <div className="h-10 rounded bg-zinc-800" />
+      <div
+        className="p-6 rounded-sm border"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div className="h-4 w-52 skeleton mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 skeleton" />
+          ))}
         </div>
       </div>
     );
   }
 
+  const incomingRecords = funnel.incoming_records ?? 0;
   const detMatches = funnel.deterministic_matches ?? 0;
   const mlMatches = funnel.ml_recovered ?? funnel.ml_matches ?? 0;
+  const manualReviews = funnel.manual_reviews ?? 0;
   const exceptions = funnel.unresolved ?? funnel.unmatched_exceptions ?? 0;
-  const totalMatches = detMatches + mlMatches;
-  const totalItems = funnel.incoming_records ?? (totalMatches + exceptions);
-  const matchRate = totalItems > 0
-    ? (totalMatches / totalItems) * 100
+  const totalReconciled = detMatches + mlMatches;
+  const totalEvaluated = incomingRecords > 0 ? incomingRecords : totalReconciled + exceptions;
+
+  // Strict data truth percentages: exactly 0.0% when 0
+  const deterministicPct = totalEvaluated > 0 ? (detMatches / totalEvaluated) * 100 : 0;
+  const mlPct = totalEvaluated > 0 ? (mlMatches / totalEvaluated) * 100 : 0;
+  const reviewPct = totalEvaluated > 0 ? (manualReviews / totalEvaluated) * 100 : 0;
+  const exceptionPct = totalEvaluated > 0 ? (exceptions / totalEvaluated) * 100 : 0;
+  const overallMatchPct = totalEvaluated > 0
+    ? (totalReconciled / totalEvaluated) * 100
     : (funnel.final_match_rate ? (funnel.final_match_rate > 1 ? funnel.final_match_rate : funnel.final_match_rate * 100) : 0);
-  const deterministicPct = totalItems > 0 ? (detMatches / totalItems) * 100 : 0;
-  const mlPct = totalItems > 0 ? (mlMatches / totalItems) * 100 : 0;
-  const exceptionPct = totalItems > 0 ? (exceptions / totalItems) * 100 : 0;
 
   return (
-    <div className="rounded-lg border border-[#222634] bg-[#11131a] p-5 text-zinc-100">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
+    <div
+      className="rounded-sm border p-6 select-none"
+      style={{
+        borderColor: "var(--border-subtle)",
+        background: "var(--surface-1)",
+      }}
+    >
+      {/* Visual Header */}
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono">
-            3-Way Reconciliation Pipeline Funnel
-          </h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Deterministic Engine → ML XGBoost Arbitration → Reconciled vs Exceptions
+          <div className="flex items-center gap-2">
+            <span
+              className="text-[10px] font-semibold uppercase tracking-[0.14em]"
+              style={{ color: "var(--accent)" }}
+            >
+              Reconciliation Control Flow
+            </span>
+            <span style={{ color: "var(--text-tertiary)" }}>•</span>
+            <span className="text-xs text-[#8e96a0]">
+              Authoritative Multi-Source Settlement Arbitration
+            </span>
+          </div>
+          <p className="text-xs text-[#545e6a] mt-0.5">
+            Gateway Settlements ↔ Internal Ledger ↔ Core Bank Statement Lineage
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-zinc-400">Total Volume:</span>
-          <span className="font-mono text-sm font-bold text-zinc-100 font-tabular">
-            {funnel.total_volume_inr ? formatINR(funnel.total_volume_inr) : `${totalItems} Records`}
-          </span>
+
+        <div className="flex items-center gap-4 text-xs font-mono">
+          <div>
+            <span style={{ color: "var(--text-tertiary)" }}>Processed: </span>
+            <strong className="text-[#eceae6] font-tabular">{totalEvaluated} records</strong>
+          </div>
+          {funnel.total_volume_inr && (
+            <div>
+              <span style={{ color: "var(--text-tertiary)" }}>Volume: </span>
+              <strong className="text-[#eceae6] font-tabular">{formatINR(funnel.total_volume_inr)}</strong>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Stage Breakdown Grid */}
-      <div className="grid grid-cols-1 gap-4 pt-5 sm:grid-cols-3">
-        {/* Deterministic Stage */}
-        <div className="rounded-lg border border-emerald-900/40 bg-emerald-950/20 p-4">
-          <div className="flex items-center justify-between text-xs text-emerald-400 font-semibold mb-2">
-            <span className="flex items-center gap-1.5 font-mono">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Stage 1: Deterministic
-            </span>
-            <span className="font-mono text-emerald-300">
-              {Number.isFinite(deterministicPct) ? deterministicPct.toFixed(1) : "0.0"}%
-            </span>
+      {/* Primary Flow Canvas: Engineered Directional Stages */}
+      <div className="pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 relative">
+          {/* Stage 01: Feed Ingest & Normalization */}
+          <div
+            className="p-4 rounded-xs border flex flex-col justify-between"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-2)",
+            }}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#545e6a]">
+                  Stage 01
+                </span>
+                <span className="text-[10px] font-mono text-[#8e96a0]">3 Sources</span>
+              </div>
+              <div className="text-xs font-semibold text-[#eceae6]">
+                Multi-Source Ingestion
+              </div>
+              <div className="mt-2 font-mono text-2xl font-bold text-[#eceae6] font-tabular">
+                {totalEvaluated}
+              </div>
+            </div>
+            <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
+              Normalized canonical records
+            </div>
           </div>
-          <div className="font-mono text-2xl font-bold text-emerald-200">
-            {detMatches}
+
+          {/* Stage 02: Deterministic Parity (Gold primary control path) */}
+          <div
+            className="p-4 rounded-xs border flex flex-col justify-between"
+            style={{
+              borderColor: "var(--border-standard)",
+              background: "var(--surface-2)",
+              borderTop: "2px solid var(--accent)",
+            }}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#c9a96e]">
+                  Stage 02
+                </span>
+                <span className="text-[10px] font-mono text-[#c9a96e] font-tabular">
+                  {deterministicPct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#6ecba0]" />
+                <span>Deterministic Rule Match</span>
+              </div>
+              <div className="mt-2 font-mono text-2xl font-bold text-[#6ecba0] font-tabular">
+                {detMatches}
+              </div>
+            </div>
+            <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
+              Strict UTR, reference &amp; monetary parity
+            </div>
           </div>
-          <p className="mt-1 text-[11px] text-zinc-400">
-            Exact UTR / RRN / Account parity matches
-          </p>
+
+          {/* Stage 03: ML Candidate Recovery (Analytical neutral slate, data-aware) */}
+          <div
+            className="p-4 rounded-xs border flex flex-col justify-between"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--surface-2)",
+            }}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#9aa5b2]">
+                  Stage 03
+                </span>
+                <span className="text-[10px] font-mono text-[#9aa5b2] font-tabular">
+                  {mlPct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
+                <Cpu className="h-3.5 w-3.5 text-[#9aa5b2]" />
+                <span>ML Candidate Recovery</span>
+              </div>
+              <div className="mt-2 font-mono text-2xl font-bold text-[#eceae6] font-tabular">
+                {mlMatches}
+              </div>
+            </div>
+            <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
+              {mlMatches > 0
+                ? "Fuzzy metadata & temporal candidate scoring"
+                : "Deterministic rule coverage satisfied"}
+            </div>
+          </div>
+
+          {/* Stage 04: Final Resolution Partition (Reconciled vs Exceptions) */}
+          <div
+            className="p-4 rounded-xs border flex flex-col justify-between"
+            style={{
+              borderColor: exceptions > 0 ? "var(--variance-border)" : "var(--matched-border)",
+              background: "var(--surface-2)",
+              borderTop: exceptions > 0 ? "2px solid var(--variance)" : "2px solid var(--matched)",
+            }}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8e96a0]">
+                  Resolution
+                </span>
+                <span
+                  className="text-[10px] font-mono font-bold"
+                  style={{ color: exceptions > 0 ? "var(--variance-text)" : "var(--matched-text)" }}
+                >
+                  {exceptions > 0 ? `${exceptions} Exceptions` : "100% Reconciled"}
+                </span>
+              </div>
+              <div className="text-xs font-semibold text-[#eceae6] flex items-center justify-between">
+                <span>Reconciled / Open</span>
+                <span className="font-mono text-xs font-tabular text-[#6ecba0]">
+                  {overallMatchPct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline justify-between font-mono">
+                <span className="text-2xl font-bold text-[#6ecba0] font-tabular">
+                  {totalReconciled}
+                </span>
+                <span className="text-sm font-semibold text-[#e07070] font-tabular">
+                  {exceptions > 0 ? `+${exceptions} req. review` : "0 discrepancies"}
+                </span>
+              </div>
+            </div>
+            <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
+              {exceptions > 0
+                ? "Discrepant pairs routed to forensic dossiers"
+                : "Parity confirmed across all 3 records"}
+            </div>
+          </div>
         </div>
 
-        {/* ML Recovered Stage */}
-        <div className="rounded-lg border border-purple-900/40 bg-purple-950/20 p-4">
-          <div className="flex items-center justify-between text-xs text-purple-400 font-semibold mb-2">
-            <span className="flex items-center gap-1.5 font-mono">
-              <Cpu className="h-3.5 w-3.5" /> Stage 2: ML Recovered
+        {/* Proportional Partition Rail (Strict adherence to numerical truth) */}
+        <div className="mt-6 pt-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span style={{ color: "var(--text-tertiary)" }} className="text-[11px] uppercase tracking-wider font-semibold">
+              Volume Distribution
             </span>
-            <span className="font-mono text-purple-300">
-              {Number.isFinite(mlPct) ? mlPct.toFixed(1) : "0.0"}%
-            </span>
+            <div className="flex items-center gap-3 font-mono text-xs">
+              <span className="text-[#6ecba0] font-medium font-tabular">
+                {totalReconciled} Reconciled ({overallMatchPct.toFixed(1)}%)
+              </span>
+              <span style={{ color: "var(--text-tertiary)" }}>•</span>
+              <span
+                className="font-medium font-tabular"
+                style={{ color: exceptions > 0 ? "var(--variance-text)" : "var(--text-secondary)" }}
+              >
+                {exceptions} Exceptions ({exceptionPct.toFixed(1)}%)
+              </span>
+            </div>
           </div>
-          <div className="font-mono text-2xl font-bold text-purple-200">
-            {mlMatches}
-          </div>
-          <p className="mt-1 text-[11px] text-zinc-400">
-            XGBoost candidate probability scoring
-          </p>
-        </div>
 
-        {/* Unmatched Exceptions Stage */}
-        <div className="rounded-lg border border-rose-900/40 bg-rose-950/20 p-4">
-          <div className="flex items-center justify-between text-xs text-rose-400 font-semibold mb-2">
-            <span className="flex items-center gap-1.5 font-mono">
-              <AlertTriangle className="h-3.5 w-3.5" /> Stage 3: Exceptions
-            </span>
-            <span className="font-mono text-rose-300">
-              {Number.isFinite(exceptionPct) ? exceptionPct.toFixed(1) : "0.0"}%
-            </span>
+          {/* Exact Segment Bar: 0% is strictly 0% */}
+          <div
+            className="h-2 w-full rounded-xs overflow-hidden flex"
+            style={{ background: "var(--surface-3)" }}
+          >
+            {deterministicPct > 0 && (
+              <div
+                style={{
+                  width: `${deterministicPct}%`,
+                  background: "var(--matched)",
+                }}
+                title={`Deterministic: ${detMatches} (${deterministicPct.toFixed(1)}%)`}
+              />
+            )}
+            {mlPct > 0 && (
+              <div
+                style={{
+                  width: `${mlPct}%`,
+                  background: "var(--ml)",
+                }}
+                title={`ML Recovered: ${mlMatches} (${mlPct.toFixed(1)}%)`}
+              />
+            )}
+            {reviewPct > 0 && (
+              <div
+                style={{
+                  width: `${reviewPct}%`,
+                  background: "var(--pending)",
+                }}
+                title={`Under Review: ${manualReviews} (${reviewPct.toFixed(1)}%)`}
+              />
+            )}
+            {exceptionPct > 0 && (
+              <div
+                style={{
+                  width: `${exceptionPct}%`,
+                  background: "var(--variance)",
+                }}
+                title={`Exceptions: ${exceptions} (${exceptionPct.toFixed(1)}%)`}
+              />
+            )}
           </div>
-          <div className="font-mono text-2xl font-bold text-rose-200">
-            {exceptions}
-          </div>
-          <p className="mt-1 text-[11px] text-zinc-400">
-            Routed to forensic investigation dossiers
-          </p>
-        </div>
-      </div>
 
-      {/* Visual Volume Progress Bar */}
-      <div className="mt-5 space-y-2">
-        <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
-          <span>Reconciliation Resolution Progress</span>
-          <span className="text-zinc-200 font-bold">{matchRate.toFixed(2)}% Reconciled</span>
-        </div>
-        <div className="h-3 w-full rounded-full bg-zinc-900 overflow-hidden flex border border-zinc-800">
+          {/* Footnote telemetry */}
           <div
-            style={{ width: `${deterministicPct}%` }}
-            className="bg-emerald-500 transition-all duration-700"
-            title={`Deterministic: ${funnel.deterministic_matches}`}
-          />
-          <div
-            style={{ width: `${mlPct}%` }}
-            className="bg-purple-500 transition-all duration-700"
-            title={`ML Recovered: ${funnel.ml_matches}`}
-          />
-          <div
-            style={{ width: `${exceptionPct}%` }}
-            className="bg-rose-500 transition-all duration-700"
-            title={`Unmatched Exceptions: ${funnel.unmatched_exceptions}`}
-          />
-        </div>
-        <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 pt-1">
-          <span>Reconciled Volume: {formatINR(funnel.reconciled_volume_inr)}</span>
-          <span>Pending Volume: {formatINR(funnel.pending_volume_inr)}</span>
+            className="flex items-center justify-between text-[11px] font-mono mt-3"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="status-dot" style={{ background: "var(--matched)" }} />
+                <span>Deterministic: {detMatches}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="status-dot" style={{ background: "var(--ml)" }} />
+                <span>ML Recovered: {mlMatches}</span>
+              </div>
+              {manualReviews > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <span className="status-dot" style={{ background: "var(--pending)" }} />
+                  <span>Pending Review: {manualReviews}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1.5">
+                <span className="status-dot" style={{ background: "var(--variance)" }} />
+                <span>Exceptions: {exceptions}</span>
+              </div>
+            </div>
+
+            {funnel.reconciled_volume_inr && (
+              <div className="text-right">
+                <span style={{ color: "var(--text-tertiary)" }}>Reconciled Value: </span>
+                <strong className="text-[#eceae6] font-tabular">{formatINR(funnel.reconciled_volume_inr)}</strong>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -37,17 +37,23 @@ export default function SettlementTaxAuditPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb Header */}
       <div className="flex items-center gap-3">
         <Link
           href={`/settlements/${encodeURIComponent(id)}`}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#171a23] hover:bg-[#1e222e] text-zinc-400 hover:text-zinc-200 border border-zinc-800 font-mono text-xs transition-colors"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs transition-micro text-[#8e96a0] hover:text-[#eceae6]"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border-subtle)",
+          }}
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Settlement Breakdown
         </Link>
-        <span className="text-zinc-600">/</span>
-        <span className="text-xs font-mono text-zinc-400">GST Tax Line Audit: {id}</span>
+        <span style={{ color: "var(--text-tertiary)" }}>/</span>
+        <span className="text-xs text-[#8e96a0]">Statutory Tax Line Audit:</span>
+        <span className="text-xs font-mono font-semibold text-[#eceae6]">{id}</span>
       </div>
 
       {/* Main Tax Audit Panel */}
