@@ -50,7 +50,7 @@ export default function ActionsPage() {
             Policy-Gated Action Controls (HITL)
           </h1>
           <p className="text-xs text-zinc-400 mt-0.5">
-            AI recommends ledger adjustments and write-offs $\rightarrow$ Authorized Human Controller approves $\rightarrow$ Bounded Execution $\rightarrow$ Immutable Audit.
+            AI recommends ledger adjustments and write-offs → Authorized Human Controller approves → Bounded Execution → Immutable Audit.
           </p>
         </div>
 

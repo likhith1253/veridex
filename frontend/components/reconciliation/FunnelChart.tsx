@@ -45,7 +45,7 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
             3-Way Reconciliation Pipeline Funnel
           </h2>
           <p className="text-xs text-zinc-500 mt-0.5">
-            Deterministic Engine $\rightarrow$ ML XGBoost Arbitration $\rightarrow$ Reconciled vs Exceptions
+            Deterministic Engine → ML XGBoost Arbitration → Reconciled vs Exceptions
           </p>
         </div>
         <div className="flex items-center gap-2">
