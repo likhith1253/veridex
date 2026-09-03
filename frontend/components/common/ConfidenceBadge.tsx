@@ -7,7 +7,8 @@ interface ConfidenceBadgeProps {
 }
 
 export function ConfidenceBadge({ confidence, className }: ConfidenceBadgeProps) {
-  const norm = confidence > 1 ? confidence / 100 : confidence;
+  const rawConf = typeof confidence === "number" && Number.isFinite(confidence) ? confidence : 0;
+  const norm = rawConf > 1 ? rawConf / 100 : rawConf;
   let color = "text-emerald-400 bg-emerald-950/40 border-emerald-800/50";
 
   if (norm < 0.7) {
