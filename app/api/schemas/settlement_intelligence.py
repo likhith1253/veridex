@@ -7,7 +7,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from typing import Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SettlementVarianceType(str, Enum):
@@ -174,3 +174,25 @@ class SettlementListResponse(BaseModel):
     settlements: list[SettlementListItem]
     total_count: int
     filter_applied: dict[str, Any]
+
+
+class TaxAuditStatus(str, Enum):
+    MATCHED = "MATCHED"
+    VARIANCE = "VARIANCE"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+
+
+class SettlementTaxAuditResponse(BaseModel):
+    """Deterministic tax line audit response for a Razorpay settlement."""
+    settlement_id: str
+    gross_amount: str
+    reported_tax: Optional[str] = None
+    expected_tax: Optional[str] = None
+    tax_variance: Optional[str] = None
+    status: TaxAuditStatus
+    explanation: str
+    evidence_ids: list[str] = []
+    currency: str = "INR"
+
+    model_config = ConfigDict(from_attributes=True)
+

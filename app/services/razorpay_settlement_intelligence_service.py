@@ -241,6 +241,12 @@ class RazorpaySettlementIntelligenceService:
             variance_type=variance_type,
         )
 
+    async def audit_settlement_tax(self, settlement_id: str):
+        """Audit settlement tax lines against expected tax recorded in Sentinel."""
+        from app.services.tax_auditor_service import TaxAuditorService
+        auditor = TaxAuditorService(self.session)
+        return await auditor.audit_settlement_tax(settlement_id)
+
     async def get_settlement_transaction_linkage(
         self, 
         settlement_id: str

@@ -29,8 +29,10 @@ from app.api.schemas.settlement_intelligence import (
     SettlementListItem,
     SettlementListResponse,
     SettlementStatusFilter,
+    SettlementTaxAuditResponse,
     SettlementTransactionLinkageResponse,
     SettlementVarianceType,
+    TaxAuditStatus,
 )
 from app.database.models import Transaction as TransactionORM
 from app.integrations.razorpay.schemas import RazorpaySettlementState
@@ -68,6 +70,32 @@ async def get_settlement_financial_breakdown(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get financial breakdown: {str(e)}")
+
+
+@router.get("/{settlement_id}/tax-audit", response_model=SettlementTaxAuditResponse)
+async def audit_settlement_tax(
+    settlement_id: str,
+    session: AsyncSession = Depends(get_db_session),
+) -> SettlementTaxAuditResponse:
+    """Audit Razorpay settlement tax lines against authoritative expected tax."""
+    try:
+        service = RazorpaySettlementIntelligenceService(session)
+        audit_res = await service.audit_settlement_tax(settlement_id)
+        return SettlementTaxAuditResponse(
+            settlement_id=audit_res.settlement_id,
+            gross_amount=str(audit_res.gross_amount),
+            reported_tax=str(audit_res.reported_tax) if audit_res.reported_tax is not None else None,
+            expected_tax=str(audit_res.expected_tax) if audit_res.expected_tax is not None else None,
+            tax_variance=str(audit_res.tax_variance) if audit_res.tax_variance is not None else None,
+            status=audit_res.status,
+            explanation=audit_res.explanation,
+            evidence_ids=audit_res.evidence_ids,
+            currency=audit_res.currency,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to audit settlement tax: {str(e)}")
 
 
 @router.get("/{settlement_id}/transaction-linkage", response_model=SettlementTransactionLinkageResponse)
