@@ -103,8 +103,13 @@ def verify_api_key(
     api_key: Optional[str] = Security(api_key_header),
     authorization: Optional[str] = Header(None),
 ) -> Optional[str]:
-    """Verify API key authentication when SENTINEL_API_KEY / API_KEY is configured."""
-    configured_key = (os.environ.get("SENTINEL_API_KEY") or os.environ.get("API_KEY") or "").strip()
+    """Verify API key authentication when VERIDEX_API_KEY / SENTINEL_API_KEY / API_KEY is configured."""
+    configured_key = (
+        os.environ.get("VERIDEX_API_KEY")
+        or os.environ.get("SENTINEL_API_KEY")
+        or os.environ.get("API_KEY")
+        or ""
+    ).strip()
     if not configured_key:
         return None
 

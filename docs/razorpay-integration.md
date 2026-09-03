@@ -2,13 +2,13 @@
 
 ## Overview
 
-Project Sentinel integrates natively with Razorpay's payment infrastructure to ingest real-time and batch financial events, perform cryptographic signature verification, enforce durable idempotency, and execute incremental multi-source financial reconciliation across Gateway, Ledger, and Bank feeds.
+Veridex integrates natively with Razorpay's payment infrastructure to ingest real-time and batch financial events, perform cryptographic signature verification, enforce durable idempotency, and execute incremental multi-source financial reconciliation across Gateway, Ledger, and Bank feeds.
 
 ---
 
 ## 1. Environment Configuration
 
-Sentinel uses standard environment variables to configure connectivity with Razorpay APIs and webhook endpoints.
+Veridex uses standard environment variables to configure connectivity with Razorpay APIs and webhook endpoints.
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
@@ -119,7 +119,7 @@ Every incoming webhook event is recorded in the PostgreSQL table `webhook_events
 
 ## 4. Normalization Rules
 
-Razorpay entity payloads are converted to Sentinel canonical `Transaction` models using exact financial precision:
+Razorpay entity payloads are converted to Veridex canonical `Transaction` models using exact financial precision:
 
 1. **Monetary Units**: Amounts in paise (integer) are converted to INR `Decimal` by dividing by `Decimal("100")`.
 2. **Timestamps**: Unix epoch timestamps are converted to timezone-aware UTC `datetime` instances.

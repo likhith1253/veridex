@@ -1,6 +1,7 @@
-# Project Sentinel — Frontend Handoff Specification
+# VERIDEX — Frontend Handoff Specification
 
-**Product Name:** Sentinel — AI Finance Control Center  
+**Product Name:** VERIDEX — AI Financial Control & Reconciliation Engine  
+**Tagline:** "Find the discrepancy. Prove the cause. Control the action."  
 **Target Architecture:** Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, TanStack Query  
 **Backend API:** FastAPI (`http://127.0.0.1:8000`), PostgreSQL 17  
 **Document Version:** 1.0.0  
@@ -10,13 +11,13 @@
 ## 1. Product Purpose & Workflow
 
 ### Core Mission
-Sentinel is an autonomous, auditable AI financial reconciliation and control system. It closes the operational finance loop across three asynchronous, fragmented data sources:
+Veridex is an autonomous, auditable AI financial reconciliation and control system. It closes the operational finance loop across three asynchronous, fragmented data sources:
 1. **Payment Gateway Settlement Data** (Razorpay feeds & webhooks: gross volume, fees, taxes, deductions, UTR references)
 2. **Internal Order / Payment Ledger** (Merchant ERP/database transactions, expected revenues, order statuses)
 3. **Bank Statement Data** (Core banking credits, wire transfers, NEFT/RTGS UTR records)
 
 ### The Core Closed-Loop Flow
-Sentinel enforces an uncompromising operational sequence:
+Veridex enforces an uncompromising operational sequence:
 $$\text{Detect} \longrightarrow \text{Explain} \longrightarrow \text{Decide} \longrightarrow \text{Approve} \longrightarrow \text{Execute} \longrightarrow \text{Audit}$$
 
 ```
@@ -28,7 +29,7 @@ $$\text{Detect} \longrightarrow \text{Explain} \longrightarrow \text{Decide} \lo
 ```
 
 ### Critical Business & Safety Invariants
-1. **Zero Fabrication**: Sentinel never invents IDs, financial amounts, root causes, or expected tax values. If evidence is missing, the system strictly reports `INSUFFICIENT_EVIDENCE`.
+1. **Zero Fabrication**: Veridex never invents IDs, financial amounts, root causes, or expected tax values. If evidence is missing, the system strictly reports `INSUFFICIENT_EVIDENCE`.
 2. **Policy-Gated Human-in-the-Loop (HITL)**: AI can investigate, explain, and *recommend* bounded financial actions. AI is **strictly forbidden** from approving or executing money movement or ledger adjustments. Explicit human operator authorization is mandatory.
 3. **Monetary Bounded Execution**: Ledger adjustments are strictly capped at INR 5,000.00; write-offs are capped at INR 100.00; total system transaction ceilings are capped at INR 500,000.00. Unbounded transactions are rejected by policy.
 4. **Honest Test Mode Reporting**: If Razorpay Test Mode returns zero records, the UI must display zero records honestly—never mock or pretend data exists.
@@ -53,7 +54,7 @@ $$\text{Detect} \longrightarrow \text{Explain} \longrightarrow \text{Decide} \lo
 The frontend application navigation is structured into dedicated operational command surfaces:
 
 ```
-Sentinel Console
+Veridex Console
 │
 ├── 1. Command Center (Executive Overview & Funnel)
 ├── 2. Reconciliation Engine (Run Batches, Ingestion & Matching Matrix)

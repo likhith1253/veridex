@@ -1,7 +1,7 @@
-﻿"""
-Centralized Frontend API Client for Project Sentinel.
+"""
+Centralized Frontend API Client for Veridex.
 
-Communicates with the frozen FastAPI backend REST endpoints:
+Communicates with the FastAPI backend REST endpoints:
 - Handles base URL configuration from environment
 - Typed request/response mapping
 - Graceful error handling, connection retries, and status reporting
@@ -13,10 +13,10 @@ import httpx
 
 
 class FinanceControllerAPIClient:
-    """Client for the Project Sentinel Backend REST API."""
+    """Client for the Veridex Backend REST API."""
 
     def __init__(self, base_url: Optional[str] = None, timeout: float = 15.0):
-        self.base_url = (base_url or os.getenv("SENTINEL_API_URL", "http://127.0.0.1:8000")).rstrip("/")
+        self.base_url = (base_url or os.getenv("VERIDEX_API_URL") or os.getenv("SENTINEL_API_URL", "http://127.0.0.1:8000")).rstrip("/")
         self.timeout = timeout
 
     def _url(self, path: str) -> str:

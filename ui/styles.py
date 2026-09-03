@@ -1,5 +1,5 @@
 """
-Design System and Styling Tokens for Project Sentinel AI Finance Controller.
+Design System and Styling Tokens for Veridex — AI Financial Control & Reconciliation Engine.
 """
 
 FINTECH_CSS = """

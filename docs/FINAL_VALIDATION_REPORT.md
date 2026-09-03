@@ -1,7 +1,7 @@
-﻿# Project Sentinel — Final Academic & Engineering Validation Report
+# VERIDEX — Final Academic & Engineering Validation Report
 
 ## 1. System Architecture
-Project Sentinel is an enterprise-grade AI financial reconciliation and investigation platform that resolves discrepancies across three asynchronous financial data streams:
+Veridex is an enterprise-grade AI financial reconciliation and investigation platform that resolves discrepancies across three asynchronous financial data streams:
 1. **Payment Gateway Settlement Feeds** (`settlement_id`, `transaction_id`, `order_id`, `utr`, `gross_amount`, `fee`, `tax`, `net_amount`, `settlement_date`, `status`)
 2. **Internal Order / Payment Ledgers** (`order_id`, `payment_reference`, `amount`, `order_date`, `payment_status`, `currency`, `internal_reference`)
 3. **Core Banking Statements** (`bank_transaction_id`, `utr`, `credit_amount`, `debit_amount`, `value_date`, `narration`, `currency`)
@@ -176,4 +176,4 @@ Complete instructions to reproduce all benchmarks, train the model, and run regr
 ---
 
 ## 19. Final Conclusion
-The Sentinel financial reconciliation system successfully combines deterministic rule speed, offline XGBoost candidate recovery ($99.27\%$ precision, $100\%$ recovery of corrupted matchable records), and selective Groq LLM semantic investigation into an integrated, leak-free, academically defensible architecture verified by **283 automated tests**.
+The Veridex financial reconciliation system successfully combines deterministic rule speed, offline XGBoost candidate recovery ($99.27\%$ precision, $100\%$ recovery of corrupted matchable records), and selective Groq LLM semantic investigation into an integrated, leak-free, academically defensible architecture.

@@ -1,5 +1,7 @@
-# Project Sentinel — v0 Frontend Implementation Specification
+# VERIDEX — v0 Frontend Implementation Specification
 
+**Product:** VERIDEX — AI Financial Control & Reconciliation Engine  
+**Tagline:** "Find the discrepancy. Prove the cause. Control the action."  
 **Target Stack:** Next.js 14+ (App Router), TypeScript, Tailwind CSS, shadcn/ui, TanStack Query v5, Lucide Icons  
 **Target Audience:** v0 Prompting Engineers & Frontend Developers  
 **Backend Base URL:** `http://127.0.0.1:8000`  
@@ -8,7 +10,7 @@
 
 ## 1. Core Architecture & Philosophy
 
-The Sentinel frontend is an enterprise financial operations terminal. It connects directly to the Sentinel FastAPI backend without introducing mock state or client-side financial calculations.
+The Veridex frontend is an enterprise financial operations terminal. It connects directly to the Veridex FastAPI backend without introducing mock state or client-side financial calculations.
 
 ### Tech Stack Choices
 - **Framework**: Next.js (App Router, Server Components where applicable, Client Components for interactive data grids)
@@ -114,8 +116,8 @@ Create `.env.local` for local development:
 # Public API URL consumed by browser client
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 
-# Optional Sentinel API Key (if configured on backend)
-NEXT_PUBLIC_SENTINEL_API_KEY=
+# Optional Veridex API Key (if configured on backend)
+NEXT_PUBLIC_VERIDEX_API_KEY=
 ```
 
 ### Security Directives for v0
@@ -159,7 +161,7 @@ Use a centralized Axios or Fetch client in `lib/api/client.ts`:
 ```typescript
 // lib/api/client.ts
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
-const API_KEY = process.env.NEXT_PUBLIC_SENTINEL_API_KEY || '';
+const API_KEY = process.env.NEXT_PUBLIC_VERIDEX_API_KEY || process.env.NEXT_PUBLIC_SENTINEL_API_KEY || '';
 
 export async function apiClient<T>(
   endpoint: string,

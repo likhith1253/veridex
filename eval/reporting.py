@@ -14,7 +14,7 @@ def generate_markdown_report(result: EvaluationResult) -> str:
     dd = result.decision_distribution
 
     lines = [
-        f"# Project Sentinel - Reconciliation Evaluation Baseline",
+        f"# Veridex - Reconciliation Evaluation Baseline",
         f"",
         f"**Dataset**: `{result.dataset_name}`  ",
         f"**Total Transactions Evaluated**: {result.total_transactions}  ",

@@ -1,4 +1,6 @@
-﻿# Project Sentinel — AI Finance Controller Architecture (Razorpay Track 04)
+# VERIDEX — AI Financial Control & Reconciliation Engine Architecture (Razorpay Track 04)
+
+> *"Find the discrepancy. Prove the cause. Control the action."*
 
 ## 1. Problem Context & Finance Operations Need
 Modern payment aggregators, merchants, and corporate treasuries process millions of transactions daily across asynchronous data streams:
@@ -11,7 +13,7 @@ Finance controllers face three critical bottlenecks:
 2. **Delayed Exception Resolution**: Finding why an entry failed to reconcile takes hours of manual spreadsheet investigation.
 3. **Unclear Cash Visibility & At-Risk Exposure**: Determining actual settled vs. pending vs. at-risk cash in real time is opaque.
 
-Project Sentinel closes this complete finance operations loop in real time.
+Veridex closes this complete finance operations loop in real time.
 
 ---
 

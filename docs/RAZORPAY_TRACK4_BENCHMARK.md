@@ -1,7 +1,7 @@
-﻿# Project Sentinel — Official Razorpay Track 04 Scale Benchmark Report
+# VERIDEX — Official Razorpay Track 04 Scale Benchmark Report
 
 ## 1. Benchmark Methodology
-The benchmark evaluates Project Sentinel across increasing transaction scales using `eval/track4_benchmark.py` on independent multi-source datasets generated with known ground truth across 7 operational corruption scenarios.
+The benchmark evaluates Veridex across increasing transaction scales using `eval/track4_benchmark.py` on independent multi-source datasets generated with known ground truth across 7 operational corruption scenarios.
 
 ---
 

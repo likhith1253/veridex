@@ -233,7 +233,7 @@ def test_evaluator_reports_generation():
     assert "risk_buckets" in parsed_json
 
     md_report = generate_markdown_report(result)
-    assert "# Project Sentinel" in md_report
+    assert "# Veridex" in md_report
     assert "Overall Matching Performance" in md_report
     assert "Decision Policy Distribution" in md_report
     assert "Deterministic Rules Performance" in md_report

@@ -10,7 +10,7 @@ from app.models.llm_result import LLMEvidenceItem, LLMInvestigationResult, Recom
 
 logger = logging.getLogger(__name__)
 
-INVESTIGATION_SYSTEM_PROMPT = """You are a senior financial reconciliation investigator for Project Sentinel.
+INVESTIGATION_SYSTEM_PROMPT = """You are a senior financial reconciliation investigator for Veridex.
 Your task is to analyze evidence from three financial feeds (Payment Gateway, Internal Ledger, Bank Statement) to determine the exact root cause of a reconciliation exception.
 
 STRICT INVARIANTS:

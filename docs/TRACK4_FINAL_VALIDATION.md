@@ -1,4 +1,4 @@
-﻿# Project Sentinel — Razorpay AI Buildathon Track 04 Final Validation Report
+# VERIDEX — Razorpay AI Buildathon Track 04 Final Validation Report
 
 ---
 
@@ -7,14 +7,13 @@
 - **Track Title**: Track 04 — AI Finance Controller
 - **Track Bar**: Throughput + Measured Accuracy + An Honest Exception List
 - **Evaluation Status**: **PASSED (100% Verified)**
-- **Test Suite Result**: **302 passed, 0 failed** (`pytest tests/`)
 - **Backend Readiness**: **FROZEN & SIGNED OFF FOR FRONTEND INTEGRATION**
 
 ---
 
 ## 1. Official Track 4 Requirement Mapping
 
-| Track 4 Requirement | Sentinel Implementation Component | Status | Verification Evidence |
+| Track 4 Requirement | Veridex Implementation Component | Status | Verification Evidence |
 | :--- | :--- | :--- | :--- |
 | **50+ Record Batch** | Synthetic Generator ($N=50$ to $2,000$ txns / $150$ to $6,000$ records) | **PASS** | `tests/test_track4_acceptance.py` & `eval/track4_benchmark.py` |
 | **Finance-Ops Loop Closure** | Ingestion $\rightarrow$ Matching $\rightarrow$ Exceptions $\rightarrow$ AI Investigation $\rightarrow$ Human Decision $\rightarrow$ Audit Log | **PASS** | End-to-end operational loop tested in `test_track4_end_to_end_finance_ops_loop` |

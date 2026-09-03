@@ -1,5 +1,5 @@
 """
-Project Sentinel — AI Finance Controller Dashboard (Razorpay Track 04).
+Veridex — AI Financial Control & Reconciliation Engine Dashboard (Razorpay Track 04).
 
 Complete Enterprise Financial Operations & Reconciliation Control Center:
 1. Executive Overview
@@ -33,7 +33,7 @@ from ui.styles import FINTECH_CSS
 
 # Page Configuration
 st.set_page_config(
-    page_title="Project Sentinel | AI Finance Controller",
+    page_title="Veridex | AI Financial Control & Reconciliation Engine",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -99,8 +99,8 @@ def render_empty_state(label: str, message: str = "No live data is available for
 
 
 def render_sidebar():
-    st.sidebar.title("🛡️ Project Sentinel")
-    st.sidebar.caption("AI Finance Controller | Track 04")
+    st.sidebar.title("🛡️ Veridex")
+    st.sidebar.caption("AI Financial Control & Reconciliation Engine")
 
     # Backend Health Check
     health = api.check_health()
@@ -576,7 +576,7 @@ def view_exception_workspace():
     col_add1, col_add2 = st.columns(2)
 
     with col_add1:
-        assignee = st.text_input("Assign to Analyst / Team:", "analyst_bob@sentinel.internal")
+        assignee = st.text_input("Assign to Analyst / Team:", "analyst_bob@veridex.internal")
         if st.button("Assign Exception"):
             try:
                 res = api.assign_exception(selected_id, assignee, actor="controller_admin")

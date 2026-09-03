@@ -1,13 +1,16 @@
-# Project Sentinel
+# VERIDEX
+### AI Financial Control & Reconciliation Engine
 
-Project Sentinel is an AI financial reconciliation and investigation system.
+> *"Find the discrepancy. Prove the cause. Control the action."*
+
+Veridex is an autonomous, auditable AI financial reconciliation, investigation, and control system.
 
 ## Goal
 
-The system reconciles three financial data sources:
-1. Payment gateway settlement data
+The system reconciles three fragmented financial data sources:
+1. Payment gateway settlement data (Razorpay feeds & webhooks)
 2. Internal order/payment ledger
-3. Bank statement
+3. Bank statement feeds
 
 ## Architecture
 

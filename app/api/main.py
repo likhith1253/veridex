@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 def create_app() -> FastAPI:
     """Factory function for FastAPI application."""
     app = FastAPI(
-        title="Project Sentinel API",
-        description="AI Financial Controller and Reconciliation Engine API",
+        title="Veridex API",
+        description="Veridex — AI Financial Control & Reconciliation Engine API. Find the discrepancy. Prove the cause. Control the action.",
         version="0.2.0",
     )
 

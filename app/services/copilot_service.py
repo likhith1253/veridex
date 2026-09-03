@@ -1,4 +1,4 @@
-"""Grounded finance copilot built on top of Sentinel's existing controller and intelligence services."""
+"""Grounded finance copilot built on top of Veridex's existing controller and intelligence services."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from app.services.source_health_service import SourceHealthService
 
 logger = logging.getLogger(__name__)
 
-COPILOT_BRIEF_SYSTEM_PROMPT = """You are the Project Sentinel Executive Finance Copilot.
+COPILOT_BRIEF_SYSTEM_PROMPT = """You are the Veridex Executive Finance Copilot.
 Your job is to synthesize an executive daily financial brief based SOLELY on the verified facts provided below.
 
 CRITICAL INVARIANTS:

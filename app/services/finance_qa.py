@@ -51,7 +51,7 @@ _INJECTION_PATTERNS = [
     r"drop\s+table",
 ]
 
-QA_SYSTEM_PROMPT = """You are the Project Sentinel Finance Controller AI Assistant.
+QA_SYSTEM_PROMPT = """You are the Veridex Finance Controller AI Assistant.
 Your job is to answer the user's finance or reconciliation question based SOLELY on the provided verified PostgreSQL facts.
 
 CRITICAL INVARIANTS:
@@ -406,7 +406,7 @@ class FinanceQAService:
         if any(w in q_lower for w in ["settlement amount", "expected settlement", "cash position", "received settlement", "pending settlement", "treasury"]):
             cash = await self.cash_service.get_cash_position(run_id)
             deterministic_ans = (
-                f"Sentinel Treasury Overview: Expected settlement INR {cash.expected_amount:,.2f}, "
+                f"Veridex Treasury Overview: Expected settlement INR {cash.expected_amount:,.2f}, "
                 f"Received INR {cash.received_amount:,.2f}, Pending INR {cash.pending_amount:,.2f}, "
                 f"and Unreconciled exceptions INR {cash.unreconciled_amount:,.2f}."
             )

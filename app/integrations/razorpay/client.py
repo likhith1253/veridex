@@ -53,7 +53,7 @@ class RazorpayClient:
         """Execute an authenticated HTTP request with retries and structured error handling."""
         auth = self._get_auth()
         url = f"{self.config.base_url}{path}"
-        headers = {"User-Agent": "Project-Sentinel-Finance-Controller/1.0"}
+        headers = {"User-Agent": "Veridex-Finance-Controller/1.0"}
 
         last_exception: Optional[Exception] = None
         for attempt in range(1, self.max_retries + 1):
