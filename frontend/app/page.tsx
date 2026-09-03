@@ -333,7 +333,7 @@ export default function CommandCenterPage() {
                       <div className="text-[10px] text-zinc-500">{ex.transaction_id}</div>
                     </td>
                     <td className="py-3 px-3">
-                      <span className="text-zinc-300">{ex.exception_category.replace(/_/g, " ")}</span>
+                      <span className="text-zinc-300">{(ex.exception_category || "UNKNOWN").replace(/_/g, " ")}</span>
                     </td>
                     <td className="py-3 px-3">
                       <StatusBadge status={ex.status} />

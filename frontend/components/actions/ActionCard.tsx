@@ -42,7 +42,7 @@ export function ActionCard({ action }: ActionCardProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-zinc-800/80">
           <div className="flex items-center gap-2">
             <div className="font-mono text-sm font-bold text-zinc-200">
-              {action.action_type.replace(/_/g, " ")}
+              {(action.action_type || "ACTION").replace(/_/g, " ")}
             </div>
             <StatusBadge status={action.state} />
           </div>

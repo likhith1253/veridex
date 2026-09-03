@@ -133,7 +133,7 @@ export default function ExceptionDossierPage() {
             </div>
             <p className="text-xs font-mono text-zinc-400 mt-1">
               Transaction Ref: <strong className="text-zinc-200">{exception.transaction_id}</strong> | Category:{" "}
-              <strong className="text-zinc-200">{exception.exception_category.replace(/_/g, " ")}</strong>
+              <strong className="text-zinc-200">{(exception.exception_category || "UNKNOWN").replace(/_/g, " ")}</strong>
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default function ExceptionDossierPage() {
               dossier.root_cause_candidates.map((rc, idx) => (
                 <div key={idx} className="p-3 rounded-lg border border-zinc-800 bg-[#171a23] space-y-2 text-xs font-mono">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-zinc-100">{rc.cause.replace(/_/g, " ")}</span>
+                    <span className="font-bold text-zinc-100">{(rc.cause || "UNKNOWN").replace(/_/g, " ")}</span>
                     <ConfidenceBadge confidence={rc.confidence} />
                   </div>
                   <p className="text-[11px] text-zinc-400">{rc.evidence_summary}</p>

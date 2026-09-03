@@ -78,7 +78,7 @@ export function AuditTimeline({ events, isLoading }: AuditTimelineProps) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs font-bold text-zinc-100">
-                  {ev.stage.replace(/_/g, " ")}
+                  {(ev.stage || "STAGE").replace(/_/g, " ")}
                 </span>
                 {ev.actor && (
                   <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">

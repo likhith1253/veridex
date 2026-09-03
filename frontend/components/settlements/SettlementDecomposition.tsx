@@ -54,7 +54,7 @@ export function SettlementDecomposition({
                 : "bg-rose-950/60 text-rose-400 border-rose-800/60"
             )}
           >
-            {breakdown.variance_type.replace(/_/g, " ")}
+            {(breakdown.variance_type || "VARIANCE").replace(/_/g, " ")}
           </span>
         </div>
       </div>
