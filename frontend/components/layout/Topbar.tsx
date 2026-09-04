@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { RotateCcw, Brain } from "lucide-react";
+import { RotateCcw, Brain, Menu } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { reconciliationApi } from "@/lib/api/reconciliationApi";
@@ -11,9 +11,10 @@ import { TechnicalReference } from "@/components/common/TechnicalReference";
 interface TopbarProps {
   onOpenBatchModal?: () => void;
   onToggleCopilot?: () => void;
+  onToggleSidebar?: () => void;
 }
 
-export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
+export function Topbar({ onOpenBatchModal, onToggleCopilot, onToggleSidebar }: TopbarProps) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -30,17 +31,25 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
     staleTime: 30000,
   });
 
-  const latestRunId = runsData?.runs?.[0]?.run_id;
+  const latestRun = runsData?.runs?.[0];
+  const latestRunId = latestRun?.run_id;
+  const latestRunStatusLabel = !latestRun
+    ? "No active run"
+    : latestRun.status === "running" || latestRun.status === "pending"
+    ? "Reconciliation in progress"
+    : latestRun.status === "failed"
+    ? "Reconciliation failed"
+    : "Latest reconciliation";
 
   const getPageContext = (path: string): { title: string; category?: string } => {
     if (path === "/" || path === "/app") return { title: "Command Center", category: "Operations" };
-    if (path.startsWith("/exceptions/")) return { title: "Investigation Dossier", category: "Forensic Analysis" };
-    if (path.startsWith("/exceptions")) return { title: "Exceptions Queue", category: "Operations" };
-    if (path.startsWith("/settlements/") && path.includes("tax-audit")) return { title: "Tax Line Auditor", category: "Statutory Parity" };
-    if (path.startsWith("/settlements/")) return { title: "Settlement Breakdown", category: "Payout Parity" };
+    if (path.startsWith("/exceptions/")) return { title: "Find the Cause", category: "Investigation" };
+    if (path.startsWith("/exceptions")) return { title: "Review Issues", category: "Operations" };
+    if (path.startsWith("/settlements/") && path.includes("tax-audit")) return { title: "Tax Difference", category: "Settlements" };
+    if (path.startsWith("/settlements/")) return { title: "Settlement Breakdown", category: "Settlements" };
     if (path.startsWith("/settlements")) return { title: "Settlements", category: "Operations" };
-    if (path.startsWith("/actions/")) return { title: "Action Review", category: "Human-in-the-Loop" };
-    if (path.startsWith("/actions")) return { title: "Action Controls", category: "Operations" };
+    if (path.startsWith("/actions/")) return { title: "Action Review", category: "Human Authorization" };
+    if (path.startsWith("/actions")) return { title: "Review Actions", category: "Operations" };
     if (path.startsWith("/audit")) return { title: "Audit Trail", category: "Operations" };
     if (path.startsWith("/razorpay")) return { title: "Razorpay Gateway", category: "Infrastructure" };
     if (path.startsWith("/benchmark")) return { title: "Engine Validation", category: "Infrastructure" };
@@ -63,6 +72,15 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
     <header className="h-14 px-6 flex items-center justify-between gap-4 select-none bg-[#FFFFFF] border-b border-[#D7D3CA]">
       {/* Context & Page Title */}
       <div className="flex items-center gap-3 min-w-0">
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="md:hidden p-1.5 -ml-1.5 rounded-xs text-[#555B61] hover:text-[#17191C] hover:bg-[#F1EFE9] flex-shrink-0"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        )}
         <div className="flex items-baseline gap-2">
           {pageContext.category && (
             <span className="text-[10px] uppercase font-semibold tracking-wider text-[#6F747A] hidden sm:inline">
@@ -74,9 +92,15 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
           </h1>
         </div>
 
-        {latestRunId && (
-          <div className="hidden md:flex items-center">
-            <TechnicalReference id={latestRunId} label="run" maxVisible={18} />
+        {runsData && (
+          <div className="hidden md:flex items-center gap-1.5 text-[11px]">
+            <span className="font-semibold text-[#17191C]">{latestRunStatusLabel}</span>
+            {latestRunId && (
+              <>
+                <span className="text-[#8e96a0]">·</span>
+                <TechnicalReference id={latestRunId} label="run" maxVisible={18} />
+              </>
+            )}
           </div>
         )}
       </div>
@@ -117,13 +141,16 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
           </button>
         )}
 
-        {/* Primary Action: Run Batch (Gold Identity) */}
+        {/* Primary Action: Run Reconciliation (Gold Identity) — same workflow as
+            the "Run reconciliation" button on /reconciliation; kept as one
+            user-facing concept so there is never a second, differently-named
+            control that appears to do the same job. */}
         {onOpenBatchModal && (
           <button
             onClick={onOpenBatchModal}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-semibold transition-micro text-[#171A1E] bg-[#C9A96E] hover:bg-[#D8BC8A] shadow-xs"
           >
-            <span>Run Batch</span>
+            <span>Run reconciliation</span>
           </button>
         )}
       </div>

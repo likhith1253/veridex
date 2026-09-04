@@ -34,14 +34,18 @@ export function SettlementDecomposition({
   }
 
   const varianceResult = formatVariance(breakdown.variance);
-  const isClean = varianceResult.isZero || breakdown.variance_type === "NO_VARIANCE";
+  // A settlement with no confirmed bank credit is never "clean" — the API's
+  // `bank_matched` flag is the ground truth for that (its `variance` field
+  // used to be fabricated to exactly 0 in this case, which made an
+  // unconfirmed settlement look identical to a perfectly reconciled one).
+  const isClean = breakdown.bank_matched && (varianceResult.isZero || breakdown.variance_type === "NO_VARIANCE");
 
   const gross = parseFloat(String(breakdown.gross_amount || 0));
   const fee = parseFloat(String(breakdown.fee_amount || 0));
   const tax = parseFloat(String(breakdown.tax_amount || 0));
   const adj = parseFloat(String(breakdown.adjustment_amount || 0));
   const expNet = parseFloat(String(breakdown.expected_net_amount || 0));
-  const received = breakdown.bank_received_amount !== null && breakdown.bank_received_amount !== undefined
+  const received = breakdown.bank_matched
     ? parseFloat(String(breakdown.bank_received_amount))
     : null;
 
@@ -69,7 +73,7 @@ export function SettlementDecomposition({
               className="text-[10px] font-semibold uppercase tracking-[0.14em]"
               style={{ color: "var(--accent)" }}
             >
-              Settlement Decomposition
+              Settlement breakdown
             </span>
             <span style={{ color: "var(--text-tertiary)" }}>•</span>
             <span
@@ -84,10 +88,10 @@ export function SettlementDecomposition({
             </span>
           </div>
           <h2 className="text-sm font-bold text-[#eceae6] mt-0.5">
-            Expected Net vs. Bank Statement Parity
+            Expected payout vs Bank received
           </h2>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            Gross Billed − Gateway MDR Fee − Statutory Tax + Account Adjustments = Expected Net Settlement
+            Gross payout − Gateway fee − Tax (GST) ± Adjustments = Expected payout
           </p>
         </div>
 
@@ -108,7 +112,7 @@ export function SettlementDecomposition({
       {/* Part 1: Mathematical Ledger Decomposition Waterfall */}
       <div className="pt-6">
         <div className="text-[10px] uppercase font-semibold tracking-wider text-[#8e96a0] mb-3">
-          1. Gateway Deduction Waterfall
+          1. Payout calculation
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
@@ -120,7 +124,7 @@ export function SettlementDecomposition({
               background: "var(--surface-2)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Gross Captured</div>
+            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Gross payout</div>
             <div className="mt-1.5 text-base font-bold font-mono text-[#eceae6] font-tabular">
               {formatINR(gross)}
             </div>
@@ -135,11 +139,11 @@ export function SettlementDecomposition({
               background: "var(--surface-2)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">− Gateway Fee (MDR)</div>
+            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">− Gateway fee</div>
             <div className="mt-1.5 text-base font-bold font-mono text-[#e07070] font-tabular">
               {formatINR(fee)}
             </div>
-            <div className="mt-1 text-[11px] text-[#545e6a]">Merchant discount rate</div>
+            <div className="mt-1 text-[11px] text-[#545e6a]">Processing fee</div>
           </div>
 
           {/* Tax (Dynamic Basis, never hardcoded universal 18%) */}
@@ -150,7 +154,7 @@ export function SettlementDecomposition({
               background: "var(--surface-2)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">− Statutory Tax</div>
+            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">− Tax (GST)</div>
             <div className="mt-1.5 text-base font-bold font-mono text-[#d4a84e] font-tabular">
               {formatINR(tax)}
             </div>
@@ -183,11 +187,11 @@ export function SettlementDecomposition({
               borderTop: "2px solid var(--accent)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#c9a96e]">═ Expected Net</div>
+            <div className="text-[10px] uppercase font-semibold text-[#c9a96e]">═ Expected payout</div>
             <div className="mt-1.5 text-base font-bold font-mono text-[#eceae6] font-tabular">
               {formatINR(expNet)}
             </div>
-            <div className="mt-1 text-[11px] text-[#c9a96e]">Authoritative target</div>
+            <div className="mt-1 text-[11px] text-[#c9a96e]">Calculated net</div>
           </div>
         </div>
       </div>
@@ -195,7 +199,7 @@ export function SettlementDecomposition({
       {/* Part 2: Settlement Variance Comparison Rails */}
       <div className="mt-6 pt-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         <div className="text-[10px] uppercase font-semibold tracking-wider text-[#8e96a0] mb-3">
-          2. Core Banking Reconciliation Parity
+          2. Bank credit comparison
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -206,11 +210,11 @@ export function SettlementDecomposition({
               background: "var(--surface-2)",
             }}
           >
-            <div className="text-[10px] uppercase text-[#8e96a0]">Expected Net Wire</div>
+            <div className="text-[10px] uppercase text-[#8e96a0]">Expected payout</div>
             <div className="mt-2 text-xl font-bold text-[#eceae6] font-tabular">
               {formatINR(expNet)}
             </div>
-            <div className="mt-1 text-[11px] text-[#545e6a]">Computed settlement credit</div>
+            <div className="mt-1 text-[11px] text-[#545e6a]">Computed net wire</div>
           </div>
 
           <div
@@ -220,12 +224,12 @@ export function SettlementDecomposition({
               background: "var(--surface-2)",
             }}
           >
-            <div className="text-[10px] uppercase text-[#8e96a0]">Bank Statement Received</div>
+            <div className="text-[10px] uppercase text-[#8e96a0]">Bank received</div>
             <div className="mt-2 text-xl font-bold font-tabular text-[#6ecba0]">
-              {received !== null ? formatINR(received) : "—"}
+              {received !== null ? formatINR(received) : "Not yet confirmed"}
             </div>
             <div className="mt-1 text-[11px] text-[#545e6a]">
-              {received !== null ? "Confirmed core bank credit" : "Awaiting bank statement match"}
+              {received !== null ? "Confirmed core bank credit" : "Awaiting bank statement credit"}
             </div>
           </div>
 
@@ -237,16 +241,20 @@ export function SettlementDecomposition({
               borderTop: isClean ? "2px solid var(--matched)" : "2px solid var(--variance)",
             }}
           >
-            <div className="text-[10px] uppercase text-[#8e96a0]">Reconciliation Variance</div>
+            <div className="text-[10px] uppercase text-[#8e96a0]">Variance / Difference</div>
             <div
               className={`mt-2 text-xl font-bold font-tabular ${
-                isClean ? "text-[#6ecba0]" : "text-[#e07070]"
+                isClean ? "text-[#6ecba0]" : breakdown.bank_matched ? "text-[#e07070]" : "text-[#d4a84e]"
               }`}
             >
-              {varianceResult.text}
+              {breakdown.bank_matched ? varianceResult.text : "Unknown"}
             </div>
             <div className="mt-1 text-[11px] text-[#8e96a0]">
-              {isClean ? "0.00 Parity Confirmed" : (breakdown.variance_type || "Discrepancy Detected").replace(/_/g, " ")}
+              {isClean
+                ? "0.00 Parity Confirmed"
+                : !breakdown.bank_matched
+                ? "Cannot compute — bank credit not yet confirmed"
+                : (breakdown.variance_type || "Discrepancy Detected").replace(/_/g, " ")}
             </div>
           </div>
         </div>

@@ -47,6 +47,7 @@ class SettlementFinancialBreakdown:
     adjustment_amount: Decimal
     expected_net_amount: Decimal
     bank_received_amount: Decimal
+    bank_matched: bool
     variance: Decimal
     currency: str
     variance_type: SettlementVarianceType
@@ -221,13 +222,20 @@ class RazorpaySettlementIntelligenceService:
         
         # Find matching bank transaction
         bank_amount = await self._find_bank_match_for_settlement(settlement)
-        
-        # Calculate variance
-        variance = (bank_amount - expected_net) if bank_amount else Decimal("0")
-        
+        bank_matched = bank_amount is not None
+
+        # Calculate variance. When no bank transaction has matched yet, the
+        # variance is NOT zero — it's the full expected amount still
+        # outstanding. Fabricating a variance of exactly 0 here previously
+        # made an unconfirmed settlement look identical to a perfectly
+        # reconciled one ("PARITY CONFIRMED") in the UI, directly
+        # contradicting the settlements list view (which correctly showed
+        # EXCEPTION / pending confirmation for the same settlement).
+        variance = (bank_amount - expected_net) if bank_matched else -expected_net
+
         # Classify variance
-        variance_type = self._classify_variance(variance, fee, tax, bank_amount is not None)
-        
+        variance_type = self._classify_variance(variance, fee, tax, bank_matched)
+
         return SettlementFinancialBreakdown(
             settlement_id=settlement_id,
             gross_amount=gross,
@@ -236,6 +244,7 @@ class RazorpaySettlementIntelligenceService:
             adjustment_amount=adjustment,
             expected_net_amount=expected_net,
             bank_received_amount=bank_amount or Decimal("0"),
+            bank_matched=bank_matched,
             variance=variance,
             currency=currency,
             variance_type=variance_type,

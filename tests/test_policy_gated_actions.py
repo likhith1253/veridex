@@ -332,3 +332,67 @@ async def test_action_execution_resolves_exception(test_ctx, auth_headers):
     assert exc.resolved is True
     assert exc.status == "resolved"
 
+
+@pytest.mark.asyncio
+async def test_recommend_action_links_to_entitys_own_run_not_an_arbitrary_run(test_ctx, auth_headers):
+    """Regression: _resolve_run_id previously fell back to
+    `select(ReconciliationRunORM.id).limit(1)` with no ORDER BY when the
+    caller omitted run_id — an arbitrary row, unrelated to the exception
+    actually being acted on, which corrupted the action's audit trail
+    (DATA -> DECISION -> ACTION linkage). It must now resolve to the run the
+    target exception actually belongs to.
+    """
+    client, session = test_ctx
+    now = utcnow()
+
+    # A second, distinct run — deliberately NOT the first row returned by an
+    # unordered SELECT, and not the run seeded by the fixture.
+    other_run = ReconciliationRunORM(
+        id="run_actions_test_other",
+        run_id="run_actions_test_other",
+        status="completed",
+        started_at=now,
+        completed_at=now,
+        gateway_count=1,
+        ledger_count=1,
+        bank_count=1,
+        match_count=0,
+        exception_count=1,
+        created_at=now,
+    )
+    session.add(other_run)
+    await session.commit()
+
+    exc = ExceptionORM(
+        id=f"exc_run_link_{now.timestamp()}",
+        run_id=other_run.id,
+        exception_category=ExceptionCategory.MISSING_SOURCE,
+        status="open",
+        confidence=Decimal("0.90"),
+        financial_exposure=Decimal("500.00"),
+        expected_cost=Decimal("20.00"),
+        explanation="Missing bank credit",
+        resolved=False,
+        created_at=now,
+    )
+    session.add(exc)
+    await session.commit()
+
+    rec_res = await client.post(
+        "/api/v1/actions/recommend",
+        json={
+            "entity_type": "exception",
+            "entity_id": exc.id,
+            "action_type": "FLAG_INVESTIGATION",
+            "amount": "500.00",
+            "currency": "INR",
+            "recommended_by": "ai_investigation",
+            "recommendation_reason": "Trace missing bank credit",
+            "evidence": {},
+            # run_id intentionally omitted — must be derived from the exception.
+        },
+        headers=auth_headers,
+    )
+    assert rec_res.status_code == 201, rec_res.text
+    assert rec_res.json()["run_id"] == other_run.id
+

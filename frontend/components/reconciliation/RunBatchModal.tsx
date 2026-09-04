@@ -39,6 +39,38 @@ function generateRunId(): string {
 }
 
 /**
+ * Deterministic per-run PRNG (mulberry32) seeded from the run ID, so amounts
+ * vary run-to-run and record-to-record instead of cycling through a fixed
+ * lookup table (which made exception exposure values look suspiciously
+ * repetitive — the same handful of amounts appearing dozens of times).
+ */
+function seededRng(seedStr: string): () => number {
+  let h = 1779033703 ^ seedStr.length;
+  for (let i = 0; i < seedStr.length; i++) {
+    h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  let a = h >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Realistic INR transaction amount: log-uniform so small payments are common
+ * and large ones rare, rounded to a plausible paise value — never a fixed
+ * lookup value, so exposure amounts across a batch are naturally diverse. */
+function realisticAmount(rand: () => number): number {
+  const logMin = Math.log(499);
+  const logMax = Math.log(249999);
+  const raw = Math.exp(logMin + rand() * (logMax - logMin));
+  return Math.round(raw * 100) / 100;
+}
+
+/**
  * Build a diverse set of feed records using the same scenario patterns as
  * simulator/scenarios.py — clean matches, fee mismatches, delayed settlements,
  * ambiguous matches, duplicates, wrong references, partial refunds, missing bank credits.
@@ -65,6 +97,7 @@ function buildDiverseBatch(
   const fee = (amount: number) => parseFloat((amount * MDR).toFixed(2));
   const tax = (amount: number) => parseFloat((fee(amount) * GST).toFixed(2));
   const net = (amount: number) => parseFloat((amount - fee(amount) - tax(amount)).toFixed(2));
+  const rand = seededRng(runId);
 
   // Scenario assignment — diverse exception/edge scenarios at specific positions,
   // remaining are clean deterministic matches.
@@ -87,11 +120,7 @@ function buildDiverseBatch(
     const gwId = `pay_${logicalId}`;
     const ldId = `ord_${logicalId}`;
     const bkId = `bnk_${logicalId}`;
-    const baseAmounts = [
-      24410, 15750, 8500, 50000, 33250, 12000, 75000, 18600, 42000, 6750, 29900,
-      120000, 9900, 67500, 48200, 14300,
-    ];
-    const amount = baseAmounts[i % baseAmounts.length];
+    const amount = realisticAmount(rand);
     const utr = `UTR_AXIS_${logicalId}`;
     const ts = new Date(now.getTime() - (n - i) * 3600000).toISOString();
 
@@ -105,6 +134,7 @@ function buildDiverseBatch(
         id: gwId,
         domain_transaction_id: logicalId,
         order_id: ldId,
+        reference_number: utr,
         amount,
         currency: "INR",
         status: "captured",
@@ -146,6 +176,7 @@ function buildDiverseBatch(
         id: gwId,
         domain_transaction_id: logicalId,
         order_id: ldId,
+        reference_number: utr,
         amount,
         currency: "INR",
         status: "captured",
@@ -213,6 +244,7 @@ function buildDiverseBatch(
         id: gwId,
         domain_transaction_id: logicalId,
         order_id: ldId,
+        reference_number: utr,
         amount,
         currency: "INR",
         status: "captured",
@@ -295,6 +327,7 @@ function buildDiverseBatch(
         id: gwId,
         domain_transaction_id: logicalId,
         order_id: ldId,
+        reference_number: utr,
         amount,
         currency: "INR",
         status: "captured",
@@ -364,6 +397,7 @@ function buildDiverseBatch(
         id: gwId,
         domain_transaction_id: logicalId,
         order_id: ldId,
+        reference_number: utr,
         amount,
         currency: "INR",
         status: "captured",
@@ -394,6 +428,7 @@ function buildDiverseBatch(
         id: gwId,
         domain_transaction_id: logicalId,
         order_id: ldId,
+        reference_number: utr,
         amount,
         currency: "INR",
         status: "captured",
@@ -684,10 +719,10 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
             </div>
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
-                Data Ingestion &amp; Reconciliation
+                Run reconciliation
               </h2>
               <p className="text-[10px] text-[#8e96a0]">
-                Gateway · Ledger · Bank — 3-way continuous reconciliation
+                Reconcile records across Gateway, Ledger, and Bank feeds
               </p>
             </div>
           </div>
@@ -712,7 +747,7 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
               }`}
             >
               <Database className="h-3.5 w-3.5" />
-              Demo Dataset (Balanced Feeds)
+              Use demo data
             </button>
             <button
               onClick={() => setActiveTab("import")}
@@ -723,7 +758,7 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
               }`}
             >
               <UploadCloud className="h-3.5 w-3.5" />
-              Import CSV Statements
+              Import your files
             </button>
           </div>
         )}
@@ -768,7 +803,7 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
                         value={batchSize}
                         onChange={(e) => setBatchSize(Number(e.target.value))}
                         disabled={isSubmitting}
-                        className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+                        className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro disabled:opacity-50"
                         style={{
                           borderColor: "var(--border-standard)",
                           background: "var(--surface-1)",
@@ -792,7 +827,7 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
                         value={customRunId}
                         onChange={(e) => setCustomRunId(e.target.value)}
                         placeholder="Leave blank to auto-generate"
-                        className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden"
+                        className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro"
                         style={{
                           borderColor: "var(--border-standard)",
                           background: "var(--surface-1)",
@@ -1013,10 +1048,10 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
                   <Play className="h-3.5 w-3.5 fill-current" />
                   <span>
                     {runState.phase === "error"
-                      ? "Try Again"
+                      ? "Try again"
                       : activeTab === "import"
-                      ? "Reconcile Imported Data"
-                      : "Run Reconciliation"}
+                      ? "Reconcile imported files"
+                      : "Run reconciliation"}
                   </span>
                 </>
               )}

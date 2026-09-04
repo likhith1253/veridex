@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { formatINR, formatDateTime, cn } from "@/lib/utils/formatters";
 import type { FinanceAction } from "@/types/actions";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 import { ApprovalModal } from "./ApprovalModal";
 import {
   ShieldAlert,
@@ -113,8 +114,10 @@ export function ActionCard({ action }: ActionCardProps) {
               </span>
               <StatusBadge status={action.state} />
             </div>
-            <div className="text-xs text-[#8e96a0] mt-0.5 font-mono">
-              ID: <span className="text-[#eceae6]">{action.id}</span> • Target: <span className="text-[#c9a96e]">{action.entity_id}</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <TechnicalReference id={action.id} label="ref" maxVisible={18} inline />
+              <span className="text-[#545e6a]">•</span>
+              <TechnicalReference id={action.entity_id} label="target" maxVisible={14} inline />
             </div>
           </div>
 
@@ -190,16 +193,34 @@ export function ActionCard({ action }: ActionCardProps) {
             </div>
           )}
 
-          {/* Execution Result */}
+          {/* Execution Result — human-readable summary first, raw JSON
+              tucked behind a disclosure rather than dumped inline. */}
           {isExecuted && action.execution_result && (
             <div
-              className="p-2.5 rounded-xs border text-xs font-mono text-[#6ecba0]"
+              className="p-2.5 rounded-xs border text-xs"
               style={{
                 borderColor: "var(--matched-border)",
                 background: "var(--matched-bg)",
               }}
             >
-              Execution reference: {JSON.stringify(action.execution_result)}
+              <div className="text-[#6ecba0] space-y-0.5">
+                {Object.entries(action.execution_result)
+                  .filter(([, v]) => v !== null && v !== undefined && typeof v !== "object")
+                  .map(([key, value]) => (
+                    <div key={key}>
+                      <span className="text-[#8e96a0]">{key.replace(/_/g, " ")}:</span>{" "}
+                      <span className="font-mono font-semibold">{String(value)}</span>
+                    </div>
+                  ))}
+              </div>
+              <details className="mt-1.5">
+                <summary className="text-[10px] text-[#8e96a0] cursor-pointer hover:text-[#c9a96e]">
+                  Technical details
+                </summary>
+                <pre className="mt-1 text-[10px] font-mono text-[#8e96a0] whitespace-pre-wrap break-all">
+                  {JSON.stringify(action.execution_result, null, 2)}
+                </pre>
+              </details>
             </div>
           )}
         </div>

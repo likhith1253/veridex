@@ -179,7 +179,10 @@ class RazorpayWebhookHandler:
                     adjustment_amount=Decimal("0"),
                     expected_net_amount=expected_net,
                     bank_received_amount=Decimal("0"),
-                    variance=Decimal("0"),
+                    bank_matched=False,
+                    # Not zero: nothing has been confirmed against the full
+                    # expected amount, so the full amount is outstanding.
+                    variance=-expected_net,
                     currency=txn.currency,
                     variance_type=SettlementVarianceType.MISSING_BANK_CREDIT,
                 )

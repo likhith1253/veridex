@@ -41,18 +41,38 @@ class FinanceActionService:
         self.session = session
         self.audit_repo = AuditRepository(session)
 
-    async def _resolve_run_id(self, preferred_run_id: Optional[str] = None) -> str:
-        """Resolve a valid run_id for foreign key constraints."""
+    async def _resolve_run_id(
+        self,
+        preferred_run_id: Optional[str] = None,
+        entity_type: Optional[str] = None,
+        entity_id: Optional[str] = None,
+    ) -> str:
+        """Resolve a valid run_id for foreign key constraints.
+
+        Preference order: an explicitly supplied run_id; the run the target
+        entity actually belongs to (so the action's audit trail links to the
+        correct reconciliation run, not an unrelated one); the most recently
+        created run as a last resort. Never an arbitrary/unordered row —
+        that broke traceability by attaching actions to whichever run
+        happened to be first in an unordered SELECT.
+        """
         if preferred_run_id:
             await ensure_run_exists(self.session, preferred_run_id)
             return preferred_run_id
-        
-        stmt = select(ReconciliationRunORM.id).limit(1)
+
+        if entity_type == "exception" and entity_id:
+            exc_stmt = select(ExceptionORM.run_id).where(ExceptionORM.id == entity_id)
+            exc_res = await self.session.execute(exc_stmt)
+            exc_run_id = exc_res.scalars().first()
+            if exc_run_id:
+                return exc_run_id
+
+        stmt = select(ReconciliationRunORM.id).order_by(ReconciliationRunORM.created_at.desc()).limit(1)
         res = await self.session.execute(stmt)
         existing_run_id = res.scalars().first()
         if existing_run_id:
             return existing_run_id
-            
+
         fallback_id = f"run_action_{uuid.uuid4().hex[:12]}"
         await ensure_run_exists(self.session, fallback_id)
         return fallback_id
@@ -90,7 +110,7 @@ class FinanceActionService:
                 f"Action amount INR {amount} exceeds maximum system ceiling of INR {MAX_BOUNDED_TRANSACTION_LIMIT}."
             )
 
-        resolved_run_id = await self._resolve_run_id(run_id)
+        resolved_run_id = await self._resolve_run_id(run_id, entity_type=entity_type, entity_id=entity_id)
         now = utcnow()
         action_id = f"act_{uuid.uuid4().hex[:16]}"
         # Check for existing active action for this entity to ensure idempotency and prevent duplicate records

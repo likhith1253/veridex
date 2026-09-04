@@ -79,111 +79,205 @@ export default function CommandCenterPage() {
 
   const totalRecs = overview?.total_records_processed ?? overview?.total_records ?? 0;
   const matchedRecs = overview?.total_matched_records ?? overview?.matched_records ?? 0;
-  const exceptionRecs = overview?.unresolved_transactions ?? overview?.open_exceptions ?? 0;
+  // "Issues needing attention" = curated exceptions (the actual review queue),
+  // not the raw unresolved-transaction count — these are different populations
+  // (an exception can be raised on an otherwise-matched transaction too), and
+  // the exception count is what the sidebar badge and /exceptions page use as
+  // the authoritative "open issues" figure. Keeping this consistent everywhere
+  // avoids the number disagreeing across screens.
+  const exceptionRecs = overview?.open_exceptions ?? overview?.unresolved_transactions ?? 0;
   const exposureVal = overview?.unresolved_monetary_exposure_inr ?? overview?.financial_exposure ?? 0;
   const volumeVal = overview?.total_transaction_value_inr ?? overview?.total_financial_volume ?? 0;
   const runId = overview?.run_id;
+
+  // Run provenance: has a reconciliation ever run, and what state is the most
+  // recent one in? This is authoritative backend state (ReconciliationRun.status),
+  // never a frontend-only flag, so a refresh can never fake or lose it.
+  const hasAnyRun = overview?.has_any_run ?? false;
+  const latestRunStatus = overview?.latest_run_status ?? null;
+  const reconStatusLabel = !hasAnyRun
+    ? "No active run"
+    : latestRunStatus === "running" || latestRunStatus === "pending"
+    ? "In progress"
+    : latestRunStatus === "failed"
+    ? "Failed"
+    : "Idle";
+  const reconStatusColor = !hasAnyRun
+    ? "#8e96a0"
+    : latestRunStatus === "failed"
+    ? "#e07070"
+    : latestRunStatus === "running" || latestRunStatus === "pending"
+    ? "#d4a84e"
+    : "#6ecba0";
+  const latestReconciliationLabel = !hasAnyRun
+    ? "No active reconciliation"
+    : latestRunStatus === "running" || latestRunStatus === "pending"
+    ? "Reconciliation in progress"
+    : latestRunStatus === "failed"
+    ? "Reconciliation failed"
+    : "Reconciliation complete";
 
   const reconLink = runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation";
   const exceptionsLink = runId
     ? `/exceptions?status=open&run_id=${encodeURIComponent(runId)}`
     : "/exceptions?status=open";
 
+  const hasIssues = exceptionRecs > 0;
+
   return (
     <div className="space-y-8 pb-16 select-none">
-      {/* ── ZONE 0: CONTROL STATUS PROOF BAR ───────────────────────── */}
+      {/* ── HERO: current state, what needs attention, one next step ─── */}
       <div
-        className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xs text-[11px] border"
-        style={{
-          borderColor: "var(--border-subtle)",
-          background: "var(--surface-1)",
-        }}
+        className="rounded-sm border overflow-hidden"
+        style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)" }}
       >
-        <div className="flex items-center gap-2">
-          <span
-            className="text-[10px] font-bold uppercase tracking-[0.14em]"
-            style={{ color: "var(--accent)" }}
-          >
-            Control Status
-          </span>
-          <span style={{ color: "var(--text-tertiary)" }}>|</span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-[#8e96a0]">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Data</span>
-            <span className="font-bold text-[#eceae6]">Verified</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 pt-5">
+          <div>
+            <h1 className="text-xl font-bold font-mono text-[#eceae6] flex items-center gap-2.5 tracking-tight">
+              Financial Control Center
+              <span
+                className="text-[10px] px-2 py-0.5 rounded-xs font-bold"
+                style={{
+                  color: "var(--matched-text)",
+                  background: "var(--matched-bg)",
+                  border: "1px solid var(--matched-border)",
+                }}
+              >
+                LIVE
+              </span>
+            </h1>
+            <p className="text-xs text-[#8e96a0] mt-1">
+              Continuous reconciliation across Payment Gateway, Internal Ledger, and Core Bank
+            </p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Recon</span>
-            <span className="font-bold text-[#6ecba0]">Active</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Evidence</span>
-            <span className="font-bold text-[#eceae6]">Grounded</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">AI</span>
-            <span className="font-bold text-[#eceae6]">Assistive</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">HITL</span>
-            <span className="font-bold text-[#d4a84e]">Enforced</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Audit</span>
-            <span className="font-bold text-[#6ecba0]">Enabled</span>
+          <div className="text-right">
+            <div className="text-[10px] uppercase font-bold tracking-wider text-[#545e6a]">
+              Latest reconciliation
+            </div>
+            {overviewLoading ? (
+              <div className="h-4 w-32 rounded-xs skeleton mt-1 ml-auto" />
+            ) : (
+              <div className="flex items-center gap-2 mt-0.5 justify-end">
+                <span className="text-xs font-bold" style={{ color: reconStatusColor }}>
+                  {latestReconciliationLabel}
+                </span>
+                {runId && <TechnicalReference id={runId} label="run" maxVisible={14} inline />}
+              </div>
+            )}
           </div>
         </div>
 
-        {runId && (
-          <div className="hidden lg:flex items-center gap-2 text-[10px] font-mono text-[#8e96a0]">
-            <span>Scope:</span>
-            <TechnicalReference id={runId} maxVisible={20} />
+        {/* Current state — the one number that matters most. Gated behind
+            overviewLoading so a fresh page load never flashes a FALSE "INR 0.00
+            / no active reconciliation / zero issues" before real data arrives —
+            that's actively misleading, not just an empty state, and it visibly
+            contradicted the sidebar/topbar which already had cached data. */}
+        {overviewLoading ? (
+          <div className="px-6 pt-6 pb-2">
+            <LoadingSkeleton variant="card" count={2} />
           </div>
-        )}
-      </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-6 pt-6">
+              <div>
+                <div className="text-[10px] uppercase font-bold tracking-wider text-[#545e6a] mb-1">
+                  Current state
+                </div>
+                <div className="text-3xl font-bold font-mono text-[#eceae6] tabular-nums">
+                  {formatINR(volumeVal)}
+                </div>
+                <p className="text-xs text-[#8e96a0] mt-1">
+                  {totalRecs} record{totalRecs === 1 ? "" : "s"} available ·{" "}
+                  <span style={{ color: "var(--matched-text)" }}>{formatPercent(overview?.match_rate)} reconciled</span>
+                  {" "}({matchedRecs} of {totalRecs})
+                </p>
+              </div>
 
-      {/* ── ZONE 1: TOP BANNER: OPERATIONAL CONTEXT ─────────────────── */}
-      <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}
-      >
-        <div>
-          <h1 className="text-xl font-bold font-mono text-[#eceae6] flex items-center gap-2.5 tracking-tight">
-            Finance Operations Command Center
-            <span
-              className="text-[10px] px-2 py-0.5 rounded-xs font-bold"
-              style={{
-                color: "var(--matched-text)",
-                background: "var(--matched-bg)",
-                border: "1px solid var(--matched-border)",
-              }}
+              <div>
+                <div
+                  className="text-[10px] uppercase font-bold tracking-wider mb-1"
+                  style={{ color: hasIssues ? "var(--accent)" : "#545e6a" }}
+                >
+                  What needs attention
+                </div>
+                {hasIssues ? (
+                  <>
+                    <div className="text-3xl font-bold font-mono tabular-nums" style={{ color: "#e07070" }}>
+                      {formatINR(exposureVal)}
+                    </div>
+                    <p className="text-xs text-[#8e96a0] mt-1">
+                      money at risk across{" "}
+                      <span className="text-[#eceae6] font-semibold">
+                        {exceptionRecs} open {exceptionRecs === 1 ? "issue" : "issues"}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-3xl font-bold font-mono tabular-nums" style={{ color: "#6ecba0" }}>
+                      Zero
+                    </div>
+                    <p className="text-xs text-[#8e96a0] mt-1">open issues — all records reconciled</p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* One primary action, contextual to actual state */}
+            <div
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 mt-6"
+              style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--surface-2)" }}
             >
-              LIVE
-            </span>
-          </h1>
-          <p className="text-xs text-[#8e96a0] mt-1 italic">
-            Continuous real-time multi-source reconciliation across Payment Gateway, Internal Ledger, and Core Banking.
-          </p>
-        </div>
-
-        {runId && (
-          <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0]">
-            <span>Scoped Run:</span>
-            <TechnicalReference id={runId} maxVisible={24} />
-          </div>
+              <p className="text-xs text-[#8e96a0]">
+                {hasIssues
+                  ? "Human review and authorization is required before any money movement."
+                  : totalRecs === 0
+                  ? "No financial data has been reconciled yet."
+                  : "Reconciliation runs are complete with zero unhandled variances."}
+              </p>
+              <Link
+                href={hasIssues ? exceptionsLink : "/reconciliation"}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xs text-xs font-bold transition-micro flex-shrink-0"
+                style={{ color: "#080a0c", background: "var(--accent)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                <span>{hasIssues ? "Review highest-priority issue" : "Run reconciliation"}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </>
         )}
       </div>
 
-      {/* ── ZONE 2: FOUR PRIMARY KPI MATRIX BLOCKS ─────────────────── */}
-      {overviewLoading ? (
+      {/* ── Control status — secondary/technical, de-emphasized ──────── */}
+      <div
+        className="flex flex-wrap items-center gap-x-6 gap-y-1.5 px-4 py-2 rounded-xs text-[10px] border"
+        style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)", color: "#8e96a0" }}
+      >
+        <span className="uppercase font-bold tracking-wider" style={{ color: "var(--text-tertiary)" }}>
+          System
+        </span>
+        <span>Data <b className="text-[#eceae6]">Verified</b></span>
+        <span>Recon <b style={{ color: reconStatusColor }}>{reconStatusLabel}</b></span>
+        <span>Evidence <b className="text-[#eceae6]">Grounded</b></span>
+        <span>AI <b className="text-[#eceae6]">Assistive</b></span>
+        <span>HITL <b style={{ color: "#d4a84e" }}>Enforced</b></span>
+        <span>Audit <b style={{ color: "#6ecba0" }}>Enabled</b></span>
+      </div>
+
+      {/* ── SUPPORTING FINANCIAL METRICS ─────────────────────────────── */}
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-wider text-[#545e6a] mb-3">
+          Supporting financial metrics
+        </div>
+        {overviewLoading ? (
         <LoadingSkeleton variant="card" count={4} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link href={reconLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
-              title="Total Financial Volume"
+              title="Total volume processed"
               value={formatINR(volumeVal)}
               subtitle={`${totalRecs} feed records in scope`}
               icon={<DollarSign className="h-4 w-4 text-[#c9a96e]" />}
@@ -193,7 +287,7 @@ export default function CommandCenterPage() {
 
           <Link href={reconLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
-              title="Reconciliation Rate"
+              title="Reconciliation rate"
               value={formatPercent(overview?.match_rate)}
               subtitle={`${matchedRecs} of ${totalRecs} matched`}
               delta={overview?.match_rate && overview.match_rate >= 0.9 ? "Optimal" : "Review"}
@@ -205,10 +299,10 @@ export default function CommandCenterPage() {
 
           <Link href={exceptionsLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
-              title="Open Exceptions"
+              title="Issues needing attention"
               value={exceptionRecs.toString()}
-              subtitle={`${exceptionRecs} unresolved exceptions`}
-              delta={exceptionRecs > 0 ? "Action Required" : "Zero Variance"}
+              subtitle={`${exceptionRecs} open issues`}
+              delta={exceptionRecs > 0 ? "Review needed" : "Zero variance"}
               deltaType={exceptionRecs > 0 ? "negative" : "positive"}
               icon={<AlertOctagon className="h-4 w-4 text-[#e07070]" />}
               statusBorder="rose"
@@ -217,10 +311,10 @@ export default function CommandCenterPage() {
 
           <Link href={exceptionsLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
-              title="Unreconciled Exposure"
+              title="Money at risk"
               value={formatINR(exposureVal)}
               subtitle={`Expected Cost: ${formatINR(overview?.manual_review_exposure_inr ?? overview?.expected_cost)}`}
-              delta={`${formatPercent(overview?.unreconciled_exposure_pct)} volume`}
+              delta={`${formatPercent(overview?.unreconciled_exposure_pct)} of volume`}
               deltaType={
                 overview?.unreconciled_exposure_pct && overview.unreconciled_exposure_pct > 0.05
                   ? "negative"
@@ -231,14 +325,22 @@ export default function CommandCenterPage() {
             />
           </Link>
         </div>
-      )}
+        )}
+      </div>
 
-      {/* ── ZONE 3: 3-WAY RECONCILIATION PIPELINE VISUALIZER ───────── */}
-      <div className="pt-1">
+      {/* ── RECONCILIATION OVERVIEW ───────────────────────────────────── */}
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-wider text-[#545e6a] mb-3">
+          Reconciliation overview
+        </div>
         <FunnelChart funnel={funnel} isLoading={funnelLoading} runId={runId ?? undefined} />
       </div>
 
-      {/* ── ZONE 4: GRID: EXECUTIVE ASSESSMENT & LIVE CASH POSITION ── */}
+      {/* ── DEEPER INFORMATION ────────────────────────────────────────── */}
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-wider text-[#545e6a] mb-3">
+          Deeper information
+        </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Executive Assessment */}
         <div
@@ -257,7 +359,7 @@ export default function CommandCenterPage() {
                 className="text-[10px] font-bold uppercase tracking-wider font-mono"
                 style={{ color: "var(--accent)" }}
               >
-                VERIDEX Operational Assessment
+                What VERIDEX found
               </span>
             </div>
             {brief?.reconciliation_health_score !== undefined && (
@@ -344,7 +446,7 @@ export default function CommandCenterPage() {
                       brief.human_review_required ? "text-[#d4a84e]" : "text-[#6ecba0]"
                     }`}
                   >
-                    {brief.human_review_required ? "YES (HITL)" : "NO"}
+                    {brief.human_review_required ? "YES" : "NO"}
                   </div>
                 </div>
               </div>
@@ -355,7 +457,7 @@ export default function CommandCenterPage() {
                 style={{ borderTop: "1px solid var(--border-subtle)" }}
               >
                 <div className="text-[11px] font-bold text-[#8e96a0] uppercase tracking-wider">
-                  Recommended Controller Action:
+                  Recommended action:
                 </div>
                 <div
                   className="text-[#eceae6] text-xs p-3 rounded-xs border flex items-start gap-2.5"
@@ -367,7 +469,7 @@ export default function CommandCenterPage() {
                   <span className="text-[#c9a96e] font-bold">▶</span>
                   <span className="font-sans font-medium">
                     {brief.recommended_action ||
-                      "Continue monitoring ingestion pipelines and process pending exceptions."}
+                      "Continue monitoring ingestion pipelines and process pending issues."}
                   </span>
                 </div>
               </div>
@@ -392,33 +494,33 @@ export default function CommandCenterPage() {
             style={{ borderBottom: "1px solid var(--border-subtle)" }}
           >
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6] font-mono">
-              Live Cash Position
+              Cash position
             </h2>
             <Link
               href="/settlements"
               className="text-[11px] text-[#c9a96e] hover:text-[#e4caa0] font-mono font-semibold"
             >
-              Full Breakdown →
+              Full breakdown →
             </Link>
           </div>
 
           <div className="pt-4 space-y-3 font-mono text-xs">
             <div className="flex justify-between text-[#8e96a0]">
-              <span>Expected Gross:</span>
+              <span>Expected gross:</span>
               <span className="text-[#eceae6] font-bold font-tabular">
                 {formatINR(cashPosition?.expected_gross ?? cashPosition?.expected_amount ?? volumeVal)}
               </span>
             </div>
 
             <div className="flex justify-between text-[#8e96a0]">
-              <span>Deducted Fees:</span>
+              <span>Processing fees:</span>
               <span className="text-[#e07070] font-tabular">
                 {formatINR(cashPosition?.total_deducted_fees ?? cashPosition?.deducted_fees)}
               </span>
             </div>
 
             <div className="flex justify-between text-[#8e96a0]">
-              <span>Deducted Taxes (GST):</span>
+              <span>Taxes (GST):</span>
               <span className="text-[#d4a84e] font-tabular">
                 {formatINR(cashPosition?.total_deducted_taxes ?? cashPosition?.deducted_taxes)}
               </span>
@@ -428,16 +530,18 @@ export default function CommandCenterPage() {
               className="pt-2 flex justify-between text-[#eceae6] font-semibold"
               style={{ borderTop: "1px solid var(--border-subtle)" }}
             >
-              <span>Expected Net:</span>
+              <span>Expected payout:</span>
               <span className="text-[#eceae6] font-bold font-tabular">
                 {formatINR(cashPosition?.expected_net_settlement)}
               </span>
             </div>
 
             <div className="flex justify-between text-[#eceae6] font-semibold">
-              <span>Received Bank Credits:</span>
+              <span>Bank received:</span>
               <span className="text-[#6ecba0] font-bold font-tabular">
-                {formatINR(cashPosition?.received_bank_credits ?? cashPosition?.received_amount)}
+                {cashPosition?.received_bank_credits !== undefined && cashPosition?.received_bank_credits !== null
+                  ? formatINR(cashPosition.received_bank_credits)
+                  : "Not yet confirmed"}
               </span>
             </div>
 
@@ -456,7 +560,7 @@ export default function CommandCenterPage() {
                   : "var(--variance-text)",
               }}
             >
-              <span className="uppercase text-[10px] font-bold">Net Variance:</span>
+              <span className="uppercase text-[10px] font-bold">Difference:</span>
               <span className="font-bold font-tabular">
                 {formatVariance(cashPosition?.settlement_variance).text}
               </span>
@@ -479,17 +583,17 @@ export default function CommandCenterPage() {
         >
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6] font-mono">
-              Active Exception Queue
+              Issues needing attention
             </h2>
             <p className="text-xs text-[#8e96a0] mt-0.5">
-              Unreconciled records routed to forensic investigation dossiers
+              Open issues requiring review and authorized resolution
             </p>
           </div>
           <Link
             href={exceptionsLink}
             className="text-xs text-[#c9a96e] hover:text-[#e4caa0] font-bold font-mono"
           >
-            View All Exceptions →
+            Review all issues →
           </Link>
         </div>
 
@@ -499,7 +603,7 @@ export default function CommandCenterPage() {
           </div>
         ) : !exceptionsData || exceptionsData.exceptions.length === 0 ? (
           <div className="py-8 text-center text-[#8e96a0] font-mono text-xs">
-            Zero active exceptions. Financial state is completely reconciled.
+            Zero active issues. All records are completely reconciled.
           </div>
         ) : (
           <div className="overflow-x-auto pt-2">
@@ -512,12 +616,12 @@ export default function CommandCenterPage() {
                     borderBottom: "1px solid var(--border-subtle)",
                   }}
                 >
-                  <th className="py-2.5 px-3">Exception ID / Txn</th>
-                  <th className="py-2.5 px-3">Category</th>
+                  <th className="py-2.5 px-3">Issue / Reference</th>
+                  <th className="py-2.5 px-3">Cause</th>
                   <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3 text-right">Exposure</th>
-                  <th className="py-2.5 px-3">Recommended Action</th>
-                  <th className="py-2.5 px-3 text-right">Action</th>
+                  <th className="py-2.5 px-3 text-right">Money at risk</th>
+                  <th className="py-2.5 px-3">What happens next</th>
+                  <th className="py-2.5 px-3 text-right">Review</th>
                 </tr>
               </thead>
               <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
@@ -566,7 +670,7 @@ export default function CommandCenterPage() {
                           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
                           onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
                         >
-                          Investigate Dossier
+                          Review issue
                         </Link>
                       </td>
                     </tr>
@@ -576,6 +680,7 @@ export default function CommandCenterPage() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

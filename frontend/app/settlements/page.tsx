@@ -114,13 +114,13 @@ export default function SettlementsPage() {
             className="text-[10px] font-semibold uppercase tracking-[0.14em]"
             style={{ color: "var(--accent)" }}
           >
-            Settlement Intelligence
+            Check settlements
           </span>
           <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
-            Settlement Payouts &amp; 3-Way Bank Parity
+            Expected payout vs Bank received
           </h1>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            Decomposed gross volume, deductions, expected net vs bank statement credit
+            Track payouts, gateway fees, tax deductions, and bank credit confirmation
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export default function SettlementsPage() {
         ) : settlements.length === 0 ? (
           <EmptyState
             title="No Settlements Ingested"
-            description="Sync payments and settlements from the Razorpay Gateway page or execute a reconciliation run."
+            description="Settlement records come specifically from Razorpay Gateway sync (webhook or manual sync), not from generic reconciliation batches. Sync from the Razorpay Gateway page to populate this view."
           />
         ) : (
           <div className="overflow-x-auto pt-2">

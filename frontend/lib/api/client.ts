@@ -3,8 +3,15 @@
  * Communicates strictly with the running FastAPI backend.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-const API_KEY = process.env.NEXT_PUBLIC_VERIDEX_API_KEY || process.env.NEXT_PUBLIC_SENTINEL_API_KEY || "";
+// By default, requests go through the same-origin `/api/proxy` route
+// (frontend/app/api/proxy/[...path]/route.ts), which attaches the backend's
+// API key server-side. The key must never live in browser-shipped code: any
+// `NEXT_PUBLIC_*` var is baked into the client bundle and readable via
+// view-source, which would defeat the access-control gate entirely. Setting
+// NEXT_PUBLIC_API_BASE_URL opts back into calling the backend directly (e.g.
+// local dev without auth configured) — no API key is ever attached from the
+// browser in either mode.
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/proxy";
 
 export class ApiError extends Error {
   statusCode: number;
@@ -24,7 +31,6 @@ export async function apiClient<T>(
 ): Promise<T> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    ...(API_KEY ? { "X-API-Key": API_KEY } : {}),
     ...options.headers,
   };
 

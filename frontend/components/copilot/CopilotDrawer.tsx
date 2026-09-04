@@ -115,8 +115,8 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
   const [messages, setMessages] = useState<StructuredCopilotMessage[]>([
     {
       role: "assistant",
-      text: "VERIDEX Financial Copilot active. Inquire regarding multi-source reconciliation parity, monetary exposure, fee deductions, or exception root causes.",
-      answer: "VERIDEX Financial Copilot active. Inquire regarding multi-source reconciliation parity, monetary exposure, fee deductions, or exception root causes.",
+      text: "VERIDEX Financial Copilot active. Ask questions about reconciliation status, money at risk, fee deductions, or issue causes.",
+      answer: "VERIDEX Financial Copilot active. Ask questions about reconciliation status, money at risk, fee deductions, or issue causes.",
     },
   ]);
 
@@ -150,9 +150,9 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
 
   const sampleQuestions = [
     "What is the current reconciliation rate?",
-    "How many exceptions are open?",
-    "Where is the highest monetary exposure?",
-    "Are there any tax line discrepancies on settlements?",
+    "How many open issues need attention?",
+    "Where is the highest money at risk?",
+    "Are there any tax differences on settlements?",
   ];
 
   if (!isOpen) return null;
@@ -181,8 +181,8 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
             <Brain className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-xs font-bold text-[#eceae6]">Controller Copilot</h2>
-            <p className="text-[10px] text-[#8e96a0]">Authoritative Financial Grounding</p>
+            <h2 className="text-xs font-bold text-[#eceae6]">Financial Copilot</h2>
+            <p className="text-[10px] text-[#8e96a0]">Answers grounded in system records</p>
           </div>
         </div>
         <button
@@ -209,7 +209,7 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
             }}
           >
             <Loader2 className="h-3.5 w-3.5 animate-spin text-[#c9a96e]" />
-            <span>Analyzing authoritative financial records...</span>
+            <span>Reviewing financial records...</span>
           </div>
         )}
       </div>
@@ -223,7 +223,7 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
         }}
       >
         <div className="text-[9px] uppercase font-semibold text-[#8e96a0] tracking-wider">
-          Grounded Financial Queries
+          Suggested questions
         </div>
         <div className="flex flex-wrap gap-1">
           {sampleQuestions.map((sq, i) => (
@@ -255,8 +255,8 @@ export function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Query verified reconciliation state..."
-          className="flex-1 rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] placeholder-[#545e6a] focus:outline-hidden transition-micro"
+          placeholder="Ask about reconciliation, open issues, or settlements..."
+          className="flex-1 rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] placeholder-[#545e6a] transition-micro"
           style={{
             borderColor: "var(--border-standard)",
             background: "var(--surface-2)",
@@ -294,7 +294,7 @@ function CopilotMessageItem({ message }: { message: StructuredCopilotMessage }) 
         }}
       >
         <div className="text-[10px] text-[#8e96a0] uppercase font-semibold mb-1">
-          Controller Operator
+          You
         </div>
         <div>{message.text}</div>
       </div>
@@ -310,7 +310,7 @@ function CopilotMessageItem({ message }: { message: StructuredCopilotMessage }) 
       }}
     >
       <div className="flex items-center justify-between text-[10px] text-[#8e96a0] uppercase font-semibold">
-        <span>VERIDEX Financial Assessment</span>
+        <span>VERIDEX Copilot</span>
         {message.confidence !== undefined && message.confidence !== null && (
           <span className="text-[#6ecba0] font-mono font-bold">
             {(message.confidence * 100).toFixed(0)}% Confidence
@@ -353,7 +353,7 @@ function CopilotMessageItem({ message }: { message: StructuredCopilotMessage }) 
       {Boolean(message.evidenceItems && message.evidenceItems.length > 0) && (
         <div className="pt-2 border-t border-[#22272e]">
           <div className="text-[9px] uppercase font-bold text-[#8e96a0] tracking-wider mb-1.5">
-            Evidence Provenance
+            Evidence trail
           </div>
           <div className="space-y-1">
             {message.evidenceItems!.map((ev, i) => (
@@ -389,7 +389,7 @@ function CopilotMessageItem({ message }: { message: StructuredCopilotMessage }) 
             color: "var(--accent)",
           }}
         >
-          <span className="font-bold mr-1.5">Policy Recommendation:</span>
+          <span className="font-bold mr-1.5">Recommended next step:</span>
           <span>{message.recommendation}</span>
         </div>
       )}
@@ -403,7 +403,7 @@ function CopilotMessageItem({ message }: { message: StructuredCopilotMessage }) 
           >
             <FileCode className="h-2.5 w-2.5" />
             {showTechnical ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />}
-            {showTechnical ? "Hide Raw Response" : "Show Technical Details"}
+            {showTechnical ? "Hide technical details" : "Technical details ▾"}
           </button>
           {showTechnical && (
             <pre className="mt-2 p-2 rounded-xs border border-[#22272e] bg-[#0c0e12] text-[10px] font-mono text-[#8e96a0] overflow-x-auto max-h-40 leading-relaxed">

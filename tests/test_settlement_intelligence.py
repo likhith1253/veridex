@@ -210,12 +210,27 @@ class TestSettlementAccounting:
     async def test_missing_bank_credit(
         self, settlement_service: RazorpaySettlementIntelligenceService, sample_settlement: TransactionORM
     ):
-        """Test variance classification when bank credit is missing."""
+        """Test variance classification when bank credit is missing.
+
+        Regression: `variance` and `bank_received_amount` were previously
+        fabricated to exactly Decimal("0") when no bank transaction matched,
+        which made an unconfirmed settlement's UI badge read "PARITY
+        CONFIRMED" — directly contradicting the settlements list view (which
+        independently and correctly showed EXCEPTION / pending confirmation
+        for the same settlement). A zero variance must mean "confirmed equal
+        to expected", never "we don't know yet".
+        """
         # No matching bank transaction
         breakdown = await settlement_service.get_settlement_financial_breakdown("setl_test_001")
-        
-        # If no bank match, variance should be the full expected amount
+
         assert breakdown.variance_type == SettlementVarianceType.MISSING_BANK_CREDIT
+        assert breakdown.bank_matched is False
+        # If no bank match, variance should be the full expected amount
+        # outstanding — never a fabricated zero (which would misrepresent an
+        # unconfirmed settlement as perfectly reconciled).
+        expected_net = sample_settlement.amount - sample_settlement.fee - sample_settlement.tax
+        assert breakdown.variance == -expected_net
+        assert breakdown.variance != Decimal("0")
 
 
 class TestStateTransitions:

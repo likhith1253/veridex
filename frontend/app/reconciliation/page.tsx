@@ -32,7 +32,7 @@ export default function ReconciliationPage() {
     refetch: refetchTxns,
   } = useQuery({
     queryKey: ["reconciliation-transactions"],
-    queryFn: () => controllerApi.getTransactions({ limit: 100 }),
+    queryFn: () => controllerApi.getTransactions({ limit: 500 }),
     refetchInterval: 15000,
   });
 
@@ -86,13 +86,13 @@ export default function ReconciliationPage() {
             className="text-[10px] font-semibold uppercase tracking-[0.14em]"
             style={{ color: "var(--accent)" }}
           >
-            Continuous Reconciliation Engine
+            Reconcile
           </span>
           <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
-            Multi-Source Feeds &amp; Ingestion Lineage
+            Did the data reconcile?
           </h1>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            Deterministic rule-matching, fuzzy metadata similarity, and ML arbitration across feeds
+            Compare records across Payment Gateway, Ledger, and Bank feeds to find matches and spot discrepancies
           </p>
         </div>
 
@@ -107,8 +107,120 @@ export default function ReconciliationPage() {
           onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
         >
           <Play className="h-3.5 w-3.5 fill-current" />
-          <span>Run Reconciliation</span>
+          <span>Run reconciliation</span>
         </button>
+      </div>
+
+      {/* Data Provenance & Scope Distinction: Available vs Latest Run */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Available Records in System */}
+        <div
+          className="rounded-sm border p-4 text-[#eceae6]"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-1)",
+          }}
+        >
+          <div className="flex items-center justify-between pb-2 border-b border-[#22272e]">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-[#8e96a0] tracking-wider">
+                Available Records in System
+              </span>
+              <p className="text-[11px] text-[#545e6a]">
+                Ingested into repository and ready for matching
+              </p>
+            </div>
+            <span className="text-base font-bold font-mono text-[#eceae6]">
+              {txnsData?.total_count ?? transactions.length}{" "}
+              <span className="text-xs text-[#8e96a0] font-normal">total</span>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 pt-3 text-center">
+            <div className="p-2 rounded-xs bg-[#111418] border border-[#22272e]">
+              <div className="text-[10px] uppercase text-[#8e96a0] flex items-center justify-center gap-1">
+                <CreditCard className="h-3 w-3 text-[#949da6]" /> Gateway
+              </div>
+              <div className="text-sm font-bold font-mono text-[#eceae6] mt-0.5">
+                {transactions.filter((t) => (t.source || "").toLowerCase() === "gateway").length}
+              </div>
+            </div>
+            <div className="p-2 rounded-xs bg-[#111418] border border-[#22272e]">
+              <div className="text-[10px] uppercase text-[#8e96a0] flex items-center justify-center gap-1">
+                <Receipt className="h-3 w-3 text-[#7eaa8e]" /> Ledger
+              </div>
+              <div className="text-sm font-bold font-mono text-[#eceae6] mt-0.5">
+                {transactions.filter((t) => (t.source || "").toLowerCase() === "ledger").length}
+              </div>
+            </div>
+            <div className="p-2 rounded-xs bg-[#111418] border border-[#22272e]">
+              <div className="text-[10px] uppercase text-[#8e96a0] flex items-center justify-center gap-1">
+                <Building2 className="h-3 w-3 text-[#ab9f90]" /> Bank
+              </div>
+              <div className="text-sm font-bold font-mono text-[#eceae6] mt-0.5">
+                {transactions.filter((t) => (t.source || "").toLowerCase() === "bank").length}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Latest Reconciliation Run */}
+        <div
+          className="rounded-sm border p-4 text-[#eceae6]"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-1)",
+          }}
+        >
+          {runsData?.runs && runsData.runs.length > 0 ? (
+            (() => {
+              const latest = runsData.runs[0];
+              return (
+                <div>
+                  <div className="flex items-center justify-between pb-2 border-b border-[#22272e]">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#c9a96e] tracking-wider">
+                        Latest Reconciliation Run
+                      </span>
+                      <p className="text-[11px] text-[#545e6a]">
+                        Outcome from the most recent run
+                      </p>
+                    </div>
+                    <StatusBadge status={latest.status} />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-3 text-center">
+                    <div className="p-2 rounded-xs bg-[#111418] border border-[#22272e]">
+                      <div className="text-[10px] uppercase text-[#8e96a0]">Matched</div>
+                      <div className="text-sm font-bold font-mono text-[#6ecba0] mt-0.5">
+                        {latest.match_count}
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xs bg-[#111418] border border-[#22272e]">
+                      <div className="text-[10px] uppercase text-[#8e96a0]">Need Attention</div>
+                      <div className="text-sm font-bold font-mono text-[#e07070] mt-0.5">
+                        {latest.exception_count}
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-xs bg-[#111418] border border-[#22272e]">
+                      <div className="text-[10px] uppercase text-[#8e96a0]">Run Reference</div>
+                      <div className="mt-0.5">
+                        <TechnicalReference id={latest.run_id} maxVisible={12} inline />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()
+          ) : (
+            <div className="flex flex-col items-center justify-center py-5 text-center">
+              <span className="text-xs text-[#8e96a0]">No reconciliation runs completed yet.</span>
+              <p className="text-[11px] text-[#545e6a] mt-1">
+                Click &ldquo;Run reconciliation&rdquo; to process the available records.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Historical Runs Summary Table */}
@@ -125,10 +237,10 @@ export default function ReconciliationPage() {
         >
           <h2 className="text-xs font-bold uppercase tracking-wider text-[#8e96a0] flex items-center gap-2">
             <Layers className="h-4 w-4 text-[#c9a96e]" />
-            Reconciliation Run Execution History
+            Reconciliation run history
           </h2>
           <span className="text-xs font-mono text-[#545e6a]">
-            {runsData?.total_count || 0} runs executed
+            {runsData?.total_count || 0} runs recorded
           </span>
         </div>
 
@@ -218,10 +330,10 @@ export default function ReconciliationPage() {
         >
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#8e96a0]">
-              Raw Multi-Source Transaction Feed
+              Feed records in system
             </h2>
             <p className="text-xs text-[#545e6a] mt-0.5">
-              Normalized ingested records across all source feeds ({filteredTxns.length} records shown)
+              Available records across all feeds ({filteredTxns.length} records shown)
             </p>
           </div>
 

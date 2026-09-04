@@ -208,7 +208,18 @@ class FinanceQAService:
             )
 
         # 3. Exception Counts & Status Breakdown (AUD-059)
-        if any(w in q_lower for w in ["how many exceptions", "exception count", "which exceptions are resolved", "resolved exceptions", "open exceptions"]):
+        # "issue"/"issues" are synonyms for "exception" everywhere in the product's
+        # own UI (sidebar "Review issues", Command Center "What needs attention"),
+        # so a Copilot that only recognizes "exception" fails on the most obvious
+        # phrasing of its own most basic metric — verified live: "How many open
+        # issues are there right now?" previously fell through to "I can't answer
+        # this" despite the fallback message itself listing this as supported.
+        if any(w in q_lower for w in [
+            "how many exceptions", "exception count", "which exceptions are resolved",
+            "resolved exceptions", "open exceptions",
+            "how many issues", "issue count", "which issues are resolved",
+            "resolved issues", "open issues", "issues are there", "issues right now",
+        ]):
             status_stmt = select(ExceptionORM.status, ExceptionORM.resolved, func.count(ExceptionORM.id)).group_by(ExceptionORM.status, ExceptionORM.resolved)
             res = await self.session.execute(status_stmt)
             status_rows = res.all()
@@ -304,7 +315,13 @@ class FinanceQAService:
             )
 
         # 6. ML Recovered Matches
-        if any(w in q_lower for w in ["recovered by ml", "ml matches", "ml recovery", "ml contribution"]):
+        # "smart match" is the product's own user-facing label for ML-recovered
+        # matches (Command Center funnel stage "Smart matches") — same synonym
+        # gap as the issues/exceptions fix above.
+        if any(w in q_lower for w in [
+            "recovered by ml", "ml matches", "ml recovery", "ml contribution",
+            "smart match", "smart matches",
+        ]):
             match_stmt = select(MatchORM).where(MatchORM.reason.ilike("%ml%"))
             res = await self.session.execute(match_stmt)
             ml_matches = res.scalars().all()

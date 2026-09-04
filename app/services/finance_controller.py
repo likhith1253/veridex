@@ -109,6 +109,16 @@ class ControllerKPIs:
     processing_throughput_tps: Optional[float] = None
     average_processing_latency_ms: Optional[float] = None
 
+    # Run provenance: describes the most recent ReconciliationRun independent of
+    # whether this response is scoped to a specific run_id, so the UI can tell
+    # "data available" apart from "a run just happened in this session".
+    run_id: Optional[str] = None
+    has_any_run: bool = False
+    latest_run_id: Optional[str] = None
+    latest_run_status: Optional[str] = None
+    latest_run_started_at: Optional[str] = None
+    latest_run_completed_at: Optional[str] = None
+
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         for k, v in d.items():
@@ -331,6 +341,18 @@ class FinanceController:
                     manual_txn_ids.add(txn_id)
                 elif dec_action in (DecisionAction.UNRESOLVED.value, DecisionAction.AMBIGUOUS.value):
                     unresolved_txn_ids.add(txn_id)
+                else:
+                    # Unknown/unmapped decision action — must still land somewhere so
+                    # total_records_processed == matched + unresolved always holds.
+                    unresolved_txn_ids.add(txn_id)
+            else:
+                # Transaction has match rows but every decision on them is None.
+                # Without this branch the transaction is silently dropped from every
+                # bucket (it's already a key in txn_to_matches, so the later
+                # orphan-transaction sweep does not catch it either), producing a
+                # total that's less than matched+unresolved and "impossible"-looking
+                # aggregate counts on screen.
+                unresolved_txn_ids.add(txn_id)
 
         # Calculate counts based on unique transactions
         det_count = len(det_txn_ids)
@@ -439,7 +461,37 @@ class FinanceController:
         except Exception as e:
             logger.debug("Exception counts query skipped: %s", e)
 
+        # Resolve the true "latest run" for provenance display purposes, regardless
+        # of run_id/status filtering above. This is independent of `recon_run`
+        # (which is restricted to completed runs with valid timing, used for
+        # throughput calculations) so a pending/running/failed run is never
+        # silently hidden from the UI's "latest reconciliation" indicator.
+        latest_run = None
+        try:
+            latest_run_stmt = (
+                select(ReconciliationRunORM)
+                .order_by(ReconciliationRunORM.created_at.desc())
+                .limit(1)
+            )
+            latest_run_res = await self.session.execute(latest_run_stmt)
+            latest_run = latest_run_res.scalar_one_or_none()
+        except (StopAsyncIteration, StopIteration):
+            pass
+
+        def _iso(dt):
+            return dt.isoformat() if dt else None
+
         return ControllerKPIs(
+            run_id=run_id or (latest_run.run_id if latest_run else None),
+            has_any_run=latest_run is not None,
+            latest_run_id=latest_run.run_id if latest_run else None,
+            latest_run_status=(
+                latest_run.status.value if hasattr(latest_run.status, "value") else str(latest_run.status)
+            )
+            if latest_run
+            else None,
+            latest_run_started_at=_iso(latest_run.started_at) if latest_run else None,
+            latest_run_completed_at=_iso(latest_run.completed_at) if latest_run else None,
             total_records_processed=total_records,
             total_logical_transactions=total_logical_txns,
             total_transaction_value_inr=Decimal(str(exp.total_processed_value)),

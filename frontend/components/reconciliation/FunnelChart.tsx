@@ -69,11 +69,11 @@ export function FunnelChart({ funnel, isLoading, runId }: FunnelChartProps) {
               className="text-[10px] font-semibold uppercase tracking-[0.14em]"
               style={{ color: "var(--accent)" }}
             >
-              Reconciliation Control Flow
+              How records matched
             </span>
             <span style={{ color: "var(--text-tertiary)" }}>•</span>
             <span className="text-xs text-[#8e96a0]">
-              Authoritative Multi-Source Settlement Arbitration
+              Ingestion to exact matches, smart matches, and open issues
             </span>
           </div>
           <p className="text-xs text-[#545e6a] mt-0.5">
@@ -114,7 +114,7 @@ export function FunnelChart({ funnel, isLoading, runId }: FunnelChartProps) {
               <span className="text-[10px] font-mono text-[#8e96a0]">3 Sources</span>
             </div>
             <div className="text-xs font-semibold text-[#eceae6]">
-              Multi-Source Ingestion
+              Records ingested
             </div>
             <Link
               href={runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation"}
@@ -129,7 +129,7 @@ export function FunnelChart({ funnel, isLoading, runId }: FunnelChartProps) {
             </div>
           </div>
 
-          {/* Stage 02: Deterministic Parity (Gold primary control path) */}
+          {/* Stage 02: Exact Matches */}
           <div
             className="p-4 rounded-xs border flex flex-col justify-between"
             style={{
@@ -149,22 +149,22 @@ export function FunnelChart({ funnel, isLoading, runId }: FunnelChartProps) {
               </div>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
               <CheckCircle2 className="h-3.5 w-3.5 text-[#6ecba0]" />
-              <span>Deterministic Rule Match</span>
+              <span>Exact matches</span>
             </div>
             <Link
               href={runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation"}
               className="mt-2 font-mono text-2xl font-bold text-[#6ecba0] font-tabular hover:opacity-75 transition-opacity cursor-pointer block"
-              title={`${detMatches} deterministic matches — view in reconciliation`}
+              title={`${detMatches} exact matches — view in reconciliation`}
             >
               {detMatches}
             </Link>
             </div>
             <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
-              Strict UTR, reference &amp; monetary parity
+              Matched on reference &amp; amount
             </div>
           </div>
 
-          {/* Stage 03: ML Candidate Recovery (Analytical neutral slate, data-aware) */}
+          {/* Stage 03: Smart Matches */}
           <div
             className="p-4 rounded-xs border flex flex-col justify-between"
             style={{
@@ -183,27 +183,24 @@ export function FunnelChart({ funnel, isLoading, runId }: FunnelChartProps) {
               </div>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
               <Cpu className="h-3.5 w-3.5 text-[#9aa5b2]" />
-              <span>ML Candidate Recovery</span>
+              <span>Smart matches</span>
             </div>
-            {/* ML drill-down: backend exceptions endpoint has no ML-only filter.
-                Link to exceptions for this run — user can see which were ML-recovered
-                in the dossier evidence. */}
             <Link
               href={runId ? `/exceptions?run_id=${encodeURIComponent(runId)}` : "/exceptions"}
               className="mt-2 font-mono text-2xl font-bold text-[#eceae6] font-tabular hover:text-[#c9a96e] transition-colors cursor-pointer block"
-              title={mlMatches > 0 ? `${mlMatches} ML-recovered — view exceptions for this run` : "ML recovery not invoked"}
+              title={mlMatches > 0 ? `${mlMatches} smart matches — view in reconciliation` : "No smart matches in this run"}
             >
               {mlMatches}
             </Link>
             </div>
             <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
               {mlMatches > 0
-                ? "Fuzzy metadata & temporal candidate scoring"
-                : "Deterministic rule coverage satisfied"}
+                ? "Recovered via candidate scoring"
+                : "Exact rules matched all records"}
             </div>
           </div>
 
-          {/* Stage 04: Final Resolution Partition (Reconciled vs Exceptions) */}
+          {/* Stage 04: Resolution */}
           <div
             className="p-4 rounded-xs border flex flex-col justify-between"
             style={{
@@ -221,11 +218,11 @@ export function FunnelChart({ funnel, isLoading, runId }: FunnelChartProps) {
                   className="text-[10px] font-mono font-bold"
                   style={{ color: exceptions > 0 ? "var(--variance-text)" : "var(--matched-text)" }}
                 >
-                  {exceptions > 0 ? `${exceptions} Exceptions` : "100% Reconciled"}
+                  {exceptions > 0 ? `${exceptions} Issues` : "100% Matched"}
                 </span>
               </div>
               <div className="text-xs font-semibold text-[#eceae6] flex items-center justify-between">
-                <span>Reconciled / Open</span>
+                <span>Matched / Issues</span>
                 <span className="font-mono text-xs font-tabular text-[#6ecba0]">
                   {overallMatchPct.toFixed(1)}%
                 </span>

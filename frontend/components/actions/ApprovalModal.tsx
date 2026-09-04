@@ -187,7 +187,7 @@ export function ApprovalModal({ action, mode, onClose }: ApprovalModalProps) {
               onChange={(e) => setActorName(e.target.value)}
               placeholder="e.g. FinanceLead_JohnDoe"
               disabled={isPending}
-              className="w-full rounded-sm border px-3 py-2 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+              className="w-full rounded-sm border px-3 py-2 text-xs font-mono text-[#eceae6] transition-micro disabled:opacity-50"
               style={{
                 borderColor: "var(--border-standard)",
                 background: "var(--surface-3)",
@@ -214,7 +214,7 @@ export function ApprovalModal({ action, mode, onClose }: ApprovalModalProps) {
                     : "Documentation mismatch. Requiring merchant clarification before adjustment."
                 }
                 disabled={isPending}
-                className="w-full rounded-sm border px-3 py-2 text-xs font-sans text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+                className="w-full rounded-sm border px-3 py-2 text-xs font-sans text-[#eceae6] transition-micro disabled:opacity-50"
                 style={{
                   borderColor: "var(--border-standard)",
                   background: "var(--surface-3)",

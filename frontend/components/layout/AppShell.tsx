@@ -11,6 +11,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // If viewing the public product website at root, omit AppShell
   if (pathname === "/") {
@@ -19,15 +20,20 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F7F5F0] text-[#17191C]">
-      {/* Deep Institutional Sidebar Navigation */}
-      <Sidebar />
+      {/* Deep Institutional Sidebar Navigation — fixed-width column on
+          desktop, an off-canvas drawer below the md breakpoint (was
+          previously always rendered at a fixed width with no way to hide
+          it, clipping the entire main content column on phone-sized
+          viewports). */}
+      <Sidebar mobileOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Main Content Column */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Crisp Topbar */}
         <Topbar
           onOpenBatchModal={() => setIsBatchModalOpen(true)}
           onToggleCopilot={() => setIsCopilotOpen((prev) => !prev)}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         />
 
         {/* Workspace Body */}

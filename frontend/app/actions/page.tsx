@@ -58,18 +58,18 @@ export default function ActionsPage() {
             className="text-[10px] font-semibold uppercase tracking-[0.14em]"
             style={{ color: "var(--accent)" }}
           >
-            Policy Enforcement
+            Review actions
           </span>
           <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
-            Policy-Gated Action Controls (HITL)
+            What can I safely do?
           </h1>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            AI recommends adjustments → Authorized Human Controller approves → Bounded Execution → Immutable Audit
+            Review recommendations, verify evidence, and authorize safe financial adjustments
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[#8e96a0]">Pending Authorization:</span>
+          <span className="text-xs text-[#8e96a0]">Pending review:</span>
           <span
             className="font-mono text-xs font-bold px-2.5 py-1 rounded-xs"
             style={{
@@ -93,15 +93,15 @@ export default function ActionsPage() {
       >
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-[#6ecba0]" />
-          <span>Max Single Adjustment: <strong className="font-mono text-[#eceae6]">INR 5,000.00</strong></span>
+          <span>Max single adjustment: <strong className="font-mono text-[#eceae6]">INR 5,000.00</strong></span>
         </div>
         <div className="flex items-center gap-2">
           <ShieldAlert className="h-4 w-4 text-[#d4a84e]" />
-          <span>Max Write-off Limit: <strong className="font-mono text-[#eceae6]">INR 100.00</strong></span>
+          <span>Max write-off limit: <strong className="font-mono text-[#eceae6]">INR 100.00</strong></span>
         </div>
         <div className="flex items-center gap-2 text-[#c9a96e]">
           <Clock className="h-4 w-4" />
-          <span>Human-in-the-Loop Approval Mandatory</span>
+          <span>Operator authorization required</span>
         </div>
       </div>
 

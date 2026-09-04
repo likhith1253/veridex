@@ -239,7 +239,7 @@ export default function ExceptionDossierPage() {
 
           <div className="flex items-baseline gap-6 font-mono">
             <div className="text-right">
-              <span className="text-[10px] uppercase text-[#8e96a0] block">Monetary Exposure</span>
+              <span className="text-[10px] uppercase text-[#8e96a0] block">Money at risk</span>
               <span className="text-2xl font-bold font-tabular text-[#e07070]">
                 {formatINR(exception.financial_exposure_inr ?? exception.financial_exposure)}
               </span>
@@ -256,11 +256,11 @@ export default function ExceptionDossierPage() {
           </div>
         </div>
 
-        {/* ── 2. WHY THIS IS AN EXCEPTION ─────────────────────────────── */}
+        {/* ── 2. WHAT HAPPENED ─────────────────────────────── */}
         <div className="pt-4 space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#c9a96e]">
             <FileSearch className="h-4 w-4" />
-            <span>Why this is an Exception:</span>
+            <span>What happened:</span>
           </div>
           <p
             className="text-xs leading-relaxed p-3.5 rounded-xs border text-[#eceae6]"
@@ -270,7 +270,7 @@ export default function ExceptionDossierPage() {
             }}
           >
             {exception.explanation ||
-              "Automated 3-way matching detected a discrepancy between multi-source settlement feeds."}
+              "Automated reconciliation identified a discrepancy between multi-source settlement feeds."}
           </p>
         </div>
       </div>
@@ -279,7 +279,7 @@ export default function ExceptionDossierPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column (8 cols): Facts, Evidence Graph, AI Assessment, Audit */}
         <div className="lg:col-span-8 space-y-6">
-          {/* ── 3. AUTHORITATIVE FINANCIAL FACTS ───────────────────────── */}
+          {/* ── 3. WHAT WE KNOW ───────────────────────── */}
           <div
             className="rounded-sm border p-5 space-y-4"
             style={{
@@ -294,10 +294,10 @@ export default function ExceptionDossierPage() {
               <div className="flex items-center gap-2">
                 <Database className="h-4 w-4 text-[#c9a96e]" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
-                  Authoritative Financial Facts
+                  What we know
                 </h2>
               </div>
-              <span className="text-[10px] font-mono text-[#545e6a]">Multi-Feed Lineage</span>
+              <span className="text-[10px] font-mono text-[#545e6a]">Recorded across feeds</span>
             </div>
 
             <div className="space-y-2.5 text-xs">
@@ -384,10 +384,10 @@ export default function ExceptionDossierPage() {
               <div className="flex items-center gap-2">
                 <Cpu className="h-4 w-4 text-[#9aa5b2]" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
-                  AI Assessment &amp; Root-Cause Arbitration
+                  What VERIDEX found
                 </h2>
               </div>
-              <span className="text-[10px] font-mono text-[#545e6a]">Model Arbitration</span>
+              <span className="text-[10px] font-mono text-[#545e6a]">Analysis &amp; cause</span>
             </div>
 
             <div className="space-y-3">
@@ -426,20 +426,20 @@ export default function ExceptionDossierPage() {
                     background: "var(--surface-2)",
                   }}
                 >
-                  Classified root cause:{" "}
+                  Identified cause:{" "}
                   <strong className="text-[#eceae6] capitalize">
                     {(exception.category || exception.exception_category || "unexplained").replace(
                       /_/g,
                       " "
                     )}
                   </strong>{" "}
-                  (Authoritative Grounding)
+                  (Confirmed from multi-source data)
                 </div>
               )}
             </div>
           </div>
 
-          {/* ── 7. CASE AUDIT TRAIL ───────────────────────────────────── */}
+          {/* ── 7. ACTIVITY & DECISIONS ───────────────────────────────────── */}
           <div
             className="rounded-sm border p-5 space-y-4"
             style={{
@@ -454,17 +454,17 @@ export default function ExceptionDossierPage() {
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-[#c9a96e]" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
-                  Case Audit History
+                  Activity &amp; decisions
                 </h2>
               </div>
-              <span className="text-[10px] font-mono text-[#545e6a]">Chronological Lineage</span>
+              <span className="text-[10px] font-mono text-[#545e6a]">Decision timeline</span>
             </div>
 
             <AuditTimeline events={auditEvents} isLoading={auditLoading} />
           </div>
         </div>
 
-        {/* Right Column (4 cols): Action Governance Rail ───────────────── */}
+        {/* Right Column (4 cols): Action Rail ───────────────── */}
         <div className="lg:col-span-4 space-y-5">
           <div
             className="rounded-sm border p-5 space-y-4 sticky top-6"
@@ -481,7 +481,7 @@ export default function ExceptionDossierPage() {
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-[#c9a96e]" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
-                  Action Governance
+                  What you can do
                 </h2>
               </div>
               <span
@@ -492,7 +492,7 @@ export default function ExceptionDossierPage() {
                   border: `1px solid ${isResolved ? "var(--matched-border)" : "var(--pending-border)"}`,
                 }}
               >
-                {isResolved ? "RESOLVED & AUDITED" : "HITL MANDATORY"}
+                {isResolved ? "RESOLVED & AUDITED" : "YOUR REVIEW NEEDED"}
               </span>
             </div>
 
@@ -500,7 +500,7 @@ export default function ExceptionDossierPage() {
             <div className="space-y-2 text-[11px] font-mono">
               <div className="flex items-center gap-2 text-[#6ecba0]">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>1. AI ANALYSIS</span>
+                <span>1. ANALYSIS</span>
               </div>
               <div className="flex items-center gap-2 text-[#6ecba0]">
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -519,7 +519,7 @@ export default function ExceptionDossierPage() {
                   </div>
                 )}
                 <span>
-                  {isResolved ? "3. HUMAN REVIEW (COMPLETED)" : "3. HUMAN REVIEW (ACTIVE)"}
+                  {isResolved ? "3. HUMAN REVIEW (DONE)" : "3. HUMAN REVIEW (ACTIVE)"}
                 </span>
               </div>
               <div
@@ -544,7 +544,7 @@ export default function ExceptionDossierPage() {
                 ) : (
                   <Play className="h-3.5 w-3.5" />
                 )}
-                <span>5. EXECUTION</span>
+                <span>5. SETTLEMENT ADJUSTMENT</span>
               </div>
               <div
                 className={`flex items-center gap-2 ${
@@ -556,14 +556,14 @@ export default function ExceptionDossierPage() {
                 ) : (
                   <Database className="h-3.5 w-3.5" />
                 )}
-                <span>6. AUDITED</span>
+                <span>6. RECORDED IN AUDIT</span>
               </div>
             </div>
 
             {/* Recommended Policy Action */}
             <div className="pt-2">
               <span className="text-[10px] text-[#8e96a0] uppercase block mb-1">
-                Recommended Resolution:
+                Recommended action:
               </span>
               <div
                 className="p-3 rounded-xs border text-xs text-[#eceae6]"
@@ -616,7 +616,7 @@ export default function ExceptionDossierPage() {
                   Case Fully Resolved
                 </h4>
                 <p className="text-[11px] text-[#8e96a0]">
-                  This exception has been marked resolved. State transitions and settlement adjustments are permanently committed.
+                  This issue has been marked resolved. State transitions and settlement adjustments are permanently committed.
                 </p>
               </div>
             ) : (
@@ -624,13 +624,13 @@ export default function ExceptionDossierPage() {
               <div className="space-y-3 pt-2 text-xs">
                 <div>
                   <label className="block text-[#8e96a0] mb-1 text-[11px]">
-                    Authorizing Actor ID:
+                    Authorizing Operator ID:
                   </label>
                   <input
                     type="text"
                     value={decisionActor}
                     onChange={(e) => setDecisionActor(e.target.value)}
-                    className="w-full rounded-xs border px-3 py-1.5 font-mono text-xs text-[#eceae6] focus:outline-hidden"
+                    className="w-full rounded-xs border px-3 py-1.5 font-mono text-xs text-[#eceae6]"
                     style={{
                       borderColor: "var(--border-standard)",
                       background: "var(--surface-2)",
@@ -640,14 +640,14 @@ export default function ExceptionDossierPage() {
 
                 <div>
                   <label className="block text-[#8e96a0] mb-1 text-[11px]">
-                    Audit Justification:
+                    Audit Reason:
                   </label>
                   <textarea
                     rows={2}
                     value={decisionReason}
                     onChange={(e) => setDecisionReason(e.target.value)}
-                    placeholder="Record formal audit justification..."
-                    className="w-full rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] focus:outline-hidden"
+                    placeholder="Record reason for audit..."
+                    className="w-full rounded-xs border px-3 py-1.5 text-xs text-[#eceae6]"
                     style={{
                       borderColor: "var(--border-standard)",
                       background: "var(--surface-2)",
@@ -668,7 +668,7 @@ export default function ExceptionDossierPage() {
                   onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
                 >
                   <Play className="h-3.5 w-3.5 fill-current" />
-                  <span>Queue Policy Action (HITL)</span>
+                  <span>Review recommendation</span>
                 </button>
 
                 <div className="grid grid-cols-2 gap-2 pt-1">
@@ -681,7 +681,7 @@ export default function ExceptionDossierPage() {
                       background: "var(--surface-2)",
                     }}
                   >
-                    Mark Resolved
+                    Resolve issue
                   </button>
 
                   <button
@@ -693,7 +693,7 @@ export default function ExceptionDossierPage() {
                       background: "var(--pending-bg)",
                     }}
                   >
-                    Escalate
+                    Escalate issue
                   </button>
                 </div>
               </div>

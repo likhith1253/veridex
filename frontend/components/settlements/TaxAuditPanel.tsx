@@ -41,7 +41,7 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
               border: "1px solid var(--matched-border)",
             }}
           >
-            <CheckCircle2 className="h-3.5 w-3.5" /> PARITY CONFIRMED (₹0.00 VARIANCE)
+            <CheckCircle2 className="h-3.5 w-3.5" /> TAX MATCHED (₹0.00 DIFFERENCE)
           </span>
         );
       case "VARIANCE":
@@ -54,7 +54,7 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
               border: "1px solid var(--variance-border)",
             }}
           >
-            <AlertTriangle className="h-3.5 w-3.5" /> STATUTORY TAX VARIANCE
+            <AlertTriangle className="h-3.5 w-3.5" /> TAX DIFFERENCE DETECTED
           </span>
         );
       case "INSUFFICIENT_EVIDENCE":
@@ -92,13 +92,13 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
             className="text-[10px] font-semibold uppercase tracking-[0.14em]"
             style={{ color: "var(--accent)" }}
           >
-            Statutory Tax Line Auditor
+            Tax difference
           </span>
           <h2 className="text-sm font-bold text-[#eceae6] mt-0.5">
-            Automated Statutory Tax Deduction Verification
+            Tax deduction audit (GST)
           </h2>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            Verifies gateway invoice deductions against authoritative tax schedules
+            Verifies gateway deducted tax matches statutory tax calculation on fees
           </p>
         </div>
         <div>{getStatusBadge()}</div>

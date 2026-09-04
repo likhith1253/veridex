@@ -82,9 +82,20 @@ def create_app() -> FastAPI:
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         logger.error("Unhandled server exception: %s", exc, exc_info=True)
+        # Starlette moves the bare-`Exception` handler to its outermost
+        # ServerErrorMiddleware, which sits OUTSIDE CORSMiddleware — so its
+        # response never gets CORS headers added automatically. Without this,
+        # every unhandled backend exception surfaces to the browser as a
+        # misleading "blocked by CORS policy" error instead of the real 500.
+        origin = request.headers.get("origin")
+        headers = {"Vary": "Origin"}
+        if origin:
+            headers["Access-Control-Allow-Origin"] = origin
+            headers["Access-Control-Allow-Credentials"] = "true"
         return JSONResponse(
             status_code=500,
             content={"detail": "Internal server error occurred.", "status_code": 500},
+            headers=headers,
         )
 
     return app

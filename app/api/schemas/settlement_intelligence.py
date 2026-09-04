@@ -39,6 +39,7 @@ class SettlementFinancialBreakdownResponse(BaseModel):
     adjustment_amount: str
     expected_net_amount: str
     bank_received_amount: str
+    bank_matched: bool
     variance: str
     currency: str
     variance_type: SettlementVarianceType

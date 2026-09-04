@@ -124,25 +124,25 @@ function ExceptionsContent() {
             className="text-[10px] font-semibold uppercase tracking-[0.14em]"
             style={{ color: "var(--accent)" }}
           >
-            Forensic Exceptions Queue
+            Review issues
           </span>
           <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
-            Analyst Workbench &amp; Root-Cause Triage
+            What needs attention?
           </h1>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            Root-cause model scoring, monetary exposure tracking, and policy-gated action routing
+            Track open issues, examine causes, and authorize safe financial resolutions
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-[#8e96a0]">
             {statusFilter === "open"
-              ? "Open Queue:"
+              ? "Open issues:"
               : statusFilter === "resolved"
-              ? "Resolved Archive:"
+              ? "Resolved archive:"
               : statusFilter === "investigating"
-              ? "Under Investigation:"
-              : "Total Exceptions (All Statuses):"}
+              ? "Under investigation:"
+              : "Total issues:"}
           </span>
           <span
             className="font-mono text-xs font-bold px-2.5 py-1 rounded-xs"
@@ -152,13 +152,25 @@ function ExceptionsContent() {
               border: statusFilter === "resolved" ? "1px solid var(--success-border)" : "1px solid var(--variance-border)",
             }}
           >
-            {totalCount} Cases
+            {isLoading ? "…" : `${totalCount} Cases`}
           </span>
         </div>
       </div>
 
-      {/* Exception Aging SLA Infobar — Interactive Drill-Down Cards */}
-      {aging && (
+      {/* Exception Aging SLA Infobar — Interactive Drill-Down Cards.
+          The aging endpoint only ever covers OPEN exceptions (backend hardcodes
+          `resolved == False`) — it does not accept a status parameter. Showing
+          these counts while viewing the Resolved/All tab would silently
+          contradict the queue below it (e.g. "168" aging vs "1 resolved"
+          visible), so gate this to the Open tab and say so otherwise. */}
+      {statusFilter !== "open" ? (
+        <div
+          className="text-[11px] text-[#8e96a0] px-3 py-2 rounded-xs border"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)" }}
+        >
+          Aging breakdown applies to open issues only — switch to the Open tab to see it.
+        </div>
+      ) : aging && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
           <button
             onClick={() => setAgingFilter(agingFilter === "0_24h" ? null : "0_24h")}
@@ -171,12 +183,12 @@ function ExceptionsContent() {
               background: agingFilter === "0_24h" ? "var(--accent-dim)" : "var(--surface-1)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">0 - 24 Hours Aging</div>
+            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Less than 24 hours</div>
             <div className="mt-1 text-lg font-bold font-mono text-[#6ecba0] font-tabular">
               {aging.bucket_0_24h}
             </div>
             <div className="text-[10px] text-[#545e6a] mt-0.5">
-              {agingFilter === "0_24h" ? "Filter Active ✓" : "Within standard SLA"}
+              {agingFilter === "0_24h" ? "Filter Active ✓" : "Recent issues"}
             </div>
           </button>
 
@@ -191,12 +203,12 @@ function ExceptionsContent() {
               background: agingFilter === "24_48h" ? "var(--accent-dim)" : "var(--surface-1)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">24 - 48 Hours Aging</div>
+            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">1 to 2 days</div>
             <div className="mt-1 text-lg font-bold font-mono text-[#d4a84e] font-tabular">
               {aging.bucket_24_48h}
             </div>
             <div className="text-[10px] text-[#545e6a] mt-0.5">
-              {agingFilter === "24_48h" ? "Filter Active ✓" : "Under investigation"}
+              {agingFilter === "24_48h" ? "Filter Active ✓" : "Review pending"}
             </div>
           </button>
 
@@ -211,12 +223,12 @@ function ExceptionsContent() {
               background: agingFilter === "48_72h" ? "var(--accent-dim)" : "var(--surface-1)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">48 - 72 Hours Aging</div>
+            <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">2 to 3 days</div>
             <div className="mt-1 text-lg font-bold font-mono text-[#e07070] font-tabular">
               {aging.bucket_48_72h}
             </div>
             <div className="text-[10px] text-[#545e6a] mt-0.5">
-              {agingFilter === "48_72h" ? "Filter Active ✓" : "SLA escalation watch"}
+              {agingFilter === "48_72h" ? "Filter Active ✓" : "Needs attention"}
             </div>
           </button>
 
@@ -232,7 +244,7 @@ function ExceptionsContent() {
               borderLeft: "3px solid var(--variance)",
             }}
           >
-            <div className="text-[10px] uppercase font-semibold text-[#e07070]">72+ Hours (Critical SLA)</div>
+            <div className="text-[10px] uppercase font-semibold text-[#e07070]">3+ days</div>
             <div className="mt-1 text-lg font-bold font-mono text-[#e07070] font-tabular">
               {aging.bucket_72h_plus}
             </div>
@@ -262,7 +274,7 @@ function ExceptionsContent() {
               setPage(1);
             }}
             placeholder="Search by Transaction ID / Reference..."
-            className="w-full rounded-xs border pl-9 pr-3 py-1.5 font-mono text-xs text-[#eceae6] placeholder-[#545e6a] transition-micro focus:outline-hidden"
+            className="w-full rounded-xs border pl-9 pr-3 py-1.5 font-mono text-xs text-[#eceae6] placeholder-[#545e6a] transition-micro"
             style={{
               borderColor: "var(--border-standard)",
               background: "var(--surface-2)",
@@ -327,7 +339,7 @@ function ExceptionsContent() {
               setCategoryFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] transition-micro focus:outline-hidden"
+            className="rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] transition-micro"
             style={{
               borderColor: "var(--border-standard)",
               background: "var(--surface-2)",
@@ -414,12 +426,12 @@ function ExceptionsContent() {
                       borderBottom: "1px solid var(--border-subtle)",
                     }}
                   >
-                    <th className="py-2.5 px-3">Exception ID</th>
-                    <th className="py-2.5 px-3">Root Cause</th>
+                    <th className="py-2.5 px-3">Issue</th>
+                    <th className="py-2.5 px-3">Cause</th>
                     <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3 text-right">Exposure</th>
+                    <th className="py-2.5 px-3 text-right">Money at risk</th>
                     <th className="py-2.5 px-3 text-right">Confidence</th>
-                    <th className="py-2.5 px-3 text-right">Action</th>
+                    <th className="py-2.5 px-3 text-right">Review</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
@@ -484,7 +496,7 @@ function ExceptionsContent() {
                               border: "1px solid var(--accent-border)",
                             }}
                           >
-                            <span>Dossier</span>
+                            <span>Review issue</span>
                             <ArrowRight className="h-3 w-3" />
                           </Link>
                         </td>
@@ -547,7 +559,7 @@ function ExceptionsContent() {
               <div className="flex items-center gap-2">
                 <Database className="h-4 w-4 text-[#c9a96e]" />
                 <span className="text-xs font-bold text-[#eceae6]">
-                  Workbench Detail
+                  Issue summary
                 </span>
               </div>
               <StatusBadge status={selectedException.status} />
@@ -556,7 +568,7 @@ function ExceptionsContent() {
             <div className="space-y-4 text-xs">
               <div>
                 <span className="text-[10px] text-[#545e6a] uppercase block mb-1">
-                  Exception Reference
+                  Reference
                 </span>
                 <TechnicalReference
                   id={selectedException.exception_id || selectedException.id || ""}
@@ -573,7 +585,7 @@ function ExceptionsContent() {
                   }}
                 >
                   <span className="text-[10px] text-[#e07070] uppercase block">
-                    Monetary Exposure
+                    Money at risk
                   </span>
                   <span className="text-base font-bold font-tabular text-[#e07070] mt-1 block">
                     {formatINR(
@@ -605,7 +617,7 @@ function ExceptionsContent() {
 
               <div>
                 <span className="text-[10px] text-[#8e96a0] uppercase block mb-1">
-                  Diagnosis Rationale:
+                  Identified cause:
                 </span>
                 <p
                   className="p-3 rounded-xs border text-xs leading-relaxed text-[#eceae6]"
@@ -614,7 +626,7 @@ function ExceptionsContent() {
                     background: "var(--surface-2)",
                   }}
                 >
-                  {selectedException.explanation || "Root-cause classification in progress."}
+                  {selectedException.explanation || "Classification in progress."}
                 </p>
               </div>
 
@@ -630,7 +642,7 @@ function ExceptionsContent() {
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
               >
-                <span>Open Forensic Dossier</span>
+                <span>Review full issue details</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

@@ -31,6 +31,14 @@ export interface ControllerSummaryKPIs {
   run_id?: string | null;
   currency?: string;
 
+  // Run provenance — describes the most recent ReconciliationRun in the
+  // database, independent of whether this response is scoped to a run_id.
+  has_any_run?: boolean;
+  latest_run_id?: string | null;
+  latest_run_status?: "pending" | "running" | "completed" | "failed" | string | null;
+  latest_run_started_at?: string | null;
+  latest_run_completed_at?: string | null;
+
   // Normalized compatibility accessors
   total_records?: number;
   matched_records?: number;

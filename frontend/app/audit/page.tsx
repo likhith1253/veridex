@@ -48,18 +48,23 @@ export default function AuditPage() {
             className="text-[10px] font-bold uppercase tracking-[0.14em]"
             style={{ color: "var(--accent)" }}
           >
-            Audit Trail
+            Activity &amp; decisions
           </span>
           <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
-            Authoritative Financial Audit Trail
+            What happened?
           </h1>
           <p className="text-xs text-[#8e96a0] mt-1 leading-relaxed">
-            Append-only chronological record of every ingestion batch, reconciliation decision, and authorized action.
+            Chronological record of every reconciliation run, human decision, and authorized action.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs text-[#8e96a0] font-medium">Recorded Events:</span>
+          <span className="text-xs text-[#8e96a0] font-medium">
+            {/* Backend caps this endpoint at the 100 most recent events with no
+                way to request more — labeling it as a total would misrepresent
+                an incomplete audit trail as complete. */}
+            {isLoading ? "Recorded events:" : (events?.length || 0) >= 100 ? "Showing latest:" : "Recorded events:"}
+          </span>
           <span
             className="font-mono text-xs font-bold text-[#eceae6] px-3 py-1 rounded-xs border"
             style={{
@@ -67,7 +72,7 @@ export default function AuditPage() {
               background: "var(--surface-1)",
             }}
           >
-            {events?.length || 0} Events
+            {isLoading ? "…" : `${events?.length || 0} Events`}
           </span>
         </div>
       </div>
@@ -87,7 +92,7 @@ export default function AuditPage() {
             value={searchTxn}
             onChange={(e) => setSearchTxn(e.target.value)}
             placeholder="Filter by Transaction / Reference ID..."
-            className="w-full rounded-xs border pl-9 pr-3 py-1.5 font-mono text-xs text-[#eceae6] placeholder-[#545e6a] focus:border-[#c9a96e] focus:outline-hidden transition-micro"
+            className="w-full rounded-xs border pl-9 pr-3 py-1.5 font-mono text-xs text-[#eceae6] placeholder-[#545e6a] focus:border-[#c9a96e] transition-micro"
             style={{
               borderColor: "var(--border-standard)",
               background: "var(--surface-2)",
@@ -97,7 +102,7 @@ export default function AuditPage() {
 
         <div className="flex items-center gap-2 text-xs text-[#8e96a0] font-medium">
           <ShieldCheck className="h-4 w-4 text-[#6ecba0]" />
-          <span>Append-Only Cryptographic Audit Log</span>
+          <span>Permanent decision log</span>
         </div>
       </div>
 

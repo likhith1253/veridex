@@ -12,10 +12,11 @@ import {
 
 export default function WebsitePage() {
   // Fetch real authoritative benchmark proof
-  const { data: benchmarkData, isLoading: benchmarkLoading } = useQuery({
+  const { data: benchmarkData, isLoading: benchmarkLoading, isError: benchmarkError } = useQuery({
     queryKey: ["website-benchmark"],
     queryFn: () => controllerApi.getBenchmark(50, 42),
     staleTime: 60000,
+    retry: 1,
   });
 
   // Interactive node selection for the Hero Proof demonstration
@@ -129,7 +130,7 @@ export default function WebsitePage() {
               href="/app"
               className="btn-gold shadow-xs"
             >
-              <span>Control Center</span>
+              <span>Open Control Center</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -161,7 +162,7 @@ export default function WebsitePage() {
               href="/app"
               className="btn-gold px-6 py-3 text-sm shadow-xs"
             >
-              <span>Launch Platform</span>
+              <span>Open Control Center</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
 
@@ -526,7 +527,7 @@ export default function WebsitePage() {
                 Logical Txns
               </div>
               <div className="mt-2 text-2xl font-bold font-mono text-[#17191C] font-tabular">
-                {benchmarkData?.num_transactions || 50}
+                {benchmarkLoading ? "…" : benchmarkError ? "—" : benchmarkData?.num_transactions ?? "—"}
               </div>
               <div className="text-[10px] text-[#555B61] mt-1">150 feed records</div>
             </div>
@@ -537,8 +538,10 @@ export default function WebsitePage() {
               </div>
               <div className="mt-2 text-2xl font-bold font-mono text-[#1E7B4D] font-tabular">
                 {benchmarkLoading
-                  ? "..."
-                  : `${((benchmarkData?.precision ?? 0.9) * 100).toFixed(2)}%`}
+                  ? "…"
+                  : benchmarkError || benchmarkData?.precision === undefined
+                  ? "—"
+                  : `${(benchmarkData.precision * 100).toFixed(2)}%`}
               </div>
               <div className="text-[10px] text-[#555B61] mt-1">False match resistance</div>
             </div>
@@ -549,8 +552,10 @@ export default function WebsitePage() {
               </div>
               <div className="mt-2 text-2xl font-bold font-mono text-[#1E7B4D] font-tabular">
                 {benchmarkLoading
-                  ? "..."
-                  : `${((benchmarkData?.recall ?? 1.0) * 100).toFixed(2)}%`}
+                  ? "…"
+                  : benchmarkError || benchmarkData?.recall === undefined
+                  ? "—"
+                  : `${(benchmarkData.recall * 100).toFixed(2)}%`}
               </div>
               <div className="text-[10px] text-[#555B61] mt-1">Ground truth match coverage</div>
             </div>
@@ -561,8 +566,10 @@ export default function WebsitePage() {
               </div>
               <div className="mt-2 text-2xl font-bold font-mono text-[#9E7B35] font-tabular">
                 {benchmarkLoading
-                  ? "..."
-                  : `${((benchmarkData?.f1_score ?? 0.9474) * 100).toFixed(2)}%`}
+                  ? "…"
+                  : benchmarkError || benchmarkData?.f1_score === undefined
+                  ? "—"
+                  : `${(benchmarkData.f1_score * 100).toFixed(2)}%`}
               </div>
               <div className="text-[10px] text-[#555B61] mt-1">Harmonic accuracy</div>
             </div>
@@ -573,12 +580,28 @@ export default function WebsitePage() {
               </div>
               <div className="mt-2 text-2xl font-bold font-mono text-[#17191C] font-tabular">
                 {benchmarkLoading
-                  ? "..."
-                  : `${benchmarkData?.throughput_records_per_sec || "2,935"} rec/s`}
+                  ? "…"
+                  : benchmarkError || !benchmarkData?.throughput_records_per_sec
+                  ? "—"
+                  : `${benchmarkData.throughput_records_per_sec} rec/s`}
               </div>
               <div className="text-[10px] text-[#555B61] mt-1">Live execution speed</div>
             </div>
           </div>
+
+          {benchmarkError && (
+            <div
+              className="p-3 rounded-xs border text-xs text-[#9E4A3B] flex items-center gap-2 mb-4"
+              style={{ background: "#FBF0EE", borderColor: "#E8C4BC" }}
+            >
+              Benchmark engine is unreachable right now — these are not live measured values.
+              Retry from the{" "}
+              <Link href="/benchmark" className="underline font-semibold">
+                Benchmark Console
+              </Link>
+              .
+            </div>
+          )}
 
           <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] text-xs text-[#555B61] flex items-center justify-between">
             <span>
@@ -612,7 +635,7 @@ export default function WebsitePage() {
             href="/app"
             className="btn-gold px-8 py-3.5 text-sm font-bold shadow-xs inline-flex items-center gap-2"
           >
-            <span>Access Control Center</span>
+            <span>Open Control Center</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

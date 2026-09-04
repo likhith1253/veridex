@@ -222,15 +222,15 @@ export function EvidenceGraph({
               className="text-[10px] font-semibold uppercase tracking-[0.14em]"
               style={{ color: "var(--accent)" }}
             >
-              Forensic Evidence Provenance
+              Evidence trail
             </span>
             <span style={{ color: "var(--text-tertiary)" }}>•</span>
             <span className="text-xs text-[#8e96a0]">
-              Lineage Verification Chain
+              How money moved across systems
             </span>
           </div>
           <h2 className="text-sm font-bold text-[#eceae6] mt-0.5">
-            Cryptographic Financial Provenance Canvas
+            Evidence trail
           </h2>
         </div>
 
@@ -359,7 +359,7 @@ export function EvidenceGraph({
           <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: "var(--border-subtle)" }}>
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase font-bold text-[#c9a96e] tracking-wider">
-                Inspected Provenance Entity:
+                Evidence details:
               </span>
               <span className="font-semibold text-[#eceae6]">{selectedNode.label}</span>
               <span className="font-mono text-[10px] text-[#545e6a]">({selectedNode.id})</span>
@@ -374,21 +374,21 @@ export function EvidenceGraph({
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 font-mono text-xs">
             <div>
-              <span className="text-[10px] text-[#545e6a] uppercase block">Authority Source</span>
+              <span className="text-[10px] text-[#545e6a] uppercase block">Source</span>
               <span className="text-[#eceae6] font-medium mt-0.5 block">{selectedNode.source || "—"}</span>
             </div>
             <div>
-              <span className="text-[10px] text-[#545e6a] uppercase block">Entity Reference</span>
+              <span className="text-[10px] text-[#545e6a] uppercase block">Reference</span>
               <span className="text-[#eceae6] font-medium mt-0.5 block">{selectedNode.reference || "—"}</span>
             </div>
             <div>
-              <span className="text-[10px] text-[#545e6a] uppercase block">Monetary Value</span>
+              <span className="text-[10px] text-[#545e6a] uppercase block">Amount</span>
               <span className="text-[#eceae6] font-bold mt-0.5 block font-tabular">
                 {selectedNode.amount !== null && selectedNode.amount !== undefined ? formatINR(selectedNode.amount) : "Unavailable"}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-[#545e6a] uppercase block">Provenance Timestamp</span>
+              <span className="text-[10px] text-[#545e6a] uppercase block">Recorded time</span>
               <span className="text-[#8e96a0] font-medium mt-0.5 block">
                 {selectedNode.timestamp ? formatDateTime(selectedNode.timestamp) : "Timestamp absent"}
               </span>

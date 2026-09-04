@@ -179,5 +179,9 @@ async def list_finance_actions(
 ) -> list[FinanceActionResponse]:
     """List finance actions history with optional state and entity filters."""
     service = FinanceActionService(session)
-    actions = await service.list_actions(state=state, entity_id=entity_id, entity_type=entity_type, limit=limit)
-    return [FinanceActionResponse.model_validate(a) for a in actions]
+    try:
+        actions = await service.list_actions(state=state, entity_id=entity_id, entity_type=entity_type, limit=limit)
+        return [FinanceActionResponse.model_validate(a) for a in actions]
+    except Exception as e:
+        logger.error("Failed to list finance actions: %s", e, exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

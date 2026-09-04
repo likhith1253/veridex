@@ -77,7 +77,7 @@ export function TechnicalReference({
     <button
       onClick={handleCopy}
       title={`Copy: ${id}`}
-      className="ml-1 p-0.5 rounded text-[#8e96a0] hover:text-[#c9a96e] opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-hidden"
+      className="ml-1 p-0.5 rounded text-[#8e96a0] hover:text-[#c9a96e] opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
       aria-label={`Copy ${label || "reference"}: ${id}`}
     >
       {copied ? (

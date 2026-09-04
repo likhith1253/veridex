@@ -54,13 +54,13 @@ export default function BenchmarkPage() {
             className="text-[10px] font-semibold uppercase tracking-[0.14em]"
             style={{ color: "var(--accent)" }}
           >
-            Engine Validation
+            System performance
           </span>
           <h1 className="text-xl font-bold tracking-tight text-[#eceae6] mt-0.5">
-            VERIDEX Engine Validation &amp; Accuracy Suite
+            How well does the engine perform?
           </h1>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            Empirical evaluation against authoritative synthetic batch ground truth
+            Measured accuracy, recall, and throughput evaluated against verified ground truth
           </p>
         </div>
 
@@ -68,15 +68,15 @@ export default function BenchmarkPage() {
           <select
             value={numTransactions}
             onChange={(e) => setNumTransactions(Number(e.target.value))}
-            className="rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] focus:outline-hidden transition-micro"
+            className="rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] transition-micro"
             style={{
               borderColor: "var(--border-standard)",
               background: "var(--surface-2)",
             }}
           >
-            <option value={50}>N = 50 Transactions (Track 4 Official Bar)</option>
-            <option value={100}>N = 100 Transactions (Extended Suite)</option>
-            <option value={200}>N = 200 Transactions (High Throughput)</option>
+            <option value={50}>50 Transactions · 150 Records (Standard)</option>
+            <option value={100}>100 Transactions · 300 Records (Extended)</option>
+            <option value={200}>200 Transactions · 600 Records (High throughput)</option>
           </select>
 
           <button
@@ -91,7 +91,7 @@ export default function BenchmarkPage() {
             onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
           >
             {isFetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5 fill-current" />}
-            <span>Run Validation</span>
+            <span>Run benchmark</span>
           </button>
         </div>
       </div>

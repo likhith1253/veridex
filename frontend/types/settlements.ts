@@ -39,6 +39,7 @@ export interface SettlementFinancialBreakdown {
   adjustment_amount: string;
   expected_net_amount: string;
   bank_received_amount: string;
+  bank_matched: boolean;
   variance: string;
   currency: string;
   variance_type: "NO_VARIANCE" | "FEE_VARIANCE" | "TAX_VARIANCE" | "AMOUNT_VARIANCE" | "MISSING_BANK_CREDIT" | "UNEXPECTED_BANK_CREDIT" | "UNKNOWN_VARIANCE" | string;

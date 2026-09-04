@@ -62,6 +62,7 @@ async def get_settlement_financial_breakdown(
             adjustment_amount=str(breakdown.adjustment_amount),
             expected_net_amount=str(breakdown.expected_net_amount),
             bank_received_amount=str(breakdown.bank_received_amount),
+            bank_matched=breakdown.bank_matched,
             variance=str(breakdown.variance),
             currency=breakdown.currency,
             variance_type=SettlementVarianceType(breakdown.variance_type.value),

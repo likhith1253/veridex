@@ -266,7 +266,7 @@ function AuditEventRow({
               ) : (
                 <ChevronDown className="h-3 w-3" />
               )}
-              {evidenceExpanded ? "Hide Technical Evidence" : "Show Technical Evidence"}
+              {evidenceExpanded ? "Hide technical details" : "Technical details"}
             </button>
             {evidenceExpanded && (
               <pre

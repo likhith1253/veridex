@@ -35,7 +35,12 @@ interface NavGroup {
   items: NavItem[];
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const { data: overview } = useQuery({
@@ -61,7 +66,7 @@ export function Sidebar() {
 
   const navGroups: NavGroup[] = [
     {
-      group: "WORK",
+      group: "WORKFLOW",
       items: [
         {
           name: "Control Center",
@@ -69,12 +74,12 @@ export function Sidebar() {
           icon: LayoutDashboard,
         },
         {
-          name: "Reconcile",
+          name: "Run reconciliation",
           href: "/reconciliation",
           icon: GitMerge,
         },
         {
-          name: "Investigate",
+          name: "Review issues",
           href: "/exceptions",
           icon: AlertOctagon,
           badge: openExceptionsCount > 0 ? openExceptionsCount : undefined,
@@ -86,30 +91,30 @@ export function Sidebar() {
           icon: Landmark,
         },
         {
-          name: "Actions",
+          name: "Review actions",
           href: "/actions",
           icon: ShieldCheck,
           badge: pendingActionsCount > 0 ? pendingActionsCount : undefined,
           badgeVariant: "action",
         },
         {
-          name: "Audit",
+          name: "Activity & decisions",
           href: "/audit",
           icon: History,
         },
       ],
     },
     {
-      group: "SYSTEM",
+      group: "INTEGRATIONS & SYSTEM",
       items: [
         {
-          name: "Razorpay",
+          name: "Razorpay Sync",
           href: "/razorpay",
           icon: CreditCard,
           dot: rzpStatus?.api_reachable ? "live" : "offline",
         },
         {
-          name: "Benchmark",
+          name: "System performance",
           href: "/benchmark",
           icon: BarChart3,
         },
@@ -123,11 +128,29 @@ export function Sidebar() {
   ];
 
   return (
-    <aside
-      className="w-56 flex-shrink-0 flex flex-col select-none border-r border-[#262A30] bg-[#171A1E]"
-    >
-      {/* Brand Header */}
-      <div className="h-14 flex items-center px-4 border-b border-[#262A30]">
+    <>
+      {/* Backdrop — only rendered/interactive on the mobile drawer */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={cn(
+          "w-56 flex-shrink-0 flex flex-col select-none border-r border-[#262A30] bg-[#171A1E]",
+          "fixed inset-y-0 left-0 z-40 transition-transform duration-200 md:static md:z-auto md:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+      {/* Brand Header — clicking the mark always returns to the landing page,
+          never elsewhere, so there is one consistent "home" affordance. */}
+      <Link
+        href="/"
+        className="h-14 flex items-center px-4 border-b border-[#262A30] hover:bg-[#1c2026] transition-micro"
+        title="Return to landing page"
+      >
         <div className="flex items-center gap-2.5">
           <div className="vx-mark">VX</div>
           <div>
@@ -139,7 +162,7 @@ export function Sidebar() {
             </div>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto px-2 py-4 space-y-5 scrollbar-none">
@@ -160,6 +183,7 @@ export function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={onClose}
                   className={cn(
                     "group flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xs text-xs font-medium transition-micro",
                     isActive
@@ -222,6 +246,8 @@ export function Sidebar() {
           v0.2
         </span>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
+

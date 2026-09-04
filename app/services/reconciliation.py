@@ -607,6 +607,37 @@ class ReconciliationService:
             if not classification:
                 continue
             category = classification["category"]
+
+            # MISSING_SOURCE_EXCEPTION means the identity group this matcher
+            # built doesn't include a record from that source — not that no
+            # such record exists anywhere in the run. A record can be present
+            # but unlinked (e.g. a corrupted reference broke the correlation).
+            # Distinguishing "no such record was ever ingested" from "a record
+            # exists but couldn't be correlated" is a materially different
+            # finding for an operator investigating the exception, so surface
+            # it in evidence without changing the category/confidence/exposure
+            # the classifier already computed.
+            if category == ExceptionCategory.MISSING_SOURCE_EXCEPTION:
+                missing_sources = classification["evidence"].get("missing_sources", [])
+                group_order_ids = {t.order_id for t in transactions if t.order_id}
+                group_refs = {t.reference_number for t in transactions if t.reference_number}
+                unlinked_candidates = []
+                for src in missing_sources:
+                    src_enum = {"gateway": TransactionSource.GATEWAY, "ledger": TransactionSource.LEDGER, "bank": TransactionSource.BANK}.get(src)
+                    for tid, txn in txn_by_id.items():
+                        if tid in covered or tid in txn_ids or txn.source != src_enum:
+                            continue
+                        if (txn.order_id and txn.order_id in group_order_ids) or (
+                            txn.reference_number and txn.reference_number in group_refs
+                        ):
+                            unlinked_candidates.append({"source": src, "transaction_id": tid})
+                if unlinked_candidates:
+                    classification["evidence"]["unlinked_candidates"] = unlinked_candidates
+                    classification["explanation"] = (
+                        classification["explanation"]
+                        + " A record from that source exists in this run but could not be correlated "
+                        "(reference/order mismatch) — it is not simply absent."
+                    )
             exception_id = await self._persist_group_exception(
                 run_id=run_id,
                 txn_ids=txn_ids,
