@@ -257,6 +257,12 @@ pre {
 }
 .btn-gold:hover {
   background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -4px rgba(201, 169, 110, 0.45);
+}
+.btn-gold:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .btn-secondary {

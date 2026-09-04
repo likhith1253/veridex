@@ -9,6 +9,7 @@ import {
   ArrowDown,
   ExternalLink,
 } from "lucide-react";
+import { VeridexLogo } from "@/components/common/VeridexLogo";
 
 export default function WebsitePage() {
   // Fetch real authoritative benchmark proof
@@ -101,7 +102,7 @@ export default function WebsitePage() {
       <header className="sticky top-0 z-40 bg-[rgba(247,245,240,0.92)] backdrop-blur-md border-b border-[#D7D3CA]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="vx-mark">VX</div>
+            <VeridexLogo size={32} />
             <span className="font-bold tracking-[0.1em] text-sm text-[#17191C]">
               VERIDEX
             </span>
@@ -642,18 +643,45 @@ export default function WebsitePage() {
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────────────── */}
-      <footer className="py-8 bg-[#F7F5F0] text-xs text-[#6F747A]">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="vx-mark text-[10px] w-5 h-5">VX</div>
-            <span className="font-semibold text-[#17191C]">VERIDEX</span>
-            <span>— AI Financial Control &amp; Reconciliation Engine</span>
+      <footer className="py-8 bg-[#F7F5F0] text-xs text-[#6F747A] border-t border-[#D7D3CA]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Brand */}
+            <div className="flex items-center gap-3">
+              <VeridexLogo size={24} />
+              <div>
+                <div className="font-bold text-sm text-[#17191C] tracking-[0.1em]">VERIDEX</div>
+                <div className="text-[10px] text-[#555B61] mt-0.5">AI Financial Control & Reconciliation Engine</div>
+              </div>
+            </div>
+
+            {/* Tagline */}
+            <div className="text-[10px] text-[#555B61] italic">
+              Find the discrepancy. Prove the cause. Control the action.
+            </div>
+
+            {/* System Status */}
+            <div className="flex items-center gap-4 text-[10px] font-mono text-[#6F747A]">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1E7B4D]"></span>
+                PORT 8000 ACTIVE
+              </span>
+              <span>•</span>
+              <span>STRICT HITL GOVERNANCE</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] font-mono">
-            <span>PORT 8000 ACTIVE</span>
-            <span>•</span>
-            <span>STRICT HITL GOVERNANCE</span>
+          {/* Bottom */}
+          <div className="mt-6 pt-6 border-t border-[#D7D3CA] flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-[10px] text-[#555B61]">
+              © 2026 Veridex. All rights reserved.
+            </div>
+            <div className="flex items-center gap-6 text-[10px]">
+              <a href="#how-it-works" className="hover:text-[#C9A96E] transition-micro">How it Works</a>
+              <a href="#proof" className="hover:text-[#C9A96E] transition-micro">Proof</a>
+              <a href="#measured" className="hover:text-[#C9A96E] transition-micro">Benchmark</a>
+              <Link href="/app" className="text-[#C9A96E] font-semibold hover:text-[#17191C] transition-micro">Control Center</Link>
+            </div>
           </div>
         </div>
       </footer>
