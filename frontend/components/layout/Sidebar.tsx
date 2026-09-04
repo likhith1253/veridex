@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
 import { actionsApi } from "@/lib/api/actionsApi";
 import { integrationsApi } from "@/lib/api/integrationsApi";
+import { VeridexLogo } from "@/components/common/VeridexLogo";
 
 interface NavItem {
   name: string;
@@ -152,7 +153,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         title="Return to landing page"
       >
         <div className="flex items-center gap-2.5">
-          <div className="vx-mark">VX</div>
+          <VeridexLogo size={24} />
           <div>
             <div className="text-[13px] font-bold tracking-[0.08em] text-[#ECEAE6]">
               VERIDEX

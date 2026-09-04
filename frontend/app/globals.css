@@ -222,23 +222,6 @@ pre {
 .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
-/* ─── VERIDEX Mark (gold identity stamp) ────────────────────────── */
-.vx-mark {
-  font-family: var(--font-jetbrains), 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: #171A1E;
-  background: var(--accent);
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-
 /* ─── Golden & Institutional Buttons ────────────────────────────── */
 .btn-gold {
   display: inline-flex;
