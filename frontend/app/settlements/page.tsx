@@ -14,6 +14,9 @@ import {
   Landmark,
   ArrowRight,
   FileCheck,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function SettlementsPage() {
@@ -30,13 +33,75 @@ export default function SettlementsPage() {
 
   const settlements = settlementsData?.settlements || [];
 
+  const getWorkflowStateBadge = (s: any) => {
+    const rawStatus = (s.status || "").toUpperCase();
+    const hasBankCredit = s.bank_received_amount !== null && s.bank_received_amount !== undefined;
+    const variance = Math.abs(parseFloat(String(s.variance ?? 0)));
+
+    if (variance > 0) {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-mono font-bold"
+          style={{
+            color: "var(--variance-text)",
+            background: "var(--variance-bg)",
+            border: "1px solid var(--variance-border)",
+          }}
+        >
+          <AlertTriangle className="h-3 w-3" /> EXCEPTION
+        </span>
+      );
+    }
+    if (rawStatus === "RECONCILED" || (hasBankCredit && variance === 0)) {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-mono font-bold"
+          style={{
+            color: "var(--matched-text)",
+            background: "var(--matched-bg)",
+            border: "1px solid var(--matched-border)",
+          }}
+        >
+          <CheckCircle2 className="h-3 w-3" /> RECONCILED
+        </span>
+      );
+    }
+    if (hasBankCredit) {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-mono font-bold text-[#6ecba0] bg-[#1a3328] border border-[#2a6648]"
+        >
+          <CheckCircle2 className="h-3 w-3" /> BANK CREDIT CONFIRMED
+        </span>
+      );
+    }
+    if (s.utr || rawStatus === "SETTLED" || rawStatus === "PROCESSED") {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-mono font-bold text-[#d4a84e] bg-[#2d2516] border border-[#524122]"
+        >
+          <Clock className="h-3 w-3" /> BANK CREDIT PENDING
+        </span>
+      );
+    }
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-mono font-bold text-[#8e96a0] bg-[#1c2128] border border-[#2d333b]"
+      >
+        PROCESSING
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb Context */}
-      <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A] pb-1">
-        <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+      <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0] pb-1">
+        <Link href="/app" className="hover:text-[#c9a96e] transition-colors">
+          Control Center
+        </Link>
         <span>/</span>
-        <span className="text-[#17191C] font-semibold">Settlements</span>
+        <span className="text-[#eceae6] font-semibold">Settlements</span>
       </div>
 
       {/* Page Header */}
@@ -55,7 +120,7 @@ export default function SettlementsPage() {
             Settlement Payouts &amp; 3-Way Bank Parity
           </h1>
           <p className="text-xs text-[#8e96a0] mt-0.5">
-            Automated gateway settlement decomposition, statutory tax-line audits, and UTR bank statement reconciliation
+            Decomposed gross volume, deductions, expected net vs bank statement credit
           </p>
         </div>
 
@@ -90,7 +155,7 @@ export default function SettlementsPage() {
             Settlement Payout Batches
           </h2>
           <span className="text-xs text-[#545e6a]">
-            Gateway Payouts &amp; Bank UTR Reference Parity
+            Lifecycle Parity: Expected Net vs Core Banking Credit
           </span>
         </div>
 
@@ -120,55 +185,83 @@ export default function SettlementsPage() {
                     borderBottom: "1px solid var(--border-subtle)",
                   }}
                 >
-                  <th className="py-2.5 px-3">Settlement ID</th>
-                  <th className="py-2.5 px-3">Bank UTR Reference</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3 text-right">Net Amount</th>
-                  <th className="py-2.5 px-3 text-right">Fees / Tax</th>
-                  <th className="py-2.5 px-3 text-right">Created At</th>
-                  <th className="py-2.5 px-3 text-right">Action</th>
+                  <th className="py-2.5 px-3">Settlement &amp; UTR</th>
+                  <th className="py-2.5 px-3 text-right">Gross Amount</th>
+                  <th className="py-2.5 px-3 text-right">Expected Net</th>
+                  <th className="py-2.5 px-3 text-right">Bank Received</th>
+                  <th className="py-2.5 px-3 text-right">Variance</th>
+                  <th className="py-2.5 px-3 text-center">Current State</th>
+                  <th className="py-2.5 px-3 text-right">Next Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
                 {settlements.map((s, idx) => {
                   const setlId = s.settlement_id || `setl-${idx}`;
+                  const gross = parseFloat(String(s.gross_amount || s.amount || 0));
+                  const expNet = parseFloat(String(s.expected_net_amount ?? s.amount ?? 0));
+                  const received =
+                    s.bank_received_amount !== null && s.bank_received_amount !== undefined
+                      ? parseFloat(String(s.bank_received_amount))
+                      : null;
+                  const variance =
+                    received !== null
+                      ? Math.abs(expNet - received)
+                      : s.variance !== undefined && s.variance !== null
+                      ? Math.abs(parseFloat(String(s.variance)))
+                      : null;
+
                   return (
                     <tr
                       key={setlId ? `${setlId}-${idx}` : `settlement-${idx}`}
                       className="hover:bg-[#13161a] transition-micro"
                     >
                       <td className="py-3 px-3">
-                        <TechnicalReference id={setlId} maxVisible={22} />
+                        <div className="space-y-1">
+                          <TechnicalReference id={setlId} maxVisible={22} />
+                          <div>
+                            {s.utr ? (
+                              <TechnicalReference id={s.utr} label="UTR" maxVisible={22} inline />
+                            ) : (
+                              <span className="text-[#545e6a] text-[10px] italic">
+                                UTR Pending Credit
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
-                      <td className="py-3 px-3">
-                        {s.utr
-                          ? <TechnicalReference id={s.utr} label="UTR" maxVisible={22} />
-                          : <span className="text-[#545e6a] text-[11px] italic">Pending</span>
-                        }
-                      </td>
-                      <td className="py-3 px-3">
-                        <StatusBadge status={s.status} />
+                      <td className="py-3 px-3 text-right font-mono font-medium font-tabular text-[#8e96a0]">
+                        {formatINR(gross)}
                       </td>
                       <td className="py-3 px-3 text-right font-mono font-bold font-tabular text-[#eceae6]">
-                        {formatINR(s.expected_net_amount ?? s.amount)}
+                        {formatINR(expNet)}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono text-[#8e96a0] font-tabular text-[11px]">
-                        {formatINR(s.fees ?? 0)} / {formatINR(s.tax ?? 0)}
+                      <td className="py-3 px-3 text-right font-mono font-medium font-tabular">
+                        {received !== null ? (
+                          <span className="text-[#6ecba0] font-bold">{formatINR(received)}</span>
+                        ) : (
+                          <span className="text-[#545e6a] text-[11px] italic">Pending Bank Confirmation</span>
+                        )}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono text-[#545e6a] text-[11px]">
-                        {formatDateTime(s.settlement_date ?? s.created_at)}
+                      <td className="py-3 px-3 text-right font-mono font-tabular">
+                        {variance !== null ? (
+                          variance === 0 ? (
+                            <span className="text-[#6ecba0] font-bold">₹0.00</span>
+                          ) : (
+                            <span className="text-[#e07070] font-bold">{formatINR(variance)}</span>
+                          )
+                        ) : (
+                          <span className="text-[#545e6a] text-[11px]">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        {getWorkflowStateBadge(s)}
                       </td>
                       <td className="py-3 px-3 text-right">
                         <Link
                           href={`/settlements/${encodeURIComponent(setlId)}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xs text-xs font-medium transition-micro"
-                          style={{
-                            color: "var(--accent)",
-                            background: "var(--accent-dim)",
-                            border: "1px solid var(--accent-border)",
-                          }}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#c9a96e] hover:text-[#e4caa0] transition-micro"
                         >
-                          <span>Inspect</span>
+                          <span>Breakdown</span>
                           <ArrowRight className="h-3 w-3" />
                         </Link>
                       </td>

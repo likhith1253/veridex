@@ -47,19 +47,30 @@ export default function ActionDetailPage() {
   return (
     <div className="space-y-6">
       {/* Top Breadcrumb & Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#E2DDD3]">
-        <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A]">
-          <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+      <div
+        className="flex flex-wrap items-center justify-between gap-4 pb-3"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
+        <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0]">
+          <Link href="/app" className="hover:text-[#c9a96e] transition-colors">
+            Control Center
+          </Link>
           <span>/</span>
-          <Link href="/actions" className="hover:text-[#9E7B35] transition-colors">Actions</Link>
+          <Link href="/actions" className="hover:text-[#c9a96e] transition-colors">
+            Actions
+          </Link>
           <span>/</span>
-          <span className="text-[#17191C] font-semibold">{id}</span>
+          <span className="text-[#eceae6] font-semibold">{id}</span>
         </div>
         <Link
           href="/actions"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-medium bg-[#FFFFFF] border border-[#D7D3CA] text-[#17191C] hover:bg-[#F2EFE9] shadow-xs transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-medium border text-[#eceae6] hover:bg-[#161a20] transition-micro"
+          style={{
+            borderColor: "var(--border-standard)",
+            background: "var(--surface-1)",
+          }}
         >
-          <ArrowLeft className="h-3.5 w-3.5 text-[#6F747A]" />
+          <ArrowLeft className="h-3.5 w-3.5 text-[#8e96a0]" />
           <span>Back to Actions</span>
         </Link>
       </div>

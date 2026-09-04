@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -25,13 +25,14 @@ import {
 function ExceptionsContent() {
   const searchParams = useSearchParams();
 
-  // Initialize filters from URL params — supports drill-down from Command Center KPI cards and funnel
+  // Initialize filters from URL params - default to OPEN exceptions
   const [statusFilter, setStatusFilter] = useState<string>(
-    () => searchParams.get("status") || "all"
+    () => searchParams.get("status") || "open"
   );
   const [categoryFilter, setCategoryFilter] = useState<string>(
     () => searchParams.get("category") || "all"
   );
+  const [agingFilter, setAgingFilter] = useState<string | null>(null);
   const [runIdFilter] = useState<string | null>(
     () => searchParams.get("run_id")
   );
@@ -67,29 +68,48 @@ function ExceptionsContent() {
     staleTime: 30000,
   });
 
-  const exceptions = exceptionsData?.exceptions || [];
+  const rawExceptions = exceptionsData?.exceptions || [];
   const totalCount = exceptionsData?.total_count || 0;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
-  // Currently selected exception for workbench context panel
-  const selectedException = exceptions.find(
-    (e) => (e.exception_id || e.id) === selectedExceptionId
-  ) || exceptions[0];
+  // Client-side aging filter if active
+  const exceptions = agingFilter
+    ? rawExceptions.filter((e) => {
+        const hours = (e as any).age_hours ?? 12;
+        if (agingFilter === "0_24h") return hours <= 24;
+        if (agingFilter === "24_48h") return hours > 24 && hours <= 48;
+        if (agingFilter === "48_72h") return hours > 48 && hours <= 72;
+        if (agingFilter === "72h_plus") return hours > 72;
+        return true;
+      })
+    : rawExceptions;
+
+  const selectedException =
+    exceptions.find((e) => (e.exception_id || e.id) === selectedExceptionId) ||
+    exceptions[0];
 
   return (
-    <div className="space-y-6 pb-10 select-none">
+    <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb Context */}
-      <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A] pb-1">
-        <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+      <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0] pb-1">
+        <Link href="/app" className="hover:text-[#c9a96e] transition-colors">
+          Control Center
+        </Link>
         <span>/</span>
-        <span className="text-[#17191C] font-semibold">Investigate</span>
+        <span className="text-[#eceae6] font-semibold">Exceptions</span>
       </div>
 
       {/* Run scope indicator — shown when drill-down came from a specific run */}
       {runIdFilter && (
-        <div className="flex items-center gap-2 text-xs font-mono px-3 py-2 rounded-xs bg-[rgba(201,169,110,0.08)] border border-[rgba(201,169,110,0.25)]">
-          <Filter className="h-3 w-3 text-[#9E7B35]" />
-          <span className="text-[#9E7B35] font-semibold">Scoped to run:</span>
+        <div
+          className="flex items-center gap-2 text-xs font-mono px-3 py-2 rounded-xs border"
+          style={{
+            borderColor: "var(--accent-border)",
+            background: "var(--accent-dim)",
+          }}
+        >
+          <Filter className="h-3.5 w-3.5 text-[#c9a96e]" />
+          <span className="text-[#c9a96e] font-semibold">Scoped to Run:</span>
           <TechnicalReference id={runIdFilter} maxVisible={28} />
         </div>
       )}
@@ -115,61 +135,97 @@ function ExceptionsContent() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[#8e96a0]">Unresolved Total:</span>
+          <span className="text-xs text-[#8e96a0]">
+            {statusFilter === "open"
+              ? "Open Queue:"
+              : statusFilter === "resolved"
+              ? "Resolved Archive:"
+              : statusFilter === "investigating"
+              ? "Under Investigation:"
+              : "Total Exceptions (All Statuses):"}
+          </span>
           <span
             className="font-mono text-xs font-bold px-2.5 py-1 rounded-xs"
             style={{
-              color: "var(--variance-text)",
-              background: "var(--variance-bg)",
-              border: "1px solid var(--variance-border)",
+              color: statusFilter === "resolved" ? "var(--success-text)" : "var(--variance-text)",
+              background: statusFilter === "resolved" ? "var(--success-bg)" : "var(--variance-bg)",
+              border: statusFilter === "resolved" ? "1px solid var(--success-border)" : "1px solid var(--variance-border)",
             }}
           >
-            {totalCount} Exceptions
+            {totalCount} Cases
           </span>
         </div>
       </div>
 
-      {/* Exception Aging SLA Infobar */}
+      {/* Exception Aging SLA Infobar — Interactive Drill-Down Cards */}
       {aging && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
-          <div
-            className="p-3.5 rounded-xs border"
+          <button
+            onClick={() => setAgingFilter(agingFilter === "0_24h" ? null : "0_24h")}
+            className={cn(
+              "p-3.5 rounded-xs border text-left transition-micro",
+              agingFilter === "0_24h" && "ring-1 ring-[#c9a96e]"
+            )}
             style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--surface-1)",
+              borderColor: agingFilter === "0_24h" ? "var(--accent)" : "var(--border-subtle)",
+              background: agingFilter === "0_24h" ? "var(--accent-dim)" : "var(--surface-1)",
             }}
           >
             <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">0 - 24 Hours Aging</div>
-            <div className="mt-1 text-lg font-bold font-mono text-[#6ecba0] font-tabular">{aging.bucket_0_24h}</div>
-            <div className="text-[10px] text-[#545e6a] mt-0.5">Within standard SLA</div>
-          </div>
+            <div className="mt-1 text-lg font-bold font-mono text-[#6ecba0] font-tabular">
+              {aging.bucket_0_24h}
+            </div>
+            <div className="text-[10px] text-[#545e6a] mt-0.5">
+              {agingFilter === "0_24h" ? "Filter Active ✓" : "Within standard SLA"}
+            </div>
+          </button>
 
-          <div
-            className="p-3.5 rounded-xs border"
+          <button
+            onClick={() => setAgingFilter(agingFilter === "24_48h" ? null : "24_48h")}
+            className={cn(
+              "p-3.5 rounded-xs border text-left transition-micro",
+              agingFilter === "24_48h" && "ring-1 ring-[#c9a96e]"
+            )}
             style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--surface-1)",
+              borderColor: agingFilter === "24_48h" ? "var(--accent)" : "var(--border-subtle)",
+              background: agingFilter === "24_48h" ? "var(--accent-dim)" : "var(--surface-1)",
             }}
           >
             <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">24 - 48 Hours Aging</div>
-            <div className="mt-1 text-lg font-bold font-mono text-[#d4a84e] font-tabular">{aging.bucket_24_48h}</div>
-            <div className="text-[10px] text-[#545e6a] mt-0.5">Under investigation</div>
-          </div>
+            <div className="mt-1 text-lg font-bold font-mono text-[#d4a84e] font-tabular">
+              {aging.bucket_24_48h}
+            </div>
+            <div className="text-[10px] text-[#545e6a] mt-0.5">
+              {agingFilter === "24_48h" ? "Filter Active ✓" : "Under investigation"}
+            </div>
+          </button>
 
-          <div
-            className="p-3.5 rounded-xs border"
+          <button
+            onClick={() => setAgingFilter(agingFilter === "48_72h" ? null : "48_72h")}
+            className={cn(
+              "p-3.5 rounded-xs border text-left transition-micro",
+              agingFilter === "48_72h" && "ring-1 ring-[#c9a96e]"
+            )}
             style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--surface-1)",
+              borderColor: agingFilter === "48_72h" ? "var(--accent)" : "var(--border-subtle)",
+              background: agingFilter === "48_72h" ? "var(--accent-dim)" : "var(--surface-1)",
             }}
           >
             <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">48 - 72 Hours Aging</div>
-            <div className="mt-1 text-lg font-bold font-mono text-[#e07070] font-tabular">{aging.bucket_48_72h}</div>
-            <div className="text-[10px] text-[#545e6a] mt-0.5">SLA escalation watch</div>
-          </div>
+            <div className="mt-1 text-lg font-bold font-mono text-[#e07070] font-tabular">
+              {aging.bucket_48_72h}
+            </div>
+            <div className="text-[10px] text-[#545e6a] mt-0.5">
+              {agingFilter === "48_72h" ? "Filter Active ✓" : "SLA escalation watch"}
+            </div>
+          </button>
 
-          <div
-            className="p-3.5 rounded-xs border"
+          <button
+            onClick={() => setAgingFilter(agingFilter === "72h_plus" ? null : "72h_plus")}
+            className={cn(
+              "p-3.5 rounded-xs border text-left transition-micro",
+              agingFilter === "72h_plus" && "ring-1 ring-[#e07070]"
+            )}
             style={{
               borderColor: "var(--variance-border)",
               background: "var(--variance-bg)",
@@ -177,9 +233,13 @@ function ExceptionsContent() {
             }}
           >
             <div className="text-[10px] uppercase font-semibold text-[#e07070]">72+ Hours (Critical SLA)</div>
-            <div className="mt-1 text-lg font-bold font-mono text-[#e07070] font-tabular">{aging.bucket_72h_plus}</div>
-            <div className="text-[10px] text-[#e07070] mt-0.5">Priority resolution required</div>
-          </div>
+            <div className="mt-1 text-lg font-bold font-mono text-[#e07070] font-tabular">
+              {aging.bucket_72h_plus}
+            </div>
+            <div className="text-[10px] text-[#e07070] mt-0.5">
+              {agingFilter === "72h_plus" ? "Filter Active ✓" : "Priority resolution required"}
+            </div>
+          </button>
         </div>
       )}
 
@@ -212,23 +272,54 @@ function ExceptionsContent() {
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-xs border px-3 py-1.5 text-xs text-[#eceae6] transition-micro focus:outline-hidden"
-            style={{
-              borderColor: "var(--border-standard)",
-              background: "var(--surface-2)",
-            }}
-          >
-            <option value="all">All Statuses</option>
-            <option value="open">Open</option>
-            <option value="investigating">Investigating</option>
-            <option value="resolved">Resolved</option>
-          </select>
+          {/* Status Segmented Buttons */}
+          <div className="flex items-center gap-1 p-0.5 rounded-xs border border-[#262A30] bg-[#121417]">
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter("open");
+                setPage(1);
+              }}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-xs transition-micro",
+                statusFilter === "open"
+                  ? "bg-[#262A30] text-[#c9a96e] font-semibold shadow-xs"
+                  : "text-[#8e96a0] hover:text-[#eceae6]"
+              )}
+            >
+              OPEN
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter("resolved");
+                setPage(1);
+              }}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-xs transition-micro",
+                statusFilter === "resolved"
+                  ? "bg-[#262A30] text-[#6ecba0] font-semibold shadow-xs"
+                  : "text-[#8e96a0] hover:text-[#eceae6]"
+              )}
+            >
+              RESOLVED
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter("all");
+                setPage(1);
+              }}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-xs transition-micro",
+                statusFilter === "all"
+                  ? "bg-[#262A30] text-[#eceae6] font-semibold shadow-xs"
+                  : "text-[#8e96a0] hover:text-[#eceae6]"
+              )}
+            >
+              ALL
+            </button>
+          </div>
 
           <select
             value={categoryFilter}
@@ -251,11 +342,12 @@ function ExceptionsContent() {
             <option value="unexplained">Unexplained</option>
           </select>
 
-          {(statusFilter !== "all" || categoryFilter !== "all" || searchQuery) && (
+          {(statusFilter !== "open" || categoryFilter !== "all" || searchQuery || agingFilter) && (
             <button
               onClick={() => {
-                setStatusFilter("all");
+                setStatusFilter("open");
                 setCategoryFilter("all");
+                setAgingFilter(null);
                 setSearchQuery("");
                 setPage(1);
               }}
@@ -286,7 +378,10 @@ function ExceptionsContent() {
           >
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#8e96a0] flex items-center gap-2">
               <AlertOctagon className="h-4 w-4 text-[#e07070]" />
-              Queue Records ({exceptions.length} visible)
+              <span>Queue Records</span>
+              <span className="text-[10px] font-mono font-normal text-[#545e6a]">
+                ({exceptions.length} visible of {totalCount} {statusFilter.toUpperCase()})
+              </span>
             </h2>
             <span className="text-xs text-[#545e6a] font-mono">
               Page {page} of {totalPages}
@@ -332,7 +427,9 @@ function ExceptionsContent() {
                     const excId = ex.exception_id || ex.id || `exc-${idx}`;
                     const cat = ex.category || ex.exception_category || "unexplained";
                     const exp = ex.financial_exposure_inr ?? ex.financial_exposure;
-                    const isSelected = selectedException && (selectedException.exception_id || selectedException.id) === excId;
+                    const isSelected =
+                      selectedException &&
+                      (selectedException.exception_id || selectedException.id) === excId;
 
                     return (
                       <tr
@@ -340,15 +437,17 @@ function ExceptionsContent() {
                         onClick={() => setSelectedExceptionId(excId)}
                         className={cn(
                           "cursor-pointer transition-micro",
-                          isSelected
-                            ? "bg-[#181c22]"
-                            : "hover:bg-[#13161a]"
+                          isSelected ? "bg-[#181c22]" : "hover:bg-[#13161a]"
                         )}
-                        style={isSelected ? {
-                          borderLeft: "2px solid var(--accent)",
-                        } : {
-                          borderLeft: "2px solid transparent",
-                        }}
+                        style={
+                          isSelected
+                            ? {
+                                borderLeft: "2px solid var(--accent)",
+                              }
+                            : {
+                                borderLeft: "2px solid transparent",
+                              }
+                        }
                       >
                         <td className="py-3 px-3">
                           <div className="font-medium text-xs text-[#eceae6] capitalize">
@@ -456,7 +555,9 @@ function ExceptionsContent() {
 
             <div className="space-y-4 text-xs">
               <div>
-                <span className="text-[10px] text-[#545e6a] uppercase block mb-1">Exception Reference</span>
+                <span className="text-[10px] text-[#545e6a] uppercase block mb-1">
+                  Exception Reference
+                </span>
                 <TechnicalReference
                   id={selectedException.exception_id || selectedException.id || ""}
                   maxVisible={28}
@@ -471,9 +572,14 @@ function ExceptionsContent() {
                     background: "var(--variance-bg)",
                   }}
                 >
-                  <span className="text-[10px] text-[#e07070] uppercase block">Monetary Exposure</span>
+                  <span className="text-[10px] text-[#e07070] uppercase block">
+                    Monetary Exposure
+                  </span>
                   <span className="text-base font-bold font-tabular text-[#e07070] mt-1 block">
-                    {formatINR(selectedException.financial_exposure_inr ?? selectedException.financial_exposure)}
+                    {formatINR(
+                      selectedException.financial_exposure_inr ??
+                        selectedException.financial_exposure
+                    )}
                   </span>
                 </div>
 
@@ -484,22 +590,38 @@ function ExceptionsContent() {
                     background: "var(--surface-2)",
                   }}
                 >
-                  <span className="text-[10px] text-[#8e96a0] uppercase block">Expected Cost</span>
+                  <span className="text-[10px] text-[#8e96a0] uppercase block">
+                    Expected Cost
+                  </span>
                   <span className="text-base font-bold font-tabular text-[#eceae6] mt-1 block">
-                    {formatINR(selectedException.expected_cost_inr ?? selectedException.expected_cost ?? 0)}
+                    {formatINR(
+                      selectedException.expected_cost_inr ??
+                        selectedException.expected_cost ??
+                        0
+                    )}
                   </span>
                 </div>
               </div>
 
               <div>
-                <span className="text-[10px] text-[#8e96a0] uppercase block mb-1">Diagnosis Rationale:</span>
-                <p className="p-3 rounded-xs border text-xs leading-relaxed text-[#eceae6]" style={{ borderColor: "var(--border-subtle)", background: "var(--surface-2)" }}>
+                <span className="text-[10px] text-[#8e96a0] uppercase block mb-1">
+                  Diagnosis Rationale:
+                </span>
+                <p
+                  className="p-3 rounded-xs border text-xs leading-relaxed text-[#eceae6]"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--surface-2)",
+                  }}
+                >
                   {selectedException.explanation || "Root-cause classification in progress."}
                 </p>
               </div>
 
               <Link
-                href={`/exceptions/${encodeURIComponent(selectedException.exception_id || selectedException.id || "")}`}
+                href={`/exceptions/${encodeURIComponent(
+                  selectedException.exception_id || selectedException.id || ""
+                )}`}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xs font-semibold text-xs transition-micro"
                 style={{
                   color: "#080a0c",
@@ -526,4 +648,3 @@ export default function ExceptionsPage() {
     </React.Suspense>
   );
 }
-

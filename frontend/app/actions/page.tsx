@@ -40,10 +40,12 @@ export default function ActionsPage() {
   return (
     <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb Context */}
-      <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A] pb-1">
-        <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+      <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0] pb-1">
+        <Link href="/app" className="hover:text-[#c9a96e] transition-colors">
+          Control Center
+        </Link>
         <span>/</span>
-        <span className="text-[#17191C] font-semibold">Actions</span>
+        <span className="text-[#eceae6] font-semibold">Actions</span>
       </div>
 
       {/* Header */}

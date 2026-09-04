@@ -23,14 +23,15 @@ async def ensure_run_exists(session, run_id: str) -> None:
         new_run = ReconciliationRunORM(
             id=run_id,
             run_id=run_id,
-            status="RUNNING",
+            status="completed",
             started_at=now_dt,
-            completed_at=None,
+            completed_at=now_dt,
             gateway_count=0,
             ledger_count=0,
             bank_count=0,
             match_count=0,
             exception_count=0,
+            summary="System reference run for transactional integrity.",
             created_at=now_dt,
         )
         session.add(new_run)

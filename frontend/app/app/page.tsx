@@ -17,6 +17,9 @@ import {
   AlertOctagon,
   ShieldAlert,
   ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
 
 export default function CommandCenterPage() {
@@ -58,9 +61,7 @@ export default function CommandCenterPage() {
     refetchInterval: 15000,
   });
 
-  const {
-    data: cashPosition,
-  } = useQuery({
+  const { data: cashPosition } = useQuery({
     queryKey: ["controller-cash-position"],
     queryFn: () => controllerApi.getCashPosition(),
     staleTime: 30000,
@@ -81,71 +82,96 @@ export default function CommandCenterPage() {
   const exceptionRecs = overview?.unresolved_transactions ?? overview?.open_exceptions ?? 0;
   const exposureVal = overview?.unresolved_monetary_exposure_inr ?? overview?.financial_exposure ?? 0;
   const volumeVal = overview?.total_transaction_value_inr ?? overview?.total_financial_volume ?? 0;
+  const runId = overview?.run_id;
+
+  const reconLink = runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation";
+  const exceptionsLink = runId
+    ? `/exceptions?status=open&run_id=${encodeURIComponent(runId)}`
+    : "/exceptions?status=open";
 
   return (
-    <div className="space-y-8 pb-14 select-none">
+    <div className="space-y-8 pb-16 select-none">
       {/* ── ZONE 0: CONTROL STATUS PROOF BAR ───────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xs bg-[#FFFFFF] border border-[#D7D3CA] text-[11px] shadow-xs">
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xs text-[11px] border"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
-            CONTROL STATUS
+          <span
+            className="text-[10px] font-bold uppercase tracking-[0.14em]"
+            style={{ color: "var(--accent)" }}
+          >
+            Control Status
           </span>
-          <span className="text-[#BDB8AE]">|</span>
+          <span style={{ color: "var(--text-tertiary)" }}>|</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-[#555B61]">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-[#8e96a0]">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#6F747A] uppercase font-semibold">Data</span>
-            <span className="font-bold text-[#17191C]">Verified</span>
+            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Data</span>
+            <span className="font-bold text-[#eceae6]">Verified</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#6F747A] uppercase font-semibold">Recon</span>
-            <span className="font-bold text-[#1E7B4D]">Active</span>
+            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Recon</span>
+            <span className="font-bold text-[#6ecba0]">Active</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#6F747A] uppercase font-semibold">Evidence</span>
-            <span className="font-bold text-[#17191C]">Grounded</span>
+            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Evidence</span>
+            <span className="font-bold text-[#eceae6]">Grounded</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#6F747A] uppercase font-semibold">AI</span>
-            <span className="font-bold text-[#17191C]">Assistive</span>
+            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">AI</span>
+            <span className="font-bold text-[#eceae6]">Assistive</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#6F747A] uppercase font-semibold">HITL</span>
-            <span className="font-bold text-[#9C6B19]">Enforced</span>
+            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">HITL</span>
+            <span className="font-bold text-[#d4a84e]">Enforced</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#6F747A] uppercase font-semibold">Audit</span>
-            <span className="font-bold text-[#1E7B4D]">Enabled</span>
+            <span className="text-[10px] uppercase font-semibold text-[#545e6a]">Audit</span>
+            <span className="font-bold text-[#6ecba0]">Enabled</span>
           </div>
         </div>
 
-        {overview?.run_id && (
-          <div className="hidden lg:flex items-center gap-2 text-[10px] font-mono text-[#6F747A]">
+        {runId && (
+          <div className="hidden lg:flex items-center gap-2 text-[10px] font-mono text-[#8e96a0]">
             <span>Scope:</span>
-            <TechnicalReference id={overview.run_id} maxVisible={20} />
+            <TechnicalReference id={runId} maxVisible={20} />
           </div>
         )}
       </div>
 
       {/* ── ZONE 1: TOP BANNER: OPERATIONAL CONTEXT ─────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D7D3CA] pb-5">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div>
-          <h1 className="text-xl font-bold font-mono text-[#17191C] flex items-center gap-2.5 tracking-tight">
+          <h1 className="text-xl font-bold font-mono text-[#eceae6] flex items-center gap-2.5 tracking-tight">
             Finance Operations Command Center
-            <span className="text-[10px] px-2 py-0.5 rounded-xs bg-[#F1F8F4] text-[#1E7B4D] border border-[rgba(30,123,77,0.2)] font-bold">
+            <span
+              className="text-[10px] px-2 py-0.5 rounded-xs font-bold"
+              style={{
+                color: "var(--matched-text)",
+                background: "var(--matched-bg)",
+                border: "1px solid var(--matched-border)",
+              }}
+            >
               LIVE
             </span>
           </h1>
-          <p className="text-xs text-[#555B61] mt-1 italic">
+          <p className="text-xs text-[#8e96a0] mt-1 italic">
             Continuous real-time multi-source reconciliation across Payment Gateway, Internal Ledger, and Core Banking.
           </p>
         </div>
 
-        {overview?.run_id && (
-          <div className="flex items-center gap-2 text-xs font-mono text-[#555B61]">
+        {runId && (
+          <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0]">
             <span>Scoped Run:</span>
-            <TechnicalReference id={overview.run_id} maxVisible={24} />
+            <TechnicalReference id={runId} maxVisible={24} />
           </div>
         )}
       </div>
@@ -155,58 +181,52 @@ export default function CommandCenterPage() {
         <LoadingSkeleton variant="card" count={4} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href="/reconciliation" className="block hover:opacity-90 transition-opacity">
+          <Link href={reconLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
               title="Total Financial Volume"
-              value={formatINR(overview?.total_transaction_value_inr ?? overview?.total_financial_volume)}
+              value={formatINR(volumeVal)}
               subtitle={`${totalRecs} feed records in scope`}
-              icon={<DollarSign className="h-4 w-4 text-[#9E7B35]" />}
+              icon={<DollarSign className="h-4 w-4 text-[#c9a96e]" />}
               statusBorder="indigo"
             />
           </Link>
 
-          <Link href="/reconciliation" className="block hover:opacity-90 transition-opacity">
+          <Link href={reconLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
               title="Reconciliation Rate"
               value={formatPercent(overview?.match_rate)}
               subtitle={`${matchedRecs} of ${totalRecs} matched`}
               delta={overview?.match_rate && overview.match_rate >= 0.9 ? "Optimal" : "Review"}
               deltaType={overview?.match_rate && overview.match_rate >= 0.9 ? "positive" : "neutral"}
-              icon={<GitMerge className="h-4 w-4 text-[#1E7B4D]" />}
+              icon={<GitMerge className="h-4 w-4 text-[#6ecba0]" />}
               statusBorder="emerald"
             />
           </Link>
 
-          <Link
-            href={overview?.run_id
-              ? `/exceptions?status=open&run_id=${encodeURIComponent(overview.run_id)}`
-              : "/exceptions?status=open"}
-            className="block hover:opacity-90 transition-opacity"
-          >
+          <Link href={exceptionsLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
               title="Open Exceptions"
               value={exceptionRecs.toString()}
               subtitle={`${exceptionRecs} unresolved exceptions`}
               delta={exceptionRecs > 0 ? "Action Required" : "Zero Variance"}
               deltaType={exceptionRecs > 0 ? "negative" : "positive"}
-              icon={<AlertOctagon className="h-4 w-4 text-[#B83A3A]" />}
+              icon={<AlertOctagon className="h-4 w-4 text-[#e07070]" />}
               statusBorder="rose"
             />
           </Link>
 
-          <Link
-            href={overview?.run_id
-              ? `/exceptions?status=open&run_id=${encodeURIComponent(overview.run_id)}`
-              : "/exceptions?status=open"}
-            className="block hover:opacity-90 transition-opacity"
-          >
+          <Link href={exceptionsLink} className="block hover:opacity-90 transition-opacity">
             <MetricCard
               title="Unreconciled Exposure"
               value={formatINR(exposureVal)}
               subtitle={`Expected Cost: ${formatINR(overview?.manual_review_exposure_inr ?? overview?.expected_cost)}`}
               delta={`${formatPercent(overview?.unreconciled_exposure_pct)} volume`}
-              deltaType={overview?.unreconciled_exposure_pct && overview.unreconciled_exposure_pct > 0.05 ? "negative" : "neutral"}
-              icon={<ShieldAlert className="h-4 w-4 text-[#9C6B19]" />}
+              deltaType={
+                overview?.unreconciled_exposure_pct && overview.unreconciled_exposure_pct > 0.05
+                  ? "negative"
+                  : "neutral"
+              }
+              icon={<ShieldAlert className="h-4 w-4 text-[#d4a84e]" />}
               statusBorder="amber"
             />
           </Link>
@@ -215,21 +235,40 @@ export default function CommandCenterPage() {
 
       {/* ── ZONE 3: 3-WAY RECONCILIATION PIPELINE VISUALIZER ───────── */}
       <div className="pt-1">
-        <FunnelChart funnel={funnel} isLoading={funnelLoading} runId={overview?.run_id ?? undefined} />
+        <FunnelChart funnel={funnel} isLoading={funnelLoading} runId={runId ?? undefined} />
       </div>
 
       {/* ── ZONE 4: GRID: EXECUTIVE ASSESSMENT & LIVE CASH POSITION ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Executive Assessment */}
-        <div className="lg:col-span-2 rounded-xs border border-[#D7D3CA] bg-[#FFFFFF] p-6 shadow-xs">
-          <div className="flex items-center justify-between pb-3.5 border-b border-[#E2DDD3]">
+        <div
+          className="lg:col-span-2 rounded-sm border p-6"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-1)",
+          }}
+        >
+          <div
+            className="flex items-center justify-between pb-3.5"
+            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+          >
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#9E7B35] font-mono">
-                VERIDEX OPERATIONAL ASSESSMENT
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider font-mono"
+                style={{ color: "var(--accent)" }}
+              >
+                VERIDEX Operational Assessment
               </span>
             </div>
             {brief?.reconciliation_health_score !== undefined && (
-              <span className="font-mono text-xs text-[#1E7B4D] font-bold px-2.5 py-0.5 rounded-xs bg-[#F1F8F4] border border-[rgba(30,123,77,0.2)]">
+              <span
+                className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-xs"
+                style={{
+                  color: "var(--matched-text)",
+                  background: "var(--matched-bg)",
+                  border: "1px solid var(--matched-border)",
+                }}
+              >
                 Health Score: {brief.reconciliation_health_score}/100
               </span>
             )}
@@ -242,113 +281,181 @@ export default function CommandCenterPage() {
             </div>
           ) : brief ? (
             <div className="py-4 space-y-4 font-mono text-xs">
-              <div className="p-3.5 rounded-xs border border-[#D7D3CA] bg-[#F7F5F0] text-[#17191C] leading-relaxed font-semibold">
+              <div
+                className="p-3.5 rounded-xs border text-[#eceae6] leading-relaxed font-semibold"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: "var(--surface-2)",
+                }}
+              >
                 <p>{brief.why || brief.headline || "Continuous multi-source reconciliation in progress."}</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-center">
-                <div className="p-3 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
-                  <div className="text-[10px] text-[#6F747A] uppercase font-bold">Match Rate</div>
-                  <div className="text-sm font-bold text-[#1E7B4D] mt-0.5 font-tabular">
+                <div
+                  className="p-3 rounded-xs border"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--surface-2)",
+                  }}
+                >
+                  <div className="text-[10px] text-[#8e96a0] uppercase font-bold">Match Rate</div>
+                  <div className="text-sm font-bold text-[#6ecba0] mt-0.5 font-tabular">
                     {formatPercent(brief.reconciliation_match_rate_percent ?? brief.key_metrics?.match_rate_pct)}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
-                  <div className="text-[10px] text-[#6F747A] uppercase font-bold">Money at Risk</div>
-                  <div className="text-sm font-bold text-[#B83A3A] mt-0.5 font-tabular">
+                <div
+                  className="p-3 rounded-xs border"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--surface-2)",
+                  }}
+                >
+                  <div className="text-[10px] text-[#8e96a0] uppercase font-bold">Money at Risk</div>
+                  <div className="text-sm font-bold text-[#e07070] mt-0.5 font-tabular">
                     {formatINR(brief.money_at_risk_inr ?? brief.key_metrics?.financial_exposure_inr)}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
-                  <div className="text-[10px] text-[#6F747A] uppercase font-bold">Source Health</div>
-                  <div className="text-sm font-bold text-[#17191C] mt-0.5">
+                <div
+                  className="p-3 rounded-xs border"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--surface-2)",
+                  }}
+                >
+                  <div className="text-[10px] text-[#8e96a0] uppercase font-bold">Source Health</div>
+                  <div className="text-sm font-bold text-[#eceae6] mt-0.5">
                     {brief.source_health || "HEALTHY"}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
-                  <div className="text-[10px] text-[#6F747A] uppercase font-bold">Review Required</div>
-                  <div className={`text-sm font-bold mt-0.5 ${brief.human_review_required ? "text-[#9C6B19]" : "text-[#1E7B4D]"}`}>
+                <div
+                  className="p-3 rounded-xs border"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--surface-2)",
+                  }}
+                >
+                  <div className="text-[10px] text-[#8e96a0] uppercase font-bold">Review Required</div>
+                  <div
+                    className={`text-sm font-bold mt-0.5 ${
+                      brief.human_review_required ? "text-[#d4a84e]" : "text-[#6ecba0]"
+                    }`}
+                  >
                     {brief.human_review_required ? "YES (HITL)" : "NO"}
                   </div>
                 </div>
               </div>
 
               {/* Critical Findings & Recommended Action */}
-              <div className="space-y-2 pt-2 border-t border-[#E2DDD3]">
-                <div className="text-[11px] font-bold text-[#6F747A] uppercase tracking-wider">
+              <div
+                className="space-y-2 pt-2"
+                style={{ borderTop: "1px solid var(--border-subtle)" }}
+              >
+                <div className="text-[11px] font-bold text-[#8e96a0] uppercase tracking-wider">
                   Recommended Controller Action:
                 </div>
-                <div className="text-[#17191C] text-xs bg-[rgba(201,169,110,0.08)] p-3 rounded-xs border border-[rgba(201,169,110,0.35)] flex items-start gap-2.5">
-                  <span className="text-[#9E7B35] font-bold">▶</span>
-                  <span className="font-sans font-medium">{brief.recommended_action || "Continue monitoring ingestion pipelines and process pending exceptions."}</span>
+                <div
+                  className="text-[#eceae6] text-xs p-3 rounded-xs border flex items-start gap-2.5"
+                  style={{
+                    borderColor: "var(--accent-border)",
+                    background: "var(--accent-dim)",
+                  }}
+                >
+                  <span className="text-[#c9a96e] font-bold">▶</span>
+                  <span className="font-sans font-medium">
+                    {brief.recommended_action ||
+                      "Continue monitoring ingestion pipelines and process pending exceptions."}
+                  </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="py-6 text-center text-[#6F747A] font-mono text-xs">
+            <div className="py-6 text-center text-[#8e96a0] font-mono text-xs">
               Executive brief unavailable for this scope.
             </div>
           )}
         </div>
 
         {/* Live Multi-Source Cash Position */}
-        <div className="rounded-xs border border-[#D7D3CA] bg-[#FFFFFF] p-6 shadow-xs">
-          <div className="flex items-center justify-between pb-3.5 border-b border-[#E2DDD3]">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#17191C] font-mono">
+        <div
+          className="rounded-sm border p-6"
+          style={{
+            borderColor: "var(--border-subtle)",
+            background: "var(--surface-1)",
+          }}
+        >
+          <div
+            className="flex items-center justify-between pb-3.5"
+            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+          >
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6] font-mono">
               Live Cash Position
             </h2>
             <Link
               href="/settlements"
-              className="text-[11px] text-[#9E7B35] hover:text-[#C9A96E] font-mono font-semibold"
+              className="text-[11px] text-[#c9a96e] hover:text-[#e4caa0] font-mono font-semibold"
             >
               Full Breakdown →
             </Link>
           </div>
 
           <div className="pt-4 space-y-3 font-mono text-xs">
-            <div className="flex justify-between text-[#555B61]">
+            <div className="flex justify-between text-[#8e96a0]">
               <span>Expected Gross:</span>
-              <span className="text-[#17191C] font-bold font-tabular">
+              <span className="text-[#eceae6] font-bold font-tabular">
                 {formatINR(cashPosition?.expected_gross ?? cashPosition?.expected_amount ?? volumeVal)}
               </span>
             </div>
 
-            <div className="flex justify-between text-[#555B61]">
+            <div className="flex justify-between text-[#8e96a0]">
               <span>Deducted Fees:</span>
-              <span className="text-[#B83A3A] font-tabular">
+              <span className="text-[#e07070] font-tabular">
                 {formatINR(cashPosition?.total_deducted_fees ?? cashPosition?.deducted_fees)}
               </span>
             </div>
 
-            <div className="flex justify-between text-[#555B61]">
+            <div className="flex justify-between text-[#8e96a0]">
               <span>Deducted Taxes (GST):</span>
-              <span className="text-[#9C6B19] font-tabular">
+              <span className="text-[#d4a84e] font-tabular">
                 {formatINR(cashPosition?.total_deducted_taxes ?? cashPosition?.deducted_taxes)}
               </span>
             </div>
 
-            <div className="pt-2 border-t border-[#E2DDD3] flex justify-between text-[#17191C] font-semibold">
+            <div
+              className="pt-2 flex justify-between text-[#eceae6] font-semibold"
+              style={{ borderTop: "1px solid var(--border-subtle)" }}
+            >
               <span>Expected Net:</span>
-              <span className="text-[#17191C] font-bold font-tabular">
+              <span className="text-[#eceae6] font-bold font-tabular">
                 {formatINR(cashPosition?.expected_net_settlement)}
               </span>
             </div>
 
-            <div className="flex justify-between text-[#17191C] font-semibold">
+            <div className="flex justify-between text-[#eceae6] font-semibold">
               <span>Received Bank Credits:</span>
-              <span className="text-[#1E7B4D] font-bold font-tabular">
+              <span className="text-[#6ecba0] font-bold font-tabular">
                 {formatINR(cashPosition?.received_bank_credits ?? cashPosition?.received_amount)}
               </span>
             </div>
 
-            <div className={`pt-2 border-t border-[#E2DDD3] flex justify-between items-center text-xs p-2.5 rounded-xs ${
-              formatVariance(cashPosition?.settlement_variance).isZero
-                ? "bg-[#F1F8F4] text-[#1E7B4D]"
-                : "bg-[#FFF9F9] text-[#B83A3A]"
-            }`}>
+            <div
+              className="pt-2 flex justify-between items-center text-xs p-2.5 rounded-xs border"
+              style={{
+                borderTop: "1px solid var(--border-subtle)",
+                borderColor: formatVariance(cashPosition?.settlement_variance).isZero
+                  ? "var(--matched-border)"
+                  : "var(--variance-border)",
+                background: formatVariance(cashPosition?.settlement_variance).isZero
+                  ? "var(--matched-bg)"
+                  : "var(--variance-bg)",
+                color: formatVariance(cashPosition?.settlement_variance).isZero
+                  ? "var(--matched-text)"
+                  : "var(--variance-text)",
+              }}
+            >
               <span className="uppercase text-[10px] font-bold">Net Variance:</span>
               <span className="font-bold font-tabular">
                 {formatVariance(cashPosition?.settlement_variance).text}
@@ -359,19 +466,28 @@ export default function CommandCenterPage() {
       </div>
 
       {/* ── ZONE 5: EXCEPTION QUEUE QUICK PREVIEW TABLE ─────────────── */}
-      <div className="rounded-xs border border-[#D7D3CA] bg-[#FFFFFF] p-6 shadow-xs">
-        <div className="flex items-center justify-between pb-4 border-b border-[#E2DDD3]">
+      <div
+        className="rounded-sm border p-6"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "var(--surface-1)",
+        }}
+      >
+        <div
+          className="flex items-center justify-between pb-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#17191C] font-mono">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6] font-mono">
               Active Exception Queue
             </h2>
-            <p className="text-xs text-[#555B61] mt-0.5">
+            <p className="text-xs text-[#8e96a0] mt-0.5">
               Unreconciled records routed to forensic investigation dossiers
             </p>
           </div>
           <Link
-            href="/exceptions"
-            className="text-xs text-[#9E7B35] hover:text-[#C9A96E] font-bold font-mono"
+            href={exceptionsLink}
+            className="text-xs text-[#c9a96e] hover:text-[#e4caa0] font-bold font-mono"
           >
             View All Exceptions →
           </Link>
@@ -382,14 +498,20 @@ export default function CommandCenterPage() {
             <LoadingSkeleton variant="table" count={5} />
           </div>
         ) : !exceptionsData || exceptionsData.exceptions.length === 0 ? (
-          <div className="py-8 text-center text-[#6F747A] font-mono text-xs">
+          <div className="py-8 text-center text-[#8e96a0] font-mono text-xs">
             Zero active exceptions. Financial state is completely reconciled.
           </div>
         ) : (
           <div className="overflow-x-auto pt-2">
             <table className="w-full text-left font-mono text-xs">
               <thead>
-                <tr className="border-b border-[#E2DDD3] text-[#6F747A] text-[10px] uppercase font-bold">
+                <tr
+                  className="text-[10px] uppercase font-bold"
+                  style={{
+                    color: "var(--text-tertiary)",
+                    borderBottom: "1px solid var(--border-subtle)",
+                  }}
+                >
                   <th className="py-2.5 px-3">Exception ID / Txn</th>
                   <th className="py-2.5 px-3">Category</th>
                   <th className="py-2.5 px-3">Status</th>
@@ -398,16 +520,19 @@ export default function CommandCenterPage() {
                   <th className="py-2.5 px-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E2DDD3] text-[#17191C]">
+              <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
                 {exceptionsData.exceptions.map((ex, idx) => {
                   const excId = ex.exception_id || ex.id || `exc-${idx}`;
                   const cat = ex.category || ex.exception_category || "unexplained";
                   const exp = ex.financial_exposure_inr ?? ex.financial_exposure;
 
                   return (
-                    <tr key={excId ? `${excId}-${idx}` : `exception-prev-${idx}`} className="hover:bg-[#F7F5F0] transition-colors">
-                      <td className="py-3 px-3 font-semibold text-[#17191C]">
-                        <div className="font-medium text-[#17191C] capitalize">
+                    <tr
+                      key={excId ? `${excId}-${idx}` : `exception-prev-${idx}`}
+                      className="hover:bg-[#13161a] transition-micro text-[#eceae6]"
+                    >
+                      <td className="py-3 px-3">
+                        <div className="font-medium text-[#eceae6] capitalize">
                           {(ex.category || "unexplained").replace(/_/g, " ")}
                         </div>
                         <TechnicalReference
@@ -419,21 +544,27 @@ export default function CommandCenterPage() {
                         />
                       </td>
                       <td className="py-3 px-3">
-                        <span className="text-[#555B61] font-medium">{cat.replace(/_/g, " ")}</span>
+                        <span className="text-[#8e96a0] font-medium">{cat.replace(/_/g, " ")}</span>
                       </td>
                       <td className="py-3 px-3">
                         <StatusBadge status={ex.status} />
                       </td>
-                      <td className="py-3 px-3 text-right font-bold font-tabular text-[#B83A3A]">
+                      <td className="py-3 px-3 text-right font-bold font-tabular text-[#e07070]">
                         {formatINR(exp)}
                       </td>
-                      <td className="py-3 px-3 text-[#555B61] max-w-xs truncate text-[11px]">
+                      <td className="py-3 px-3 text-[#8e96a0] max-w-xs truncate text-[11px]">
                         {ex.recommended_action || "Manual Investigation"}
                       </td>
                       <td className="py-3 px-3 text-right">
                         <Link
                           href={`/exceptions/${encodeURIComponent(excId)}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xs bg-[#C9A96E] hover:bg-[#D8BC8A] text-[#171A1E] text-xs font-semibold transition-colors shadow-xs"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xs text-xs font-semibold transition-micro"
+                          style={{
+                            color: "var(--bg)",
+                            background: "var(--accent)",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
                         >
                           Investigate Dossier
                         </Link>

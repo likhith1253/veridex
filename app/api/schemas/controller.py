@@ -4,7 +4,7 @@ Pydantic API Schemas for the Finance Controller layer.
 
 from decimal import Decimal
 from typing import Any, Literal, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class BatchRecordItem(BaseModel):
@@ -17,6 +17,17 @@ class BatchRecordItem(BaseModel):
     fee: Optional[Decimal] = Field(Decimal("0.0"), description="Deducted fee", ge=Decimal("0.0"))
     tax: Optional[Decimal] = Field(Decimal("0.0"), description="Deducted tax", ge=Decimal("0.0"))
     narration: Optional[str] = Field(None, description="Transaction narration string")
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_identifiers(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if not data.get("txn_id"):
+                if data.get("id"):
+                    data["txn_id"] = str(data["id"])
+                elif data.get("transaction_id"):
+                    data["txn_id"] = str(data["transaction_id"])
+        return data
 
 
 class BatchIngestRequest(BaseModel):

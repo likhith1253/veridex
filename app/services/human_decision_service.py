@@ -24,7 +24,11 @@ from typing import Any, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import AuditEvent as AuditEventORM, Exception as ExceptionORM
+from app.database.models import (
+    AuditEvent as AuditEventORM,
+    Exception as ExceptionORM,
+    FinanceAction as FinanceActionORM,
+)
 from app.database.repositories.audit_repository import AuditRepository
 from app.database.repositories.exception_repository import ExceptionRepository
 from app.models.audit_event import AuditEvent
@@ -143,6 +147,33 @@ class HumanDecisionService:
 
         exc.status = new_status
         await self.session.flush()
+
+        # Synchronize associated finance actions if resolving, approving, or rejecting
+        if action in (HumanAction.RESOLVE, HumanAction.APPROVE):
+            stmt_act = select(FinanceActionORM).where(
+                FinanceActionORM.entity_id == exception_id,
+                FinanceActionORM.state.in_(["PENDING_APPROVAL", "APPROVED"]),
+            )
+            linked_actions = (await self.session.execute(stmt_act)).scalars().all()
+            for act in linked_actions:
+                act.state = "EXECUTED"
+                act.executed_by = actor
+                act.execution_result = {
+                    "resolution": f"Exception marked {new_status} by {actor}",
+                    "reason": reason,
+                }
+                act.updated_at = now_dt
+        elif action == HumanAction.REJECT:
+            stmt_act = select(FinanceActionORM).where(
+                FinanceActionORM.entity_id == exception_id,
+                FinanceActionORM.state.in_(["PENDING_APPROVAL", "APPROVED"]),
+            )
+            linked_actions = (await self.session.execute(stmt_act)).scalars().all()
+            for act in linked_actions:
+                act.state = "REJECTED"
+                act.rejected_by = actor
+                act.decision_reason = reason
+                act.updated_at = now_dt
 
         # 3. Emit immutable AuditEvent
         txn_id = getattr(exc, "transaction_id", "unknown_txn")

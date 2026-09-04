@@ -91,6 +91,9 @@ class ControllerKPIs:
     automatic_matches: int = 0
     manual_reviews: int = 0
     unresolved_transactions: int = 0
+    total_exceptions: int = 0
+    open_exceptions: int = 0
+    resolved_exceptions: int = 0
     match_rate: float = 0.0
     reconciliation_precision: Optional[float] = None
     reconciliation_recall: Optional[float] = None
@@ -407,6 +410,34 @@ class FinanceController:
         orphan_txn_ids = {t.id for t in all_txns if t.id not in matched_txns_set}
         unresolved_count += len(orphan_txn_ids)
 
+        # Compute authoritative exception counts directly from database if available
+        open_exc_count = 0
+        resolved_exc_count = 0
+        total_exc_count = 0
+        try:
+            exc_count_stmt = select(ExceptionORM.resolved, func.count(ExceptionORM.id)).group_by(ExceptionORM.resolved)
+            if run_id:
+                run_query = select(ReconciliationRunORM).where(
+                    (ReconciliationRunORM.id == run_id) | (ReconciliationRunORM.run_id == run_id)
+                )
+                run_result = await self.session.execute(run_query)
+                run_obj = run_result.scalar_one_or_none()
+                if run_obj:
+                    exc_count_stmt = exc_count_stmt.where(
+                        (ExceptionORM.run_id == run_obj.id) | (ExceptionORM.run_id == run_id)
+                    )
+                else:
+                    exc_count_stmt = exc_count_stmt.where(ExceptionORM.run_id == run_id)
+
+            exc_res = await self.session.execute(exc_count_stmt)
+            exc_counts = dict(exc_res.all())
+            open_exc_count = exc_counts.get(False, 0)
+            resolved_exc_count = exc_counts.get(True, 0)
+            total_exc_count = open_exc_count + resolved_exc_count
+        except (StopAsyncIteration, StopIteration):
+            pass
+        except Exception as e:
+            logger.debug("Exception counts query skipped: %s", e)
 
         return ControllerKPIs(
             total_records_processed=total_records,
@@ -418,6 +449,9 @@ class FinanceController:
             automatic_matches=det_match_count,   # match-level count (16 match objects)
             manual_reviews=manual_count,
             unresolved_transactions=unresolved_count,  # includes orphan txns not in any cluster
+            total_exceptions=total_exc_count,
+            open_exceptions=open_exc_count,
+            resolved_exceptions=resolved_exc_count,
             match_rate=round(m_rate, 2),
             reconciliation_precision=None,
             reconciliation_recall=None,

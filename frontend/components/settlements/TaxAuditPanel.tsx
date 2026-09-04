@@ -27,6 +27,7 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
   }
 
   const status = (taxAudit.status || "INSUFFICIENT_EVIDENCE").toUpperCase();
+  const isInsufficient = status === "INSUFFICIENT_EVIDENCE";
 
   const getStatusBadge = () => {
     switch (status) {
@@ -40,7 +41,7 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
               border: "1px solid var(--matched-border)",
             }}
           >
-            <CheckCircle2 className="h-3.5 w-3.5" /> PARITY CONFIRMED (0.00 VARIANCE)
+            <CheckCircle2 className="h-3.5 w-3.5" /> PARITY CONFIRMED (₹0.00 VARIANCE)
           </span>
         );
       case "VARIANCE":
@@ -67,7 +68,7 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
               border: "1px solid var(--border-subtle)",
             }}
           >
-            <HelpCircle className="h-3.5 w-3.5 text-[#545e6a]" /> EVIDENCE UNAVAILABLE
+            <HelpCircle className="h-3.5 w-3.5 text-[#545e6a]" /> INSUFFICIENT EVIDENCE
           </span>
         );
     }
@@ -129,7 +130,7 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
           <div className="text-sm font-bold font-mono text-[#eceae6] mt-1 font-tabular">
             {taxAudit.reported_tax !== null && taxAudit.reported_tax !== undefined
               ? formatINR(taxAudit.reported_tax)
-              : "N/A (Unreported)"}
+              : "INSUFFICIENT EVIDENCE"}
           </div>
         </div>
 
@@ -142,29 +143,47 @@ export function TaxAuditPanel({ taxAudit, isLoading }: TaxAuditPanelProps) {
         >
           <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Expected Authoritative Tax</div>
           <div className="text-sm font-bold font-mono text-[#c9a96e] mt-1 font-tabular">
-            {taxAudit.expected_tax !== null && taxAudit.expected_tax !== undefined
+            {isInsufficient
+              ? "INSUFFICIENT EVIDENCE"
+              : taxAudit.expected_tax !== null && taxAudit.expected_tax !== undefined
               ? formatINR(taxAudit.expected_tax)
-              : "N/A"}
+              : "INSUFFICIENT EVIDENCE"}
           </div>
         </div>
 
         <div
           className="rounded-xs border p-3.5"
           style={{
-            borderColor: status === "MATCHED" ? "var(--matched-border)" : "var(--variance-border)",
+            borderColor:
+              status === "MATCHED"
+                ? "var(--matched-border)"
+                : isInsufficient
+                ? "var(--border-subtle)"
+                : "var(--variance-border)",
             background: "var(--surface-2)",
-            borderLeft: status === "MATCHED" ? "3px solid var(--matched)" : "3px solid var(--variance)",
+            borderLeft:
+              status === "MATCHED"
+                ? "3px solid var(--matched)"
+                : isInsufficient
+                ? "3px solid #545e6a"
+                : "3px solid var(--variance)",
           }}
         >
           <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Statutory Tax Variance</div>
           <div
             className={`text-sm font-bold font-mono mt-1 font-tabular ${
-              status === "MATCHED" ? "text-[#6ecba0]" : "text-[#e07070]"
+              status === "MATCHED"
+                ? "text-[#6ecba0]"
+                : isInsufficient
+                ? "text-[#8e96a0]"
+                : "text-[#e07070]"
             }`}
           >
-            {taxAudit.tax_variance !== null && taxAudit.tax_variance !== undefined
+            {isInsufficient
+              ? "INSUFFICIENT EVIDENCE"
+              : taxAudit.tax_variance !== null && taxAudit.tax_variance !== undefined
               ? formatINR(taxAudit.tax_variance)
-              : "0.00"}
+              : "₹0.00"}
           </div>
         </div>
       </div>

@@ -154,6 +154,7 @@ class RazorpayWebhookHandler:
                 ExceptionCategory,
                 Match as MatchORM,
                 MatchTransaction as MatchTransactionORM,
+                ReconciliationRun as ReconciliationRunORM,
                 Transaction as TransactionORM,
             )
             from app.services.razorpay_settlement_intelligence_service import (
@@ -290,6 +291,19 @@ class RazorpayWebhookHandler:
                         created_at=utcnow(),
                     )
                     session.add(exc_orm)
+
+                # Finalize run status and counts for settlement event
+                stmt_run = select(ReconciliationRunORM).where(ReconciliationRunORM.id == run_id)
+                run_obj = (await session.execute(stmt_run)).scalars().first()
+                if run_obj:
+                    run_obj.status = "completed"
+                    run_obj.completed_at = utcnow()
+                    run_obj.gateway_count = 1
+                    run_obj.bank_count = 1 if bank_recon.bank_matched else 0
+                    run_obj.match_count = 1 if match_id else 0
+                    run_obj.exception_count = 1 if not match_id else 0
+                    run_obj.summary = f"Settlement webhook event {event_id} reconciled: {recon_status}"
+                    await session.flush()
 
             recon_transaction_id = txn.txn_id
         else:

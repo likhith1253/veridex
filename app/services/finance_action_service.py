@@ -4,7 +4,7 @@ import logging
 from typing import Any, Optional
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.models import (
@@ -91,8 +91,28 @@ class FinanceActionService:
             )
 
         resolved_run_id = await self._resolve_run_id(run_id)
-        action_id = f"act_{uuid.uuid4().hex[:16]}"
         now = utcnow()
+        action_id = f"act_{uuid.uuid4().hex[:16]}"
+        # Check for existing active action for this entity to ensure idempotency and prevent duplicate records
+        existing_stmt = select(FinanceActionORM).where(
+            and_(
+                FinanceActionORM.entity_type == entity_type,
+                FinanceActionORM.entity_id == entity_id,
+                FinanceActionORM.state.in_([
+                    ActionLifecycleState.PENDING_APPROVAL.value,
+                    ActionLifecycleState.APPROVED.value,
+                ]),
+            )
+        )
+        existing_res = await self.session.execute(existing_stmt)
+        existing_action = existing_res.scalars().first()
+        if existing_action:
+            existing_action.amount = amount
+            existing_action.recommendation_reason = recommendation_reason
+            existing_action.evidence = evidence or existing_action.evidence
+            existing_action.updated_at = utcnow()
+            await self.session.commit()
+            return existing_action
 
         # Action is created in PENDING_APPROVAL after automated investigation/recommendation
         action_orm = FinanceActionORM(
@@ -298,12 +318,28 @@ class FinanceActionService:
                     raise PolicyViolationError(f"Adjustment amount exceeds limit INR {MAX_POST_ADJUSTMENT_LIMIT}")
                 execution_details["posted_adjustment_amount"] = str(action.amount)
                 execution_details["ledger_note"] = f"Bounded variance adjustment of INR {action.amount} posted by {actor}"
+                if action.entity_type == "exception":
+                    stmt_exc = select(ExceptionORM).where(ExceptionORM.id == action.entity_id)
+                    exc = (await self.session.execute(stmt_exc)).scalar_one_or_none()
+                    if exc:
+                        exc.resolved = True
+                        exc.status = "resolved"
+                        exc.resolved_at = now
+                        execution_details["exception_resolved"] = exc.id
 
             elif action.action_type == FinanceActionType.WRITE_OFF.value:
                 if action.amount > MAX_WRITE_OFF_LIMIT:
                     raise PolicyViolationError(f"Write-off amount exceeds limit INR {MAX_WRITE_OFF_LIMIT}")
                 execution_details["write_off_amount"] = str(action.amount)
                 execution_details["resolution_note"] = f"Immaterial variance written off by {actor}"
+                if action.entity_type == "exception":
+                    stmt_exc = select(ExceptionORM).where(ExceptionORM.id == action.entity_id)
+                    exc = (await self.session.execute(stmt_exc)).scalar_one_or_none()
+                    if exc:
+                        exc.resolved = True
+                        exc.status = "resolved"
+                        exc.resolved_at = now
+                        execution_details["exception_resolved"] = exc.id
 
             elif action.action_type == FinanceActionType.INITIATE_INQUIRY.value:
                 execution_details["inquiry_status"] = "SUBMITTED"

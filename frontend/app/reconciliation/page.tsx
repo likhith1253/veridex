@@ -11,6 +11,7 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { RunBatchModal } from "@/components/reconciliation/RunBatchModal";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 import {
   Play,
   CreditCard,
@@ -67,10 +68,12 @@ export default function ReconciliationPage() {
   return (
     <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb Context */}
-      <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A] pb-1">
-        <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+      <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0] pb-1">
+        <Link href="/app" className="hover:text-[#c9a96e] transition-colors">
+          Control Center
+        </Link>
         <span>/</span>
-        <span className="text-[#17191C] font-semibold">Reconciliation</span>
+        <span className="text-[#eceae6] font-semibold">Reconciliation</span>
       </div>
 
       {/* Page Header */}
@@ -104,7 +107,7 @@ export default function ReconciliationPage() {
           onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
         >
           <Play className="h-3.5 w-3.5 fill-current" />
-          <span>Execute Reconciliation Batch</span>
+          <span>Run Reconciliation</span>
         </button>
       </div>
 
@@ -165,7 +168,9 @@ export default function ReconciliationPage() {
                     key={run.id ? `${run.id}-${idx}` : `run-${idx}`}
                     className="hover:bg-[#13161a] transition-micro"
                   >
-                    <td className="py-3 px-3 font-mono font-bold text-[#eceae6]">{run.run_id}</td>
+                    <td className="py-3 px-3">
+                      <TechnicalReference id={run.run_id} maxVisible={22} />
+                    </td>
                     <td className="py-3 px-3">
                       <StatusBadge status={run.status} />
                     </td>
@@ -176,7 +181,17 @@ export default function ReconciliationPage() {
                       {run.match_count}
                     </td>
                     <td className="py-3 px-3 text-right font-mono font-bold text-[#e07070] font-tabular">
-                      {run.exception_count}
+                      {run.exception_count > 0 ? (
+                        <Link
+                          href={`/exceptions?run_id=${encodeURIComponent(run.run_id)}`}
+                          className="hover:underline hover:text-[#f08888] transition-colors"
+                          title="View scoped exceptions"
+                        >
+                          {run.exception_count} →
+                        </Link>
+                      ) : (
+                        run.exception_count
+                      )}
                     </td>
                     <td className="py-3 px-3 text-right font-mono text-[#545e6a] text-[11px]">
                       {formatDateTime(run.started_at)}

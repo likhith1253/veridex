@@ -57,15 +57,15 @@ export function TechnicalReference({
     [id]
   );
 
-  if (!id) return <span className="text-[#6F747A] font-mono text-[11px]">—</span>;
+  if (!id) return <span className="text-[#8e96a0] font-mono text-[11px]">—</span>;
 
   const idEl = (
     <span
       title={id}
-      className="font-mono text-[11px] text-[#555B61] cursor-default select-all"
+      className="font-mono text-[11px] text-[#8e96a0] group-hover:text-[#eceae6] transition-colors cursor-default select-all"
     >
       {label && (
-        <span className="text-[#9E7B35] text-[10px] font-semibold mr-1 not-italic">
+        <span className="text-[#c9a96e] text-[10px] font-semibold mr-1 not-italic">
           {label}:
         </span>
       )}
@@ -77,11 +77,11 @@ export function TechnicalReference({
     <button
       onClick={handleCopy}
       title={`Copy: ${id}`}
-      className="ml-1 p-0.5 rounded text-[#9E7B35] hover:text-[#C9A96E] opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-hidden"
+      className="ml-1 p-0.5 rounded text-[#8e96a0] hover:text-[#c9a96e] opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-hidden"
       aria-label={`Copy ${label || "reference"}: ${id}`}
     >
       {copied ? (
-        <Check className="h-2.5 w-2.5 text-[#1E7B4D]" />
+        <Check className="h-2.5 w-2.5 text-[#6ecba0]" />
       ) : (
         <Copy className="h-2.5 w-2.5" />
       )}
@@ -99,7 +99,11 @@ export function TechnicalReference({
 
   return (
     <span
-      className={`group inline-flex items-center gap-0 px-2 py-0.5 rounded-xs bg-[#F1EFE9] border border-[#E2DDD3] ${className}`}
+      className={`group inline-flex items-center gap-0 px-2 py-0.5 rounded-xs border ${className}`}
+      style={{
+        background: "var(--surface-2)",
+        borderColor: "var(--border-subtle)",
+      }}
     >
       {idEl}
       {copyBtn}

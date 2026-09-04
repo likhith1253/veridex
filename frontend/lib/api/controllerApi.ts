@@ -47,9 +47,9 @@ export const controllerApi = {
       matched_records: matchedRecords,
       unresolved_transactions: unresolved,
       unmatched_records: unresolved,
-      total_exceptions: totalExceptions,
-      open_exceptions: unresolved,
-      resolved_exceptions: matchedRecords,
+      total_exceptions: res.total_exceptions ?? totalExceptions,
+      open_exceptions: res.open_exceptions ?? unresolved,
+      resolved_exceptions: res.resolved_exceptions ?? 0,
       match_rate: matchRateDec,
       financial_exposure: res.unresolved_monetary_exposure_inr ?? res.financial_exposure ?? "0.00",
       unresolved_monetary_exposure_inr: res.unresolved_monetary_exposure_inr ?? "0.00",
@@ -297,7 +297,7 @@ export const controllerApi = {
     // Deterministic / ML breakdown from decision_distribution
     const decisions = (res as any).result?.decision_distribution ?? {};
     const autoMatch = decisions?.auto_match?.count ?? overall.true_positives ?? 0;
-    const rejected = decisions?.reject?.count ?? 0;
+    const mlRecovered = decisions?.propose_match?.count ?? decisions?.ml_recovered?.count ?? 0;
     const unresolved = decisions?.unresolved?.count ?? overall.false_negatives ?? 0;
 
     return {
@@ -308,7 +308,7 @@ export const controllerApi = {
       recall: overall.recall ?? 0,
       f1_score: overall.f1_score ?? 0,
       deterministic_matches: autoMatch,
-      ml_recovered_matches: rejected,
+      ml_recovered_matches: mlRecovered,
       unresolved_records: unresolved,
       throughput_records_per_sec: throughput,
       duration_ms: durationMs,

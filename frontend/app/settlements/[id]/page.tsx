@@ -7,12 +7,16 @@ import { useQuery } from "@tanstack/react-query";
 import { settlementsApi } from "@/lib/api/settlementsApi";
 import { formatINR, formatDateTime } from "@/lib/utils/formatters";
 import { SettlementDecomposition } from "@/components/settlements/SettlementDecomposition";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import {
   ArrowLeft,
   FileCheck,
   CreditCard,
+  Building2,
+  Receipt,
+  FileText,
 } from "lucide-react";
 
 export default function SettlementDetailPage() {
@@ -53,29 +57,46 @@ export default function SettlementDetailPage() {
   }
 
   return (
-    <div className="space-y-6 pb-12 select-none">
+    <div className="space-y-6 pb-16 select-none">
       {/* Breadcrumb & Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#E2DDD3]">
-        <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A]">
-          <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+      <div
+        className="flex flex-wrap items-center justify-between gap-4 pb-3"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
+        <div className="flex items-center gap-2 text-xs font-mono text-[#8e96a0]">
+          <Link href="/app" className="hover:text-[#c9a96e] transition-colors">
+            Control Center
+          </Link>
           <span>/</span>
-          <Link href="/settlements" className="hover:text-[#9E7B35] transition-colors">Settlements</Link>
+          <Link href="/settlements" className="hover:text-[#c9a96e] transition-colors">
+            Settlements
+          </Link>
           <span>/</span>
-          <span className="text-[#17191C] font-semibold">{id}</span>
+          <span className="text-[#eceae6] font-semibold">{id}</span>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             href="/settlements"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-medium bg-[#FFFFFF] border border-[#D7D3CA] text-[#17191C] hover:bg-[#F2EFE9] shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-medium border text-[#eceae6] hover:bg-[#161a20] transition-micro"
+            style={{
+              borderColor: "var(--border-standard)",
+              background: "var(--surface-1)",
+            }}
           >
-            <ArrowLeft className="h-3.5 w-3.5 text-[#6F747A]" />
+            <ArrowLeft className="h-3.5 w-3.5 text-[#8e96a0]" />
             <span>Back to Settlements</span>
           </Link>
 
           <Link
             href={`/settlements/${encodeURIComponent(id)}/tax-audit`}
-            className="btn-gold px-3 py-1.5 text-xs font-semibold shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-bold transition-micro"
+            style={{
+              color: "var(--bg)",
+              background: "var(--accent)",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
           >
             <FileCheck className="h-3.5 w-3.5" />
             <span>Inspect Statutory Tax Line Audit</span>
@@ -83,13 +104,13 @@ export default function SettlementDetailPage() {
         </div>
       </div>
 
-      {/* Financial Decomposition Component */}
+      {/* 1. Financial Decomposition Waterfall (GROSS - FEE - TAX + ADJ = EXPECTED NET vs BANK RECEIVED -> VARIANCE) */}
       <SettlementDecomposition
         breakdown={breakdown}
         isLoading={breakdownLoading}
       />
 
-      {/* Linked Transactions Table */}
+      {/* 2. Linked Payments in Settlement Batch */}
       <div
         className="rounded-sm border p-6 text-[#eceae6]"
         style={{
@@ -106,10 +127,21 @@ export default function SettlementDetailPage() {
               <CreditCard className="h-4 w-4 text-[#c9a96e]" />
               Linked Gateway Payments in Batch
             </h2>
-            <p className="text-xs text-[#8e96a0] mt-0.5">
-              UTR Reference: <strong className="text-[#eceae6] font-mono">{linkage?.utr || "N/A"}</strong> | Payments Count:{" "}
-              <strong className="text-[#eceae6] font-mono">{linkage?.total_payments_count || 0}</strong>
-            </p>
+            <div className="text-xs text-[#8e96a0] mt-1 flex items-center gap-2">
+              <span>UTR Reference:</span>
+              <strong className="text-[#eceae6] font-mono">
+                {linkage?.utr ? (
+                  <TechnicalReference id={linkage.utr} label="UTR" maxVisible={22} inline />
+                ) : (
+                  "N/A (Pending Credit)"
+                )}
+              </strong>
+              <span>·</span>
+              <span>Payments Count:</span>
+              <strong className="text-[#eceae6] font-mono">
+                {linkage?.total_payments_count || 0}
+              </strong>
+            </div>
           </div>
         </div>
 
@@ -138,33 +170,41 @@ export default function SettlementDetailPage() {
                   <th className="py-2.5 px-3 text-right">Gross Amount</th>
                   <th className="py-2.5 px-3 text-right">Fee (MDR)</th>
                   <th className="py-2.5 px-3 text-right">Tax</th>
+                  <th className="py-2.5 px-3 text-right">Captured At</th>
                 </tr>
               </thead>
               <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
                 {linkage.payments.map((p, idx) => (
                   <tr
-                    key={p.payment_id ? `${p.payment_id}-${idx}` : `pay-item-${idx}`}
+                    key={p.payment_id ? `${p.payment_id}-${idx}` : `pay-${idx}`}
                     className="hover:bg-[#13161a] transition-micro"
                   >
-                    <td className="py-3 px-3 font-mono font-semibold text-[#eceae6]">
-                      {p.payment_id}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-[#8e96a0]">
-                      {p.order_id || "N/A"}
+                    <td className="py-3 px-3">
+                      <TechnicalReference id={p.payment_id} maxVisible={22} />
                     </td>
                     <td className="py-3 px-3">
-                      <span className="font-mono text-[10px] font-semibold text-[#6ecba0] uppercase">
-                        {p.status || "CAPTURED"}
+                      {p.order_id ? (
+                        <TechnicalReference id={p.order_id} label="ord" maxVisible={20} inline />
+                      ) : (
+                        <span className="text-[#545e6a] text-[11px]">—</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-0.5 rounded-xs text-[10px] font-mono font-semibold text-[#6ecba0] bg-[#1a3328] border border-[#2a6648]">
+                        {(p.status || "captured").toUpperCase()}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold font-tabular text-[#eceae6]">
+                    <td className="py-3 px-3 text-right font-mono font-medium font-tabular text-[#eceae6]">
                       {formatINR(p.amount)}
                     </td>
                     <td className="py-3 px-3 text-right font-mono text-[#e07070] font-tabular">
                       {formatINR(p.fee || 0)}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-[#d4a84e] font-tabular">
+                    <td className="py-3 px-3 text-right font-mono text-[#e07070] font-tabular">
                       {formatINR(p.tax || 0)}
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono text-[#8e96a0] text-[11px]">
+                      {p.timestamp ? formatDateTime(p.timestamp) : "—"}
                     </td>
                   </tr>
                 ))}

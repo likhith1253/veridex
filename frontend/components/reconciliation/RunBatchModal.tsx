@@ -1,7 +1,19 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { X, Play, Loader2, Database, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useState, useCallback, useRef } from "react";
+import {
+  X,
+  Play,
+  Loader2,
+  Database,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  UploadCloud,
+  FileSpreadsheet,
+  Check,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
 import type { BatchIngestResponse } from "@/types/controller";
@@ -13,9 +25,11 @@ interface RunBatchModalProps {
 
 type RunState =
   | { phase: "idle" }
-  | { phase: "submitting" }
+  | { phase: "submitting"; stage: string }
   | { phase: "success"; data: BatchIngestResponse }
   | { phase: "error"; message: string; detail?: string };
+
+type ActiveTab = "demo" | "import";
 
 function generateRunId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -27,12 +41,10 @@ function generateRunId(): string {
 /**
  * Build a diverse set of feed records using the same scenario patterns as
  * simulator/scenarios.py — clean matches, fee mismatches, delayed settlements,
- * ambiguous matches, duplicates, wrong references, partial refunds.
+ * ambiguous matches, duplicates, wrong references, partial refunds, missing bank credits.
  *
- * Each logical transaction produces exactly 3 feed records (gateway, ledger, bank).
+ * Each logical transaction produces 3 feed records (gateway, ledger, bank).
  * N logical transactions → 3N feed records.
- *
- * The canonical benchmark data (eval/, tests/) is completely separate.
  */
 function buildDiverseBatch(
   n: number,
@@ -54,17 +66,19 @@ function buildDiverseBatch(
   const tax = (amount: number) => parseFloat((fee(amount) * GST).toFixed(2));
   const net = (amount: number) => parseFloat((amount - fee(amount) - tax(amount)).toFixed(2));
 
-  // Scenario assignment — 8 exception/edge scenarios at specific positions,
-  // the rest are clean deterministic matches. Mirrors demo_scenario.py patterns.
+  // Scenario assignment — diverse exception/edge scenarios at specific positions,
+  // remaining are clean deterministic matches.
   const SCENARIO_MAP: Record<number, string> = {
-    0: "fee_mismatch",      // index 0
-    1: "fee_mismatch",      // index 1
-    2: "delayed",           // index 2
-    3: "delayed",           // index 3
-    4: "ambiguous",         // index 4
-    5: "duplicate",         // index 5
-    6: "wrong_reference",   // index 6
-    7: "partial_refund",    // index 7
+    0: "fee_mismatch", // index 0: Fee variance
+    1: "fee_mismatch", // index 1: Fee variance
+    2: "delayed", // index 2: Delayed settlement (timing diff)
+    3: "delayed", // index 3: Delayed settlement
+    4: "ambiguous", // index 4: ML recovered candidate
+    5: "duplicate", // index 5: Duplicate capture
+    6: "wrong_reference", // index 6: Corrupted order ID
+    7: "partial_refund", // index 7: Partial refund
+    8: "missing_bank", // index 8: Gateway & ledger exist, bank credit pending
+    9: "missing_ledger", // index 9: Gateway & bank exist, ledger missing
   };
 
   for (let i = 0; i < n; i++) {
@@ -73,151 +87,576 @@ function buildDiverseBatch(
     const gwId = `pay_${logicalId}`;
     const ldId = `ord_${logicalId}`;
     const bkId = `bnk_${logicalId}`;
-    // Varied amounts — not uniform multiples of 250
-    const baseAmounts = [10000, 25000, 15750, 8500, 50000, 33250, 12000, 75000,
-                         18600, 42000, 6750, 29900, 5000, 120000, 9900, 67500];
+    const baseAmounts = [
+      24410, 15750, 8500, 50000, 33250, 12000, 75000, 18600, 42000, 6750, 29900,
+      120000, 9900, 67500, 48200, 14300,
+    ];
     const amount = baseAmounts[i % baseAmounts.length];
     const utr = `UTR_AXIS_${logicalId}`;
-    const ts = new Date(now.getTime() - (n - i) * 3600000).toISOString(); // spread over past hours
+    const ts = new Date(now.getTime() - (n - i) * 3600000).toISOString();
 
     if (scenario === "fee_mismatch") {
       // Gateway charges 3% MDR instead of 2% — fee discrepancy exception
       const obsFee = parseFloat((amount * 0.03).toFixed(2));
       const obsTax = parseFloat((obsFee * GST).toFixed(2));
       const obsNet = parseFloat((amount - obsFee - obsTax).toFixed(2));
-      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "captured", fee: obsFee, tax: obsTax, source: "gateway", timestamp: ts });
-      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "COMPLETED", source: "ledger", timestamp: ts });
-      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
-                amount: obsNet, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
-
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: obsFee,
+        tax: obsTax,
+        source: "gateway",
+        timestamp: ts,
+      });
+      ld.push({
+        txn_id: ldId,
+        id: ldId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: utr,
+        amount: obsNet,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: ts,
+      });
     } else if (scenario === "delayed") {
       // Settlement arrives 5 days late — ML recoverable timing case
-      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
+      const f = fee(amount);
+      const t = tax(amount);
+      const n_ = net(amount);
       const delayed = new Date(now.getTime() + 5 * 86400000).toISOString();
-      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "captured", fee: f, tax: t, source: "gateway", timestamp: delayed });
-      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "COMPLETED", source: "ledger", timestamp: ts });
-      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
-                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: delayed });
-
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: f,
+        tax: t,
+        source: "gateway",
+        timestamp: delayed,
+      });
+      ld.push({
+        txn_id: ldId,
+        id: ldId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: utr,
+        amount: n_,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: delayed,
+      });
     } else if (scenario === "ambiguous") {
-      // Altered order_id and UTR — requires ML arbitration
-      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
-      const ambOrderId = `AMB_${ldId.slice(-6)}`;
-      const ambUtr = `AMB_${logicalId.slice(-8)}`;
-      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ambOrderId, amount, currency: "INR",
-                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
-      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "COMPLETED", source: "ledger", timestamp: ts });
-      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: `BK_${ambUtr}`,
-                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
-
+      // Direct Ledger-Bank reconciliation via ML Candidate Recovery (gateway unmapped/missing reference)
+      const tsBank = new Date(new Date(ts).getTime() + 86400000).toISOString();
+      ld.push({
+        txn_id: ldId,
+        id: ldId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        reference_number: logicalId,
+        amount,
+        currency: "INR",
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: `UTR_${logicalId}`,
+        narration: `SETTLEMENT ${logicalId} ${ldId}`,
+        amount,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: tsBank,
+      });
     } else if (scenario === "duplicate") {
-      // Duplicate entry — same payment captured twice
-      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
-      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
-      ld.push({ id: `${ldId}_DUP`, domain_transaction_id: `${logicalId}_DUP`, order_id: ldId, amount, currency: "INR",
-                status: "COMPLETED", source: "ledger", timestamp: ts });
-      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
-                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
-
+      // Duplicate entry — same payment recorded twice
+      const f = fee(amount);
+      const t = tax(amount);
+      const n_ = net(amount);
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: f,
+        tax: t,
+        source: "gateway",
+        timestamp: ts,
+      });
+      ld.push({
+        txn_id: `${ldId}_DUP`,
+        id: `${ldId}_DUP`,
+        domain_transaction_id: `${logicalId}_DUP`,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: utr,
+        amount: n_,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: ts,
+      });
     } else if (scenario === "wrong_reference") {
       // Corrupted order_id across sources
-      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
+      const f = fee(amount);
+      const t = tax(amount);
+      const n_ = net(amount);
       const corruptedOrder = `${ldId}_ERR`;
-      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: corruptedOrder, amount, currency: "INR",
-                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
-      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "COMPLETED", source: "ledger", timestamp: ts });
-      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: `${utr}_ERR`,
-                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
-
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: corruptedOrder,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: f,
+        tax: t,
+        source: "gateway",
+        timestamp: ts,
+      });
+      ld.push({
+        txn_id: ldId,
+        id: ldId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: `${utr}_ERR`,
+        amount: n_,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: ts,
+      });
     } else if (scenario === "partial_refund") {
       // Partial refund — 30% refunded
       const refund = parseFloat((amount * 0.3).toFixed(2));
-      const f = fee(amount); const t = tax(amount);
+      const f = fee(amount);
+      const t = tax(amount);
       const n_ = parseFloat((amount - f - t - refund).toFixed(2));
-      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
-      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "PARTIALLY_REFUNDED", source: "ledger", timestamp: ts });
-      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
-                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
-
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: f,
+        tax: t,
+        source: "gateway",
+        timestamp: ts,
+      });
+      ld.push({
+        txn_id: ldId,
+        id: ldId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "PARTIALLY_REFUNDED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: utr,
+        amount: n_,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: ts,
+      });
+    } else if (scenario === "missing_bank") {
+      // Bank credit missing / pending settlement
+      const f = fee(amount);
+      const t = tax(amount);
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: f,
+        tax: t,
+        source: "gateway",
+        timestamp: ts,
+      });
+      ld.push({
+        txn_id: ldId,
+        id: ldId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      // No bank entry created
+    } else if (scenario === "missing_ledger") {
+      // Captured at gateway and credited at bank, but missing internal ledger entry
+      const f = fee(amount);
+      const t = tax(amount);
+      const n_ = net(amount);
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: f,
+        tax: t,
+        source: "gateway",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: utr,
+        amount: n_,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: ts,
+      });
+      // No ledger entry created
     } else {
       // Normal clean deterministic match
-      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
-      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
-      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
-                status: "COMPLETED", source: "ledger", timestamp: ts });
-      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
-                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
+      const f = fee(amount);
+      const t = tax(amount);
+      const n_ = net(amount);
+      gw.push({
+        txn_id: gwId,
+        id: gwId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "captured",
+        fee: f,
+        tax: t,
+        source: "gateway",
+        timestamp: ts,
+      });
+      ld.push({
+        txn_id: ldId,
+        id: ldId,
+        domain_transaction_id: logicalId,
+        order_id: ldId,
+        amount,
+        currency: "INR",
+        status: "COMPLETED",
+        source: "ledger",
+        timestamp: ts,
+      });
+      bk.push({
+        txn_id: bkId,
+        id: bkId,
+        domain_transaction_id: logicalId,
+        reference_number: utr,
+        amount: n_,
+        currency: "INR",
+        status: "CREDIT",
+        source: "bank",
+        timestamp: ts,
+      });
     }
   }
 
   return { gateway_records: gw, ledger_records: ld, bank_records: bk };
 }
 
+interface ParsedFileStats {
+  gateway: number;
+  ledger: number;
+  bank: number;
+  fileName: string;
+}
+
 export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<ActiveTab>("demo");
   const [runState, setRunState] = useState<RunState>({ phase: "idle" });
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showErrorDetail, setShowErrorDetail] = useState(false);
   const [batchSize, setBatchSize] = useState<number>(50);
+  const [customRunId, setCustomRunId] = useState<string>("");
+
+  // CSV Import State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [parsedFiles, setParsedFiles] = useState<{
+    gw: Record<string, unknown>[];
+    ld: Record<string, unknown>[];
+    bk: Record<string, unknown>[];
+    stats?: ParsedFileStats;
+  }>({ gw: [], ld: [], bk: [] });
+  const [importError, setImportError] = useState<string | null>(null);
 
   const isSubmitting = runState.phase === "submitting";
 
+  // Parse CSV file content
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportError(null);
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        if (lines.length < 2) {
+          setImportError("CSV file must contain a header row and at least one data row.");
+          return;
+        }
+
+        const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/['"]+/g, ""));
+        const rows: Record<string, string>[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const vals = lines[i].split(",").map((v) => v.trim().replace(/['"]+/g, ""));
+          const rowObj: Record<string, string> = {};
+          headers.forEach((h, idx) => {
+            rowObj[h] = vals[idx] ?? "";
+          });
+          rows.push(rowObj);
+        }
+
+        // Determine feed type from headers
+        const isGateway = headers.includes("gross_amount") || headers.includes("settlement_id") || headers.includes("fee");
+        const isLedger = headers.includes("customer_id") || headers.includes("transaction_amount") || headers.includes("payment_status");
+        const isBank = headers.includes("bank_transaction_id") || headers.includes("credit_amount") || headers.includes("debit_amount");
+
+        const nowIso = new Date().toISOString();
+
+        if (isGateway) {
+          const gwRecords = rows.map((r, i) => ({
+            txn_id: r.transaction_id || r.txn_id || `gw_csv_${i + 1}`,
+            id: r.transaction_id || r.txn_id || `gw_csv_${i + 1}`,
+            order_id: r.order_id || undefined,
+            amount: parseFloat(r.gross_amount || r.amount || "0"),
+            currency: r.currency || "INR",
+            status: r.status || "captured",
+            fee: r.fee ? parseFloat(r.fee) : 0,
+            tax: r.tax ? parseFloat(r.tax) : 0,
+            source: "gateway",
+            timestamp: r.settlement_date || r.timestamp || nowIso,
+          }));
+          setParsedFiles((prev) => ({
+            ...prev,
+            gw: gwRecords,
+            stats: {
+              gateway: gwRecords.length,
+              ledger: prev.ld.length,
+              bank: prev.bk.length,
+              fileName: file.name,
+            },
+          }));
+        } else if (isLedger) {
+          const ldRecords = rows.map((r, i) => ({
+            txn_id: r.order_id || r.txn_id || `ld_csv_${i + 1}`,
+            id: r.order_id || r.txn_id || `ld_csv_${i + 1}`,
+            order_id: r.order_id || undefined,
+            amount: parseFloat(r.transaction_amount || r.amount || "0"),
+            currency: r.currency || "INR",
+            status: r.payment_status || "COMPLETED",
+            source: "ledger",
+            timestamp: r.order_date || r.timestamp || nowIso,
+          }));
+          setParsedFiles((prev) => ({
+            ...prev,
+            ld: ldRecords,
+            stats: {
+              gateway: prev.gw.length,
+              ledger: ldRecords.length,
+              bank: prev.bk.length,
+              fileName: file.name,
+            },
+          }));
+        } else if (isBank) {
+          const bkRecords = rows.map((r, i) => {
+            const credit = parseFloat(r.credit_amount || "0");
+            const debit = parseFloat(r.debit_amount || "0");
+            const amt = credit > 0 ? credit : debit > 0 ? debit : parseFloat(r.amount || "0");
+            return {
+              txn_id: r.bank_transaction_id || r.txn_id || `bk_csv_${i + 1}`,
+              id: r.bank_transaction_id || r.txn_id || `bk_csv_${i + 1}`,
+              reference_number: r.utr || r.reference_number || undefined,
+              amount: amt,
+              currency: r.currency || "INR",
+              status: credit > 0 ? "CREDIT" : "DEBIT",
+              source: "bank",
+              timestamp: r.value_date || r.timestamp || nowIso,
+            };
+          });
+          setParsedFiles((prev) => ({
+            ...prev,
+            bk: bkRecords,
+            stats: {
+              gateway: prev.gw.length,
+              ledger: prev.ld.length,
+              bank: bkRecords.length,
+              fileName: file.name,
+            },
+          }));
+        } else {
+          // Generic CSV: Treat as gateway feed
+          const genericRecords = rows.map((r, i) => ({
+            txn_id: r.txn_id || r.id || r.transaction_id || `rec_${i + 1}`,
+            id: r.txn_id || r.id || r.transaction_id || `rec_${i + 1}`,
+            order_id: r.order_id || undefined,
+            reference_number: r.utr || r.reference_number || undefined,
+            amount: parseFloat(r.amount || r.gross_amount || "0"),
+            currency: r.currency || "INR",
+            status: r.status || "captured",
+            source: r.source || "gateway",
+            timestamp: r.timestamp || r.date || nowIso,
+          }));
+          setParsedFiles((prev) => ({
+            ...prev,
+            gw: genericRecords,
+            stats: {
+              gateway: genericRecords.length,
+              ledger: prev.ld.length,
+              bank: prev.bk.length,
+              fileName: file.name,
+            },
+          }));
+        }
+      } catch (err) {
+        setImportError(`Failed to parse CSV: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleStartRun = useCallback(async () => {
     if (isSubmitting) return;
-    setRunState({ phase: "submitting" });
+    setRunState({ phase: "submitting", stage: "Ingesting multi-source feeds..." });
     setShowErrorDetail(false);
 
-    const n = Number(batchSize) || 50;
-    const runId = generateRunId();
-    const { gateway_records, ledger_records, bank_records } = buildDiverseBatch(n, runId);
+    const runId = customRunId.trim() || generateRunId();
+
+    let gwRecords: Record<string, unknown>[] = [];
+    let ldRecords: Record<string, unknown>[] = [];
+    let bkRecords: Record<string, unknown>[] = [];
+
+    if (activeTab === "import" && (parsedFiles.gw.length > 0 || parsedFiles.ld.length > 0 || parsedFiles.bk.length > 0)) {
+      gwRecords = parsedFiles.gw;
+      ldRecords = parsedFiles.ld;
+      bkRecords = parsedFiles.bk;
+    } else {
+      const n = Number(batchSize) || 50;
+      const batch = buildDiverseBatch(n, runId);
+      gwRecords = batch.gateway_records;
+      ldRecords = batch.ledger_records;
+      bkRecords = batch.bank_records;
+    }
 
     try {
+      setRunState({ phase: "submitting", stage: "Executing 3-way reconciliation engine..." });
       const data = await controllerApi.ingestBatch({
         batch_id: runId,
-        gateway_records,
-        ledger_records,
-        bank_records,
+        gateway_records: gwRecords,
+        ledger_records: ldRecords,
+        bank_records: bkRecords,
       });
+
       setRunState({ phase: "success", data });
+      // Invalidate queries so Command Center, exceptions, runs, audit all update atomically
       queryClient.invalidateQueries();
     } catch (err: unknown) {
       let message = "Reconciliation could not start. The request was rejected by the service.";
       let detail: string | undefined;
       if (err instanceof Error) {
-        // Check if it's a 422 validation error
         if (err.message.includes("422") || err.message.toLowerCase().includes("validation")) {
-          message = "Reconciliation could not start. The request was rejected by the reconciliation service.";
+          message = "Reconciliation request validation error. Field types or required values were rejected.";
         } else if (err.message.includes("500")) {
-          message = "Reconciliation could not start. An internal service error occurred.";
-        } else {
-          message = "Reconciliation could not start. The request was rejected by the service.";
+          message = "Reconciliation could not complete due to an internal service exception.";
         }
         detail = err.message;
       }
       setRunState({ phase: "error", message, detail });
     }
-  }, [isSubmitting, batchSize, queryClient]);
+  }, [isSubmitting, customRunId, activeTab, parsedFiles, batchSize, queryClient]);
 
   const handleClose = useCallback(() => {
     setRunState({ phase: "idle" });
     setShowAdvanced(false);
     setShowErrorDetail(false);
+    setParsedFiles({ gw: [], ld: [], bk: [] });
+    setImportError(null);
     onClose();
   }, [onClose]);
 
   if (!isOpen) return null;
 
-  const feedRecordCount = batchSize * 3;
+  const demoLogicalTxns = batchSize;
+  const demoFeedRecords = batchSize * 3;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
@@ -245,10 +684,10 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
             </div>
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
-                Run Reconciliation
+                Data Ingestion &amp; Reconciliation
               </h2>
               <p className="text-[10px] text-[#8e96a0]">
-                Gateway · Ledger · Bank — 3-way reconciliation
+                Gateway · Ledger · Bank — 3-way continuous reconciliation
               </p>
             </div>
           </div>
@@ -261,63 +700,164 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
           </button>
         </div>
 
+        {/* Modal Tabs */}
+        {runState.phase === "idle" && (
+          <div className="flex items-center border-b border-[#22272e] pt-3">
+            <button
+              onClick={() => setActiveTab("demo")}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-micro ${
+                activeTab === "demo"
+                  ? "border-[#c9a96e] text-[#eceae6]"
+                  : "border-transparent text-[#8e96a0] hover:text-[#eceae6]"
+              }`}
+            >
+              <Database className="h-3.5 w-3.5" />
+              Demo Dataset (Balanced Feeds)
+            </button>
+            <button
+              onClick={() => setActiveTab("import")}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-micro ${
+                activeTab === "import"
+                  ? "border-[#c9a96e] text-[#eceae6]"
+                  : "border-transparent text-[#8e96a0] hover:text-[#eceae6]"
+              }`}
+            >
+              <UploadCloud className="h-3.5 w-3.5" />
+              Import CSV Statements
+            </button>
+          </div>
+        )}
+
         {/* Modal Body */}
         <div className="py-4 space-y-4 text-xs">
-          {/* Primary description — no implementation detail */}
-          {runState.phase === "idle" && (
-            <div
-              className="p-3.5 rounded-sm border text-[11px] leading-relaxed text-[#8e96a0]"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--surface-2)",
-              }}
-            >
-              Ingest a diverse set of financial records across Gateway, Ledger, and Bank feeds.
-              The reconciliation engine will match, investigate, and classify each logical transaction.
+          {runState.phase === "idle" && activeTab === "demo" && (
+            <div className="space-y-3">
+              <div
+                className="p-3.5 rounded-sm border text-[11px] leading-relaxed text-[#8e96a0]"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: "var(--surface-2)",
+                }}
+              >
+                Reconcile a balanced financial dataset of <strong className="text-[#eceae6]">50 logical transactions (150 multi-source feed records)</strong> across Gateway, Ledger, and Bank feeds. Exercises clean matches, fee discrepancies, delayed settlements, duplicate captures, and ambiguous matches.
+              </div>
+
+              {/* Advanced Options Toggle */}
+              <div>
+                <button
+                  onClick={() => setShowAdvanced((v) => !v)}
+                  className="flex items-center gap-1.5 text-[11px] text-[#8e96a0] hover:text-[#c9a96e] transition-micro font-mono"
+                >
+                  {showAdvanced ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  Advanced options
+                </button>
+
+                {showAdvanced && (
+                  <div
+                    className="mt-2 p-3.5 rounded-sm border space-y-3 text-[11px]"
+                    style={{
+                      borderColor: "var(--border-subtle)",
+                      background: "var(--surface-2)",
+                    }}
+                  >
+                    <div>
+                      <label className="block text-[#8e96a0] mb-1 text-[10px] uppercase font-semibold tracking-wider">
+                        Logical Transactions
+                      </label>
+                      <select
+                        value={batchSize}
+                        onChange={(e) => setBatchSize(Number(e.target.value))}
+                        disabled={isSubmitting}
+                        className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+                        style={{
+                          borderColor: "var(--border-standard)",
+                          background: "var(--surface-1)",
+                        }}
+                      >
+                        <option value={20}>20 logical transactions · 60 feed records</option>
+                        <option value={50}>50 logical transactions · 150 feed records (Recommended)</option>
+                        <option value={100}>100 logical transactions · 300 feed records</option>
+                      </select>
+                      <p className="mt-1 text-[10px] text-[#545e6a]">
+                        Each logical transaction generates 3 feed records (Gateway + Ledger + Bank).
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-[#8e96a0] mb-1 text-[10px] uppercase font-semibold tracking-wider">
+                        Custom Batch Identifier (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={customRunId}
+                        onChange={(e) => setCustomRunId(e.target.value)}
+                        placeholder="Leave blank to auto-generate"
+                        className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden"
+                        style={{
+                          borderColor: "var(--border-standard)",
+                          background: "var(--surface-1)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Advanced Options Toggle */}
-          {runState.phase === "idle" && (
-            <div>
-              <button
-                onClick={() => setShowAdvanced((v) => !v)}
-                className="flex items-center gap-1.5 text-[11px] text-[#8e96a0] hover:text-[#c9a96e] transition-micro font-mono"
+          {runState.phase === "idle" && activeTab === "import" && (
+            <div className="space-y-3">
+              <div
+                className="p-3.5 rounded-sm border text-[11px] leading-relaxed text-[#8e96a0]"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: "var(--surface-2)",
+                }}
               >
-                {showAdvanced ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                Advanced options
-              </button>
+                Upload statement CSVs for Gateway, Ledger, or Bank feeds. Supported formats match standard institution settlement exports.
+              </div>
 
-              {showAdvanced && (
-                <div
-                  className="mt-2 p-3.5 rounded-sm border space-y-3 text-[11px]"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--surface-2)",
-                  }}
-                >
-                  <div>
-                    <label className="block text-[#8e96a0] mb-1 text-[10px] uppercase font-semibold tracking-wider">
-                      Logical Transactions
-                    </label>
-                    <select
-                      value={batchSize}
-                      onChange={(e) => setBatchSize(Number(e.target.value))}
-                      disabled={isSubmitting}
-                      className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
-                      style={{
-                        borderColor: "var(--border-standard)",
-                        background: "var(--surface-1)",
-                      }}
-                    >
-                      <option value={20}>20 logical transactions · 60 feed records</option>
-                      <option value={50}>50 logical transactions · 150 feed records</option>
-                      <option value={100}>100 logical transactions · 300 feed records</option>
-                    </select>
-                    <p className="mt-1 text-[10px] text-[#545e6a]">
-                      Each logical transaction produces 3 feed records (Gateway + Ledger + Bank).
-                    </p>
+              {/* Upload Dropzone */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-[#343b44] hover:border-[#c9a96e] rounded-sm p-6 text-center cursor-pointer transition-colors bg-[#111418]"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept=".csv"
+                  className="hidden"
+                />
+                <FileSpreadsheet className="h-8 w-8 text-[#8e96a0] mx-auto mb-2" />
+                <p className="text-xs font-semibold text-[#eceae6]">
+                  Click to select CSV Statement file
+                </p>
+                <p className="text-[10px] text-[#8e96a0] mt-1">
+                  Supports Gateway, Ledger, or Bank CSV exports
+                </p>
+              </div>
+
+              {/* Parsed Stats Preview */}
+              {parsedFiles.stats && (
+                <div className="p-3 rounded-sm border border-[#2a3038] bg-[#161a1f] space-y-1.5 font-mono text-[11px]">
+                  <div className="flex items-center justify-between text-[#6ecba0] font-semibold">
+                    <span className="flex items-center gap-1.5">
+                      <Check className="h-3.5 w-3.5" /> File Loaded: {parsedFiles.stats.fileName}
+                    </span>
                   </div>
+                  <div className="grid grid-cols-3 gap-2 pt-1 text-[10px] text-[#8e96a0]">
+                    <div>Gateway: <strong className="text-[#eceae6]">{parsedFiles.gw.length}</strong></div>
+                    <div>Ledger: <strong className="text-[#eceae6]">{parsedFiles.ld.length}</strong></div>
+                    <div>Bank: <strong className="text-[#eceae6]">{parsedFiles.bk.length}</strong></div>
+                  </div>
+                </div>
+              )}
+
+              {importError && (
+                <div className="p-2.5 rounded-sm border border-[#6b2a2a] bg-[#2a1313] text-[#e07070] text-[11px] flex items-center gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>{importError}</span>
                 </div>
               )}
             </div>
@@ -331,16 +871,17 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
             const totalMatched = autoMatched + mlRecovered;
             const unresolved = d.unresolved_count ?? 0;
             const feedRecords = d.records_received ?? 0;
-            const logicalTxns = Math.round(feedRecords / 3) || batchSize;
+            const logicalTxns = Math.round(feedRecords / 3) || demoLogicalTxns;
             const durationMs = d.processing_duration_ms;
 
             let throughputDisplay = "";
             if (typeof durationMs === "number" && Number.isFinite(durationMs) && durationMs > 0) {
               const durationSec = durationMs / 1000;
               const tps = feedRecords > 0 ? feedRecords / durationSec : null;
-              throughputDisplay = tps !== null && Number.isFinite(tps)
-                ? `${tps.toFixed(0)} feed records/s · ${durationSec.toFixed(2)}s`
-                : `${durationMs.toFixed(0)}ms`;
+              throughputDisplay =
+                tps !== null && Number.isFinite(tps)
+                  ? `${tps.toFixed(0)} feed records/s · ${durationSec.toFixed(2)}s`
+                  : `${durationMs.toFixed(0)}ms`;
             }
 
             return (
@@ -353,7 +894,7 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
               >
                 <div className="flex items-center gap-1.5 text-[#6ecba0] font-bold text-xs">
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>Reconciliation complete</span>
+                  <span>Reconciliation complete · Authoritative state persisted</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
                   <div>
@@ -361,11 +902,11 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
                     <span className="text-[#eceae6] font-bold">{logicalTxns}</span>
                   </div>
                   <div>
-                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Feed Records</div>
+                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Feed Records Ingested</div>
                     <span className="text-[#eceae6] font-bold">{feedRecords}</span>
                   </div>
                   <div>
-                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Matched</div>
+                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Total Matched</div>
                     <span className="text-[#6ecba0] font-bold">{totalMatched}</span>
                   </div>
                   <div>
@@ -433,9 +974,7 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
               }}
             >
               <Loader2 className="h-4 w-4 animate-spin text-[#c9a96e] flex-shrink-0" />
-              <span>
-                Ingesting {feedRecordCount} feed records and running 3-way reconciliation…
-              </span>
+              <span>{runState.stage}</span>
             </div>
           )}
         </div>
@@ -473,7 +1012,11 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
                 <>
                   <Play className="h-3.5 w-3.5 fill-current" />
                   <span>
-                    {runState.phase === "error" ? "Try Again" : "Run Reconciliation"}
+                    {runState.phase === "error"
+                      ? "Try Again"
+                      : activeTab === "import"
+                      ? "Reconcile Imported Data"
+                      : "Run Reconciliation"}
                   </span>
                 </>
               )}

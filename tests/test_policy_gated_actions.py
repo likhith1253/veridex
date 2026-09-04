@@ -239,3 +239,96 @@ async def test_action_bounds_policy_enforcement(test_ctx, auth_headers):
     res = await client.post("/api/v1/actions/recommend", json=unbounded_payload, headers=auth_headers)
     assert res.status_code == 400
     assert "exceeds policy bound limit" in res.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_action_recommendation_idempotent(test_ctx, auth_headers):
+    """Test that recommending an action for an entity multiple times is idempotent."""
+    client, session = test_ctx
+    run_stmt = select(ReconciliationRunORM.id).limit(1)
+    run_id = (await session.execute(run_stmt)).scalars().first()
+
+    payload = {
+        "entity_type": "exception",
+        "entity_id": "exc_idem_test_001",
+        "action_type": "POST_ADJUSTMENT",
+        "amount": "250.00",
+        "currency": "INR",
+        "recommended_by": "ai_agent",
+        "recommendation_reason": "First recommendation",
+        "run_id": run_id,
+    }
+    res1 = await client.post("/api/v1/actions/recommend", json=payload, headers=auth_headers)
+    assert res1.status_code == 201
+    act_id1 = res1.json()["id"]
+
+    # Re-recommend same entity
+    payload["recommendation_reason"] = "Updated recommendation reason"
+    payload["amount"] = "260.00"
+    res2 = await client.post("/api/v1/actions/recommend", json=payload, headers=auth_headers)
+    assert res2.status_code == 201
+    act_id2 = res2.json()["id"]
+
+    # Same action ID returned, not duplicated
+    assert act_id1 == act_id2
+    assert res2.json()["amount"] == "260.00"
+
+
+@pytest.mark.asyncio
+async def test_action_execution_resolves_exception(test_ctx, auth_headers):
+    """Test that executing a POST_ADJUSTMENT action on an exception resolves the exception."""
+    client, session = test_ctx
+    now = utcnow()
+    run_stmt = select(ReconciliationRunORM.id).limit(1)
+    run_id = (await session.execute(run_stmt)).scalars().first()
+
+    exc = ExceptionORM(
+        id=f"exc_exec_resolve_{now.timestamp()}",
+        run_id=run_id,
+        exception_category=ExceptionCategory.AMOUNT_MISMATCH,
+        status="open",
+        confidence=Decimal("0.90"),
+        financial_exposure=Decimal("200.00"),
+        expected_cost=Decimal("20.00"),
+        explanation="Fee mismatch requiring adjustment",
+        resolved=False,
+        created_at=now,
+    )
+    session.add(exc)
+    await session.commit()
+
+    # Recommend, approve, execute
+    rec_res = await client.post(
+        "/api/v1/actions/recommend",
+        json={
+            "entity_type": "exception",
+            "entity_id": exc.id,
+            "action_type": "POST_ADJUSTMENT",
+            "amount": "200.00",
+            "currency": "INR",
+            "recommended_by": "ai_agent",
+            "recommendation_reason": "Post adjustment",
+            "run_id": run_id,
+        },
+        headers=auth_headers,
+    )
+    act_id = rec_res.json()["id"]
+
+    await client.post(
+        f"/api/v1/actions/{act_id}/approve",
+        json={"actor": "Controller_Alice", "reason": "Approved adjustment"},
+        headers=auth_headers,
+    )
+
+    exec_res = await client.post(
+        f"/api/v1/actions/{act_id}/execute",
+        json={"actor": "Controller_Alice"},
+        headers=auth_headers,
+    )
+    assert exec_res.status_code == 200
+
+    # Verify exception is now resolved in database
+    await session.refresh(exc)
+    assert exc.resolved is True
+    assert exc.status == "resolved"
+
