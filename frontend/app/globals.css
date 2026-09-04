@@ -36,33 +36,33 @@
   --accent:        #C9A96E;
   --accent-hover:  #D8BC8A;
   --accent-deep:   #9E7B35;     /* high contrast gold for light surfaces */
-  --accent-dim:    rgba(201, 169, 110, 0.12);
-  --accent-border: rgba(201, 169, 110, 0.35);
+  --accent-dim:    rgba(201, 169, 110, 0.10);
+  --accent-border: rgba(201, 169, 110, 0.28);
   --accent-solid:  #C9A96E;
 
-  /* ── Semantic: Restrained Deep Emerald (confirmed / reconciled / matched) */
+  /* ── Semantic: Restrained Deep Emerald (subtly softened borders & bg) */
   --matched:        #1E7B4D;
   --matched-text:   #16653E;
-  --matched-bg:     rgba(30, 123, 77, 0.08);
-  --matched-border: rgba(30, 123, 77, 0.25);
+  --matched-bg:     rgba(30, 123, 77, 0.05);
+  --matched-border: rgba(30, 123, 77, 0.18);
 
-  /* ── Semantic: Restrained Brick/Coral (exception / discrepancy / variance) */
+  /* ── Semantic: Restrained Brick/Coral (subtly softened borders & bg) */
   --variance:        #B83A3A;
   --variance-text:   #9E2828;
-  --variance-bg:     rgba(184, 58, 58, 0.08);
-  --variance-border: rgba(184, 58, 58, 0.25);
+  --variance-bg:     rgba(184, 58, 58, 0.05);
+  --variance-border: rgba(184, 58, 58, 0.18);
 
-  /* ── Semantic: Warm Amber (pending / review / unresolved / uncertainty) */
+  /* ── Semantic: Warm Amber (subtly softened borders & bg) */
   --pending:        #9C6B19;
   --pending-text:   #82550E;
-  --pending-bg:     rgba(156, 107, 25, 0.08);
-  --pending-border: rgba(156, 107, 25, 0.25);
+  --pending-bg:     rgba(156, 107, 25, 0.05);
+  --pending-border: rgba(156, 107, 25, 0.18);
 
   /* ── Analytical layer (neutral slate) */
   --ml:        #5C6470;
   --ml-text:   #424954;
-  --ml-bg:     rgba(92, 100, 112, 0.08);
-  --ml-border: rgba(92, 100, 112, 0.25);
+  --ml-bg:     rgba(92, 100, 112, 0.05);
+  --ml-border: rgba(92, 100, 112, 0.18);
 
   /* ── Feed lineage */
   --gateway: #555B61;

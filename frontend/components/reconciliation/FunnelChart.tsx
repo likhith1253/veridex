@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { formatINR, formatPercent } from "@/lib/utils/formatters";
 import type { ReconciliationFunnel } from "@/types/controller";
 import { CheckCircle2, Cpu, AlertTriangle, ArrowRight, ShieldCheck, Layers, GitBranch, ArrowDownRight } from "lucide-react";
@@ -8,9 +9,11 @@ import { CheckCircle2, Cpu, AlertTriangle, ArrowRight, ShieldCheck, Layers, GitB
 interface FunnelChartProps {
   funnel?: ReconciliationFunnel | null;
   isLoading?: boolean;
+  /** Current run ID — if provided, drill-down links will be scoped to this run */
+  runId?: string;
 }
 
-export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
+export function FunnelChart({ funnel, isLoading, runId }: FunnelChartProps) {
   if (isLoading || !funnel) {
     return (
       <div
@@ -103,19 +106,23 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
               background: "var(--surface-2)",
             }}
           >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-[#545e6a]">
-                  Stage 01
-                </span>
-                <span className="text-[10px] font-mono text-[#8e96a0]">3 Sources</span>
-              </div>
-              <div className="text-xs font-semibold text-[#eceae6]">
-                Multi-Source Ingestion
-              </div>
-              <div className="mt-2 font-mono text-2xl font-bold text-[#eceae6] font-tabular">
-                {totalEvaluated}
-              </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase font-semibold tracking-wider text-[#545e6a]">
+                Stage 01
+              </span>
+              <span className="text-[10px] font-mono text-[#8e96a0]">3 Sources</span>
+            </div>
+            <div className="text-xs font-semibold text-[#eceae6]">
+              Multi-Source Ingestion
+            </div>
+            <Link
+              href={runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation"}
+              className="mt-2 font-mono text-2xl font-bold text-[#eceae6] font-tabular hover:text-[#c9a96e] transition-colors cursor-pointer block"
+              title={`View ${totalEvaluated} feed records in reconciliation`}
+            >
+              {totalEvaluated}
+            </Link>
             </div>
             <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
               Normalized canonical records
@@ -140,13 +147,17 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
                   {deterministicPct.toFixed(1)}%
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#6ecba0]" />
-                <span>Deterministic Rule Match</span>
-              </div>
-              <div className="mt-2 font-mono text-2xl font-bold text-[#6ecba0] font-tabular">
-                {detMatches}
-              </div>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#6ecba0]" />
+              <span>Deterministic Rule Match</span>
+            </div>
+            <Link
+              href={runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation"}
+              className="mt-2 font-mono text-2xl font-bold text-[#6ecba0] font-tabular hover:opacity-75 transition-opacity cursor-pointer block"
+              title={`${detMatches} deterministic matches — view in reconciliation`}
+            >
+              {detMatches}
+            </Link>
             </div>
             <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
               Strict UTR, reference &amp; monetary parity
@@ -170,13 +181,20 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
                   {mlPct.toFixed(1)}%
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
-                <Cpu className="h-3.5 w-3.5 text-[#9aa5b2]" />
-                <span>ML Candidate Recovery</span>
-              </div>
-              <div className="mt-2 font-mono text-2xl font-bold text-[#eceae6] font-tabular">
-                {mlMatches}
-              </div>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#eceae6]">
+              <Cpu className="h-3.5 w-3.5 text-[#9aa5b2]" />
+              <span>ML Candidate Recovery</span>
+            </div>
+            {/* ML drill-down: backend exceptions endpoint has no ML-only filter.
+                Link to exceptions for this run — user can see which were ML-recovered
+                in the dossier evidence. */}
+            <Link
+              href={runId ? `/exceptions?run_id=${encodeURIComponent(runId)}` : "/exceptions"}
+              className="mt-2 font-mono text-2xl font-bold text-[#eceae6] font-tabular hover:text-[#c9a96e] transition-colors cursor-pointer block"
+              title={mlMatches > 0 ? `${mlMatches} ML-recovered — view exceptions for this run` : "ML recovery not invoked"}
+            >
+              {mlMatches}
+            </Link>
             </div>
             <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>
               {mlMatches > 0
@@ -213,12 +231,26 @@ export function FunnelChart({ funnel, isLoading }: FunnelChartProps) {
                 </span>
               </div>
               <div className="mt-2 flex items-baseline justify-between font-mono">
-                <span className="text-2xl font-bold text-[#6ecba0] font-tabular">
+                <Link
+                  href={runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation"}
+                  className="text-2xl font-bold text-[#6ecba0] font-tabular hover:opacity-75 transition-opacity cursor-pointer"
+                  title={`${totalReconciled} reconciled — view in reconciliation`}
+                >
                   {totalReconciled}
-                </span>
-                <span className="text-sm font-semibold text-[#e07070] font-tabular">
-                  {exceptions > 0 ? `+${exceptions} req. review` : "0 discrepancies"}
-                </span>
+                </Link>
+                {exceptions > 0 ? (
+                  <Link
+                    href={runId
+                      ? `/exceptions?status=open&run_id=${encodeURIComponent(runId)}`
+                      : "/exceptions?status=open"}
+                    className="text-sm font-semibold text-[#e07070] font-tabular hover:opacity-75 transition-opacity cursor-pointer"
+                    title={`${exceptions} open exceptions — view exception queue`}
+                  >
+                    +{exceptions} req. review
+                  </Link>
+                ) : (
+                  <span className="text-sm font-semibold text-[#8e96a0] font-tabular">0 discrepancies</span>
+                )}
               </div>
             </div>
             <div className="mt-3 pt-2.5 border-t text-[11px] text-[#8e96a0]" style={{ borderColor: "var(--border-subtle)" }}>

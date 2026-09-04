@@ -11,6 +11,7 @@ import { formatINR, cn } from "@/lib/utils/formatters";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ConfidenceBadge } from "@/components/common/ConfidenceBadge";
 import { EvidenceGraph } from "@/components/exceptions/EvidenceGraph";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import {
@@ -138,22 +139,22 @@ export default function ExceptionDossierPage() {
 
   return (
     <div className="space-y-6 pb-12 select-none">
-      {/* Top Breadcrumb */}
-      <div className="flex items-center gap-3">
+      {/* Top Breadcrumb & Navigation */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#E2DDD3]">
+        <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A]">
+          <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+          <span>/</span>
+          <Link href="/exceptions" className="hover:text-[#9E7B35] transition-colors">Exceptions</Link>
+          <span>/</span>
+          <span className="text-[#17191C] font-semibold">{id}</span>
+        </div>
         <Link
           href="/exceptions"
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs transition-micro text-[#8e96a0] hover:text-[#eceae6]"
-          style={{
-            borderColor: "var(--border-subtle)",
-            background: "var(--surface-2)",
-            border: "1px solid var(--border-subtle)",
-          }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-medium bg-[#FFFFFF] border border-[#D7D3CA] text-[#17191C] hover:bg-[#F2EFE9] shadow-xs transition-colors"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Exception Queue
+          <ArrowLeft className="h-3.5 w-3.5 text-[#6F747A]" />
+          <span>Back to Exceptions</span>
         </Link>
-        <span style={{ color: "var(--text-tertiary)" }}>/</span>
-        <span className="text-xs text-[#8e96a0]">Dossier:</span>
-        <span className="text-xs font-mono font-semibold text-[#eceae6]">{id}</span>
       </div>
 
       {/* Dossier Executive Banner */}
@@ -170,14 +171,31 @@ export default function ExceptionDossierPage() {
         >
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
-              <h1 className="text-lg font-bold font-mono text-[#eceae6]">{id}</h1>
+              {/* Primary heading: human-readable category name, not raw ID */}
+              <h1 className="text-lg font-bold text-[#eceae6] capitalize">
+                {(exception.category || exception.exception_category || "Exception").replace(/_/g, " ")}
+              </h1>
               <StatusBadge status={exception.status} />
               <ConfidenceBadge confidence={exception.confidence} />
             </div>
-            <p className="text-xs text-[#8e96a0]">
-              Anchor Transaction: <strong className="font-mono text-[#eceae6]">{exception.transaction_id || "—"}</strong> • Root-Cause Category:{" "}
-              <strong className="text-[#c9a96e]">{(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}</strong>
-            </p>
+            <div className="flex items-center gap-2 text-xs text-[#8e96a0] flex-wrap">
+              <TechnicalReference id={id} label="exc" maxVisible={26} />
+              {exception.transaction_id && (
+                <>
+                  <span className="text-[#3a3f45]">·</span>
+                  <span>Anchor txn:</span>
+                  <TechnicalReference id={exception.transaction_id} label="txn" maxVisible={22} inline />
+                </>
+              )}
+              {exception.category && (
+                <>
+                  <span className="text-[#3a3f45]">·</span>
+                  <strong className="text-[#c9a96e]">
+                    {(exception.category || exception.exception_category || "unexplained").replace(/_/g, " ")}
+                  </strong>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="flex items-baseline gap-6 font-mono">

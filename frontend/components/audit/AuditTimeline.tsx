@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { formatDateTime } from "@/lib/utils/formatters";
 import type { AuditTimelineItem } from "@/types/audit";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 import {
   ShieldCheck,
   Cpu,
@@ -10,6 +11,8 @@ import {
   FileSpreadsheet,
   AlertOctagon,
   Play,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface AuditTimelineProps {
@@ -100,90 +103,130 @@ export function AuditTimeline({ events, isLoading }: AuditTimelineProps) {
         const eventKey = ev.event_id ? `${ev.event_id}-${idx}` : (ev.id ? `${ev.id}-${idx}` : `audit-ev-${idx}`);
         const eventLabel = (ev.event_type || ev.stage || "AUDIT_RECORD").replace(/_/g, " ");
         const payload = ev.details || ev.evidence;
-        const hasPayload = payload && typeof payload === "object" && Object.keys(payload).length > 0;
+        const hasPayload = Boolean(payload && typeof payload === "object" && Object.keys(payload).length > 0);
         const style = getStageStyle(ev.stage, ev.event_type);
 
         return (
-          <div key={eventKey} className="relative group">
-            {/* Timeline Node Marker */}
-            <div
-              className="absolute -left-[35px] top-1 flex h-6 w-6 items-center justify-center rounded-xs shadow-xs"
-              style={{
-                background: style.markerBg,
-                border: `1px solid ${style.markerBorder}`,
-              }}
-            >
-              {style.icon}
-            </div>
-
-            {/* Event Card (Pure white #FFFFFF, crisp border #D7D3CA) */}
-            <div className="bg-[#FFFFFF] border border-[#D7D3CA] hover:border-[#BDB8AE] rounded-xs p-4 shadow-xs transition-micro">
-              {/* Header Row: WHAT + WHO + WHEN */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-[#E2DDD3]">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-xs uppercase tracking-wider text-[#17191C]">
-                    {eventLabel}
-                  </span>
-                  {ev.actor && (
-                    <span
-                      className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-xs border"
-                      style={{
-                        background: style.badgeBg,
-                        color: style.badgeText,
-                        borderColor: style.badgeBorder,
-                      }}
-                    >
-                      ACTOR: {ev.actor}
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-[11px] font-mono text-[#555B61] flex items-center gap-1.5">
-                  <span className="text-[#6F747A]">WHEN:</span>
-                  <span className="font-semibold text-[#17191C]">
-                    {ev.timestamp ? formatDateTime(ev.timestamp) : "—"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Event Description (WHAT / WHY) */}
-              {ev.event && (
-                <p className="text-xs text-[#17191C] leading-relaxed mb-3 font-normal">
-                  {ev.event}
-                </p>
-              )}
-
-              {/* Anchors: TXN ID + RUN ID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono pt-1">
-                {ev.transaction_id && (
-                  <div className="flex items-center gap-1.5 bg-[#F7F5F0] px-2.5 py-1 rounded-xs border border-[#E2DDD3]">
-                    <span className="text-[#6F747A] text-[10px] uppercase">TXN ANCHOR:</span>
-                    <span className="font-semibold text-[#17191C]">{ev.transaction_id}</span>
-                  </div>
-                )}
-                {ev.run_id && (
-                  <div className="flex items-center gap-1.5 bg-[#F7F5F0] px-2.5 py-1 rounded-xs border border-[#E2DDD3]">
-                    <span className="text-[#6F747A] text-[10px] uppercase">RUN SCOPE:</span>
-                    <span className="font-semibold text-[#17191C]">{ev.run_id}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Evidence Record */}
-              {hasPayload && (
-                <div className="mt-3 pt-2.5 border-t border-[#E2DDD3]">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#6F747A] mb-1">
-                    Immutable Evidence Record
-                  </div>
-                  <pre className="p-3 rounded-xs border border-[#D7D3CA] bg-[#F7F5F0] overflow-x-auto text-[10.5px] font-mono text-[#17191C] leading-relaxed">
-                    {JSON.stringify(payload, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          </div>
+          <AuditEventRow
+            key={eventKey}
+            ev={ev}
+            eventLabel={eventLabel}
+            hasPayload={hasPayload}
+            payload={payload}
+            style={style}
+          />
         );
       })}
+    </div>
+  );
+}
+
+function AuditEventRow({
+  ev, eventLabel, hasPayload, payload, style,
+}: {
+  ev: AuditTimelineItem;
+  eventLabel: string;
+  hasPayload: boolean;
+  payload: unknown;
+  style: {
+    icon: React.ReactNode;
+    markerBg: string;
+    markerBorder: string;
+    badgeBg: string;
+    badgeText: string;
+    badgeBorder: string;
+  };
+}) {
+  const [evidenceExpanded, setEvidenceExpanded] = useState(false);
+
+  return (
+    <div className="relative group">
+      {/* Timeline Node Marker */}
+      <div
+        className="absolute -left-[35px] top-1 flex h-6 w-6 items-center justify-center rounded-xs shadow-xs"
+        style={{
+          background: style.markerBg,
+          border: `1px solid ${style.markerBorder}`,
+        }}
+      >
+        {style.icon}
+      </div>
+
+      {/* Event Card */}
+      <div className="bg-[#FFFFFF] border border-[#D7D3CA] hover:border-[#BDB8AE] rounded-xs p-4 shadow-xs transition-micro">
+        {/* Header Row: WHAT + WHO + WHEN */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-[#E2DDD3]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-xs uppercase tracking-wider text-[#17191C]">
+              {eventLabel}
+            </span>
+            {ev.actor && (
+              <span
+                className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-xs border"
+                style={{
+                  background: style.badgeBg,
+                  color: style.badgeText,
+                  borderColor: style.badgeBorder,
+                }}
+              >
+                {ev.actor}
+              </span>
+            )}
+          </div>
+
+          <div className="text-[11px] font-mono text-[#555B61] flex items-center gap-1.5">
+            <span className="text-[#6F747A]">WHEN:</span>
+            <span className="font-semibold text-[#17191C]">
+              {ev.timestamp ? formatDateTime(ev.timestamp) : "—"}
+            </span>
+          </div>
+        </div>
+
+        {/* Event Description */}
+        {ev.event && (
+          <p className="text-xs text-[#17191C] leading-relaxed mb-3 font-normal">
+            {ev.event}
+          </p>
+        )}
+
+        {/* Anchors: TXN ID + RUN ID — using TechnicalReference for clean display */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono pt-1">
+          {ev.transaction_id && (
+            <div className="flex items-center gap-1.5 bg-[#F7F5F0] px-2.5 py-1 rounded-xs border border-[#E2DDD3]">
+              <span className="text-[#6F747A] text-[10px] uppercase">TXN:</span>
+              <TechnicalReference id={ev.transaction_id} maxVisible={22} inline />
+            </div>
+          )}
+          {ev.run_id && (
+            <div className="flex items-center gap-1.5 bg-[#F7F5F0] px-2.5 py-1 rounded-xs border border-[#E2DDD3]">
+              <span className="text-[#6F747A] text-[10px] uppercase">RUN:</span>
+              <TechnicalReference id={ev.run_id} maxVisible={22} inline />
+            </div>
+          )}
+        </div>
+
+        {/* Evidence Record — collapsed by default */}
+        {hasPayload && (
+          <div className="mt-3 pt-2.5 border-t border-[#E2DDD3]">
+            <button
+              onClick={() => setEvidenceExpanded((v) => !v)}
+              className="flex items-center gap-1.5 text-[10px] font-mono text-[#6F747A] hover:text-[#9E7B35] transition-colors uppercase tracking-wider"
+            >
+              {evidenceExpanded ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+              {evidenceExpanded ? "Hide" : "Show"} evidence record
+            </button>
+            {evidenceExpanded && (
+              <pre className="mt-2 p-3 rounded-xs border border-[#D7D3CA] bg-[#F7F5F0] overflow-x-auto text-[10.5px] font-mono text-[#17191C] leading-relaxed">
+                {JSON.stringify(payload, null, 2)}
+              </pre>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { X, Play, Loader2, Database, CheckCircle2, AlertTriangle } from "lucide-react";
+import { X, Play, Loader2, Database, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
 import type { BatchIngestResponse } from "@/types/controller";
@@ -11,112 +11,213 @@ interface RunBatchModalProps {
   onClose: () => void;
 }
 
-// Strictly mutually-exclusive run states
 type RunState =
   | { phase: "idle" }
   | { phase: "submitting" }
   | { phase: "success"; data: BatchIngestResponse }
-  | { phase: "error"; message: string };
+  | { phase: "error"; message: string; detail?: string };
 
 function generateRunId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return `run_${crypto.randomUUID()}`;
+    return `run_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
   }
-  const timestamp = Date.now();
-  const rand1 = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
-  const rand2 = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
-  return `run_${timestamp}_${rand1}_${rand2}`;
+  return `run_${Date.now().toString(36)}`;
+}
+
+/**
+ * Build a diverse set of feed records using the same scenario patterns as
+ * simulator/scenarios.py — clean matches, fee mismatches, delayed settlements,
+ * ambiguous matches, duplicates, wrong references, partial refunds.
+ *
+ * Each logical transaction produces exactly 3 feed records (gateway, ledger, bank).
+ * N logical transactions → 3N feed records.
+ *
+ * The canonical benchmark data (eval/, tests/) is completely separate.
+ */
+function buildDiverseBatch(
+  n: number,
+  runId: string
+): {
+  gateway_records: Record<string, unknown>[];
+  ledger_records: Record<string, unknown>[];
+  bank_records: Record<string, unknown>[];
+} {
+  const gw: Record<string, unknown>[] = [];
+  const ld: Record<string, unknown>[] = [];
+  const bk: Record<string, unknown>[] = [];
+
+  const now = new Date();
+  const MDR = 0.02;
+  const GST = 0.18;
+
+  const fee = (amount: number) => parseFloat((amount * MDR).toFixed(2));
+  const tax = (amount: number) => parseFloat((fee(amount) * GST).toFixed(2));
+  const net = (amount: number) => parseFloat((amount - fee(amount) - tax(amount)).toFixed(2));
+
+  // Scenario assignment — 8 exception/edge scenarios at specific positions,
+  // the rest are clean deterministic matches. Mirrors demo_scenario.py patterns.
+  const SCENARIO_MAP: Record<number, string> = {
+    0: "fee_mismatch",      // index 0
+    1: "fee_mismatch",      // index 1
+    2: "delayed",           // index 2
+    3: "delayed",           // index 3
+    4: "ambiguous",         // index 4
+    5: "duplicate",         // index 5
+    6: "wrong_reference",   // index 6
+    7: "partial_refund",    // index 7
+  };
+
+  for (let i = 0; i < n; i++) {
+    const scenario = SCENARIO_MAP[i] ?? "normal";
+    const logicalId = `demo_${runId}_${String(i + 1).padStart(3, "0")}`;
+    const gwId = `pay_${logicalId}`;
+    const ldId = `ord_${logicalId}`;
+    const bkId = `bnk_${logicalId}`;
+    // Varied amounts — not uniform multiples of 250
+    const baseAmounts = [10000, 25000, 15750, 8500, 50000, 33250, 12000, 75000,
+                         18600, 42000, 6750, 29900, 5000, 120000, 9900, 67500];
+    const amount = baseAmounts[i % baseAmounts.length];
+    const utr = `UTR_AXIS_${logicalId}`;
+    const ts = new Date(now.getTime() - (n - i) * 3600000).toISOString(); // spread over past hours
+
+    if (scenario === "fee_mismatch") {
+      // Gateway charges 3% MDR instead of 2% — fee discrepancy exception
+      const obsFee = parseFloat((amount * 0.03).toFixed(2));
+      const obsTax = parseFloat((obsFee * GST).toFixed(2));
+      const obsNet = parseFloat((amount - obsFee - obsTax).toFixed(2));
+      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "captured", fee: obsFee, tax: obsTax, source: "gateway", timestamp: ts });
+      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "COMPLETED", source: "ledger", timestamp: ts });
+      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
+                amount: obsNet, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
+
+    } else if (scenario === "delayed") {
+      // Settlement arrives 5 days late — ML recoverable timing case
+      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
+      const delayed = new Date(now.getTime() + 5 * 86400000).toISOString();
+      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "captured", fee: f, tax: t, source: "gateway", timestamp: delayed });
+      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "COMPLETED", source: "ledger", timestamp: ts });
+      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
+                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: delayed });
+
+    } else if (scenario === "ambiguous") {
+      // Altered order_id and UTR — requires ML arbitration
+      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
+      const ambOrderId = `AMB_${ldId.slice(-6)}`;
+      const ambUtr = `AMB_${logicalId.slice(-8)}`;
+      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ambOrderId, amount, currency: "INR",
+                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
+      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "COMPLETED", source: "ledger", timestamp: ts });
+      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: `BK_${ambUtr}`,
+                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
+
+    } else if (scenario === "duplicate") {
+      // Duplicate entry — same payment captured twice
+      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
+      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
+      ld.push({ id: `${ldId}_DUP`, domain_transaction_id: `${logicalId}_DUP`, order_id: ldId, amount, currency: "INR",
+                status: "COMPLETED", source: "ledger", timestamp: ts });
+      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
+                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
+
+    } else if (scenario === "wrong_reference") {
+      // Corrupted order_id across sources
+      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
+      const corruptedOrder = `${ldId}_ERR`;
+      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: corruptedOrder, amount, currency: "INR",
+                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
+      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "COMPLETED", source: "ledger", timestamp: ts });
+      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: `${utr}_ERR`,
+                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
+
+    } else if (scenario === "partial_refund") {
+      // Partial refund — 30% refunded
+      const refund = parseFloat((amount * 0.3).toFixed(2));
+      const f = fee(amount); const t = tax(amount);
+      const n_ = parseFloat((amount - f - t - refund).toFixed(2));
+      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
+      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "PARTIALLY_REFUNDED", source: "ledger", timestamp: ts });
+      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
+                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
+
+    } else {
+      // Normal clean deterministic match
+      const f = fee(amount); const t = tax(amount); const n_ = net(amount);
+      gw.push({ id: gwId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "captured", fee: f, tax: t, source: "gateway", timestamp: ts });
+      ld.push({ id: ldId, domain_transaction_id: logicalId, order_id: ldId, amount, currency: "INR",
+                status: "COMPLETED", source: "ledger", timestamp: ts });
+      bk.push({ id: bkId, domain_transaction_id: logicalId, reference_number: utr,
+                amount: n_, currency: "INR", status: "CREDIT", source: "bank", timestamp: ts });
+    }
+  }
+
+  return { gateway_records: gw, ledger_records: ld, bank_records: bk };
 }
 
 export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
   const queryClient = useQueryClient();
-  const [batchSize, setBatchSize] = useState<number>(50);
   const [runState, setRunState] = useState<RunState>({ phase: "idle" });
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showErrorDetail, setShowErrorDetail] = useState(false);
+  const [batchSize, setBatchSize] = useState<number>(50);
 
   const isSubmitting = runState.phase === "submitting";
 
   const handleStartRun = useCallback(async () => {
     if (isSubmitting) return;
-
     setRunState({ phase: "submitting" });
+    setShowErrorDetail(false);
 
     const n = Number(batchSize) || 50;
     const runId = generateRunId();
-
-    const gw: Record<string, unknown>[] = [];
-    const ld: Record<string, unknown>[] = [];
-    const bk: Record<string, unknown>[] = [];
-
-    const now = new Date();
-
-    for (let i = 0; i < n; i++) {
-      const txnId = `demo_txn_${runId}_${i + 1}`;
-      const amount = 1000 + (i % 10) * 250;
-      const orderId = `ord_demo_${runId}_${i + 1}`;
-      const utr = `UTR_AXIS_${runId}_${i + 1}`;
-      const isMismatch = i === 12 || i === 27;
-
-      gw.push({
-        id: `pay_${runId}_${i + 1}`,
-        domain_transaction_id: txnId,
-        order_id: orderId,
-        amount: isMismatch ? amount + 120 : amount,
-        currency: "INR",
-        status: "captured",
-        fee: 23.6,
-        tax: 4.24,
-        source: "gateway",
-        timestamp: now.toISOString(),
-      });
-
-      ld.push({
-        id: `led_${runId}_${i + 1}`,
-        domain_transaction_id: txnId,
-        order_id: orderId,
-        amount: amount,
-        currency: "INR",
-        status: "COMPLETED",
-        source: "ledger",
-        timestamp: now.toISOString(),
-      });
-
-      bk.push({
-        id: `bnk_${runId}_${i + 1}`,
-        domain_transaction_id: txnId,
-        reference_number: utr,
-        amount: isMismatch ? amount - 23.6 - 4.24 + 10 : amount - 23.6 - 4.24,
-        currency: "INR",
-        status: "CREDIT",
-        source: "bank",
-        timestamp: now.toISOString(),
-      });
-    }
+    const { gateway_records, ledger_records, bank_records } = buildDiverseBatch(n, runId);
 
     try {
       const data = await controllerApi.ingestBatch({
         batch_id: runId,
-        gateway_records: gw,
-        ledger_records: ld,
-        bank_records: bk,
+        gateway_records,
+        ledger_records,
+        bank_records,
       });
-
       setRunState({ phase: "success", data });
       queryClient.invalidateQueries();
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to execute reconciliation batch.";
-      setRunState({ phase: "error", message });
+      let message = "Reconciliation could not start. The request was rejected by the service.";
+      let detail: string | undefined;
+      if (err instanceof Error) {
+        // Check if it's a 422 validation error
+        if (err.message.includes("422") || err.message.toLowerCase().includes("validation")) {
+          message = "Reconciliation could not start. The request was rejected by the reconciliation service.";
+        } else if (err.message.includes("500")) {
+          message = "Reconciliation could not start. An internal service error occurred.";
+        } else {
+          message = "Reconciliation could not start. The request was rejected by the service.";
+        }
+        detail = err.message;
+      }
+      setRunState({ phase: "error", message, detail });
     }
   }, [isSubmitting, batchSize, queryClient]);
 
   const handleClose = useCallback(() => {
     setRunState({ phase: "idle" });
+    setShowAdvanced(false);
+    setShowErrorDetail(false);
     onClose();
   }, [onClose]);
 
   if (!isOpen) return null;
+
+  const feedRecordCount = batchSize * 3;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
@@ -144,10 +245,10 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
             </div>
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-[#eceae6]">
-                Execute 3-Way Reconciliation Batch
+                Run Reconciliation
               </h2>
               <p className="text-[10px] text-[#8e96a0]">
-                Ingestion across Gateway, Ledger, and Core Banking feeds
+                Gateway · Ledger · Bank — 3-way reconciliation
               </p>
             </div>
           </div>
@@ -162,35 +263,65 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
 
         {/* Modal Body */}
         <div className="py-4 space-y-4 text-xs">
-          <div>
-            <label className="block text-[#8e96a0] mb-1 text-[11px]">
-              Evaluation Batch Size (Logical Transactions)
-            </label>
-            <select
-              value={batchSize}
-              onChange={(e) => setBatchSize(Number(e.target.value))}
-              disabled={isSubmitting}
-              className="w-full rounded-sm border px-3 py-2 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+          {/* Primary description — no implementation detail */}
+          {runState.phase === "idle" && (
+            <div
+              className="p-3.5 rounded-sm border text-[11px] leading-relaxed text-[#8e96a0]"
               style={{
-                borderColor: "var(--border-standard)",
+                borderColor: "var(--border-subtle)",
                 background: "var(--surface-2)",
               }}
             >
-              <option value={20}>N = 20 Transactions (Quick Micro-Verification)</option>
-              <option value={50}>N = 50 Transactions (Official Track 4 Standard Bar)</option>
-              <option value={100}>N = 100 Transactions (Extended Suite)</option>
-            </select>
-          </div>
+              Ingest a diverse set of financial records across Gateway, Ledger, and Bank feeds.
+              The reconciliation engine will match, investigate, and classify each logical transaction.
+            </div>
+          )}
 
-          <div
-            className="p-3.5 rounded-sm border text-[11px] leading-relaxed text-[#8e96a0]"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--surface-2)",
-            }}
-          >
-            <strong className="text-[#eceae6]">Pipeline Execution:</strong> Generating {batchSize * 3} normalized feed records across Gateway, Ledger, and Bank. Deterministic matching runs first, followed by ML XGBoost arbitration and discrepancy routing.
-          </div>
+          {/* Advanced Options Toggle */}
+          {runState.phase === "idle" && (
+            <div>
+              <button
+                onClick={() => setShowAdvanced((v) => !v)}
+                className="flex items-center gap-1.5 text-[11px] text-[#8e96a0] hover:text-[#c9a96e] transition-micro font-mono"
+              >
+                {showAdvanced ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                Advanced options
+              </button>
+
+              {showAdvanced && (
+                <div
+                  className="mt-2 p-3.5 rounded-sm border space-y-3 text-[11px]"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--surface-2)",
+                  }}
+                >
+                  <div>
+                    <label className="block text-[#8e96a0] mb-1 text-[10px] uppercase font-semibold tracking-wider">
+                      Logical Transactions
+                    </label>
+                    <select
+                      value={batchSize}
+                      onChange={(e) => setBatchSize(Number(e.target.value))}
+                      disabled={isSubmitting}
+                      className="w-full rounded-sm border px-3 py-1.5 text-xs font-mono text-[#eceae6] transition-micro focus:outline-hidden disabled:opacity-50"
+                      style={{
+                        borderColor: "var(--border-standard)",
+                        background: "var(--surface-1)",
+                      }}
+                    >
+                      <option value={20}>20 logical transactions · 60 feed records</option>
+                      <option value={50}>50 logical transactions · 150 feed records</option>
+                      <option value={100}>100 logical transactions · 300 feed records</option>
+                    </select>
+                    <p className="mt-1 text-[10px] text-[#545e6a]">
+                      Each logical transaction produces 3 feed records (Gateway + Ledger + Bank).
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Success State */}
           {runState.phase === "success" && (() => {
@@ -199,52 +330,52 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
             const mlRecovered = d.ml_recovered_count ?? 0;
             const totalMatched = autoMatched + mlRecovered;
             const unresolved = d.unresolved_count ?? 0;
-            const recordsReceived = d.records_received ?? 0;
+            const feedRecords = d.records_received ?? 0;
+            const logicalTxns = Math.round(feedRecords / 3) || batchSize;
             const durationMs = d.processing_duration_ms;
 
             let throughputDisplay = "";
             if (typeof durationMs === "number" && Number.isFinite(durationMs) && durationMs > 0) {
               const durationSec = durationMs / 1000;
-              const tps = recordsReceived > 0 && durationSec > 0
-                ? recordsReceived / durationSec
-                : null;
+              const tps = feedRecords > 0 ? feedRecords / durationSec : null;
               throughputDisplay = tps !== null && Number.isFinite(tps)
-                ? `Throughput: ${tps.toFixed(0)} rec/s (${durationSec.toFixed(3)}s)`
-                : `Latency: ${durationMs.toFixed(1)}ms`;
-            } else if (typeof durationMs === "number" && Number.isFinite(durationMs)) {
-              throughputDisplay = `Processing Latency: ${durationMs.toFixed(1)}ms`;
+                ? `${tps.toFixed(0)} feed records/s · ${durationSec.toFixed(2)}s`
+                : `${durationMs.toFixed(0)}ms`;
             }
 
             return (
               <div
-                className="p-4 rounded-sm border space-y-2"
+                className="p-4 rounded-sm border space-y-3"
                 style={{
                   borderColor: "var(--matched-border)",
                   background: "var(--matched-bg)",
                 }}
               >
-                <div className="flex items-center gap-1.5 text-[#6ecba0] font-bold">
+                <div className="flex items-center gap-1.5 text-[#6ecba0] font-bold text-xs">
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>Batch Reconciled Successfully</span>
+                  <span>Reconciliation complete</span>
                 </div>
-                <div className="text-[10px] text-[#8e96a0]">Run ID: {d.run_id}</div>
-                <div className="grid grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
+                <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
+                  <div>
+                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Logical Transactions</div>
+                    <span className="text-[#eceae6] font-bold">{logicalTxns}</span>
+                  </div>
                   <div>
                     <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Feed Records</div>
-                    <span className="text-[#eceae6] font-bold">{recordsReceived}</span>
+                    <span className="text-[#eceae6] font-bold">{feedRecords}</span>
                   </div>
                   <div>
                     <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Matched</div>
                     <span className="text-[#6ecba0] font-bold">{totalMatched}</span>
                   </div>
                   <div>
-                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Exceptions</div>
+                    <div className="text-[#8e96a0] text-[10px] uppercase mb-0.5">Open Exceptions</div>
                     <span className="text-[#e07070] font-bold">{unresolved}</span>
                   </div>
                 </div>
                 {throughputDisplay && (
-                  <div className="text-[10px] text-[#8e96a0] pt-1">
-                    {throughputDisplay}
+                  <div className="text-[10px] text-[#8e96a0] font-mono pt-1">
+                    Throughput: {throughputDisplay}
                   </div>
                 )}
               </div>
@@ -254,15 +385,40 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
           {/* Error State */}
           {runState.phase === "error" && (
             <div
-              className="p-3.5 rounded-sm border text-xs flex items-center gap-2"
+              className="rounded-sm border overflow-hidden"
               style={{
                 borderColor: "var(--variance-border)",
-                background: "var(--variance-bg)",
-                color: "var(--variance-text)",
               }}
             >
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span>{runState.message}</span>
+              <div
+                className="p-3.5 flex items-start gap-2 text-xs"
+                style={{
+                  background: "var(--variance-bg)",
+                  color: "var(--variance-text)",
+                }}
+              >
+                <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-px" />
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <p className="font-semibold">{runState.message}</p>
+                  {runState.detail && (
+                    <button
+                      onClick={() => setShowErrorDetail((v) => !v)}
+                      className="flex items-center gap-1 text-[10px] font-mono opacity-70 hover:opacity-100"
+                    >
+                      {showErrorDetail ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />}
+                      Technical details
+                    </button>
+                  )}
+                  {showErrorDetail && runState.detail && (
+                    <pre
+                      className="text-[10px] font-mono p-2 rounded-xs overflow-x-auto whitespace-pre-wrap break-all"
+                      style={{ background: "rgba(0,0,0,0.15)" }}
+                    >
+                      {runState.detail}
+                    </pre>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -277,7 +433,9 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
               }}
             >
               <Loader2 className="h-4 w-4 animate-spin text-[#c9a96e] flex-shrink-0" />
-              <span>Ingesting &amp; reconciling multi-source batch...</span>
+              <span>
+                Ingesting {feedRecordCount} feed records and running 3-way reconciliation…
+              </span>
             </div>
           )}
         </div>
@@ -293,29 +451,34 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
           >
             {runState.phase === "success" ? "Close" : "Cancel"}
           </button>
-          <button
-            onClick={handleStartRun}
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-bold transition-micro disabled:opacity-50"
-            style={{
-              color: "var(--bg)",
-              background: "var(--accent)",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = "var(--accent-hover)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "var(--accent)")}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Reconciling…</span>
-              </>
-            ) : (
-              <>
-                <Play className="h-3.5 w-3.5 fill-current" />
-                <span>Start Ingestion &amp; Reconciliation</span>
-              </>
-            )}
-          </button>
+
+          {runState.phase !== "success" && (
+            <button
+              onClick={handleStartRun}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-bold transition-micro disabled:opacity-50"
+              style={{
+                color: "var(--bg)",
+                background: "var(--accent)",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Reconciling…</span>
+                </>
+              ) : (
+                <>
+                  <Play className="h-3.5 w-3.5 fill-current" />
+                  <span>
+                    {runState.phase === "error" ? "Try Again" : "Run Reconciliation"}
+                  </span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>

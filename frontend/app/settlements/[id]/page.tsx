@@ -55,37 +55,32 @@ export default function SettlementDetailPage() {
   return (
     <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb & Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#E2DDD3]">
+        <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A]">
+          <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+          <span>/</span>
+          <Link href="/settlements" className="hover:text-[#9E7B35] transition-colors">Settlements</Link>
+          <span>/</span>
+          <span className="text-[#17191C] font-semibold">{id}</span>
+        </div>
+
         <div className="flex items-center gap-3">
           <Link
             href="/settlements"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs transition-micro text-[#8e96a0] hover:text-[#eceae6]"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--surface-2)",
-              border: "1px solid var(--border-subtle)",
-            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs text-xs font-medium bg-[#FFFFFF] border border-[#D7D3CA] text-[#17191C] hover:bg-[#F2EFE9] shadow-xs transition-colors"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Settlements
+            <ArrowLeft className="h-3.5 w-3.5 text-[#6F747A]" />
+            <span>Back to Settlements</span>
           </Link>
-          <span style={{ color: "var(--text-tertiary)" }}>/</span>
-          <span className="text-xs text-[#8e96a0]">Settlement:</span>
-          <span className="text-xs font-mono font-semibold text-[#eceae6]">{id}</span>
-        </div>
 
-        <Link
-          href={`/settlements/${encodeURIComponent(id)}/tax-audit`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xs font-semibold text-xs transition-micro"
-          style={{
-            color: "#080a0c",
-            background: "var(--accent)",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
-        >
-          <FileCheck className="h-3.5 w-3.5" />
-          <span>Inspect Statutory Tax Line Audit</span>
-        </Link>
+          <Link
+            href={`/settlements/${encodeURIComponent(id)}/tax-audit`}
+            className="btn-gold px-3 py-1.5 text-xs font-semibold shadow-xs"
+          >
+            <FileCheck className="h-3.5 w-3.5" />
+            <span>Inspect Statutory Tax Line Audit</span>
+          </Link>
+        </div>
       </div>
 
       {/* Financial Decomposition Component */}

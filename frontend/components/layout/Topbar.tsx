@@ -6,6 +6,7 @@ import { RotateCcw, Brain } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { reconciliationApi } from "@/lib/api/reconciliationApi";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 
 interface TopbarProps {
   onOpenBatchModal?: () => void;
@@ -74,9 +75,8 @@ export function Topbar({ onOpenBatchModal, onToggleCopilot }: TopbarProps) {
         </div>
 
         {latestRunId && (
-          <div className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-xs text-[10px] font-mono truncate max-w-[220px] text-[#555B61] bg-[#F1EFE9] border border-[#D7D3CA]">
-            <span className="text-[#6F747A]">run:</span>
-            <span className="font-semibold text-[#17191C]">{latestRunId}</span>
+          <div className="hidden md:flex items-center">
+            <TechnicalReference id={latestRunId} label="run" maxVisible={18} />
           </div>
         )}
       </div>

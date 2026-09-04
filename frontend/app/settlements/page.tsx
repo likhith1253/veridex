@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { settlementsApi } from "@/lib/api/settlementsApi";
 import { formatINR, formatDateTime } from "@/lib/utils/formatters";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -31,6 +32,13 @@ export default function SettlementsPage() {
 
   return (
     <div className="space-y-6 pb-12 select-none">
+      {/* Breadcrumb Context */}
+      <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A] pb-1">
+        <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+        <span>/</span>
+        <span className="text-[#17191C] font-semibold">Settlements</span>
+      </div>
+
       {/* Page Header */}
       <div
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
@@ -129,11 +137,14 @@ export default function SettlementsPage() {
                       key={setlId ? `${setlId}-${idx}` : `settlement-${idx}`}
                       className="hover:bg-[#13161a] transition-micro"
                     >
-                      <td className="py-3 px-3 font-mono font-semibold text-[#eceae6]">
-                        {setlId}
+                      <td className="py-3 px-3">
+                        <TechnicalReference id={setlId} maxVisible={22} />
                       </td>
-                      <td className="py-3 px-3 font-mono text-[#8e96a0]">
-                        {s.utr || "Pending Bank Statement"}
+                      <td className="py-3 px-3">
+                        {s.utr
+                          ? <TechnicalReference id={s.utr} label="UTR" maxVisible={22} />
+                          : <span className="text-[#545e6a] text-[11px] italic">Pending</span>
+                        }
                       </td>
                       <td className="py-3 px-3">
                         <StatusBadge status={s.status} />

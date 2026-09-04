@@ -129,7 +129,7 @@ export default function WebsitePage() {
               href="/app"
               className="btn-gold shadow-xs"
             >
-              <span>Open Control Center</span>
+              <span>Control Center</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -161,7 +161,7 @@ export default function WebsitePage() {
               href="/app"
               className="btn-gold px-6 py-3 text-sm shadow-xs"
             >
-              <span>Open Control Center</span>
+              <span>Launch Platform</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
 
@@ -188,7 +188,7 @@ export default function WebsitePage() {
                 Visualizing Multi-Source Discrepancy
               </h2>
               <p className="text-xs text-[#555B61] mt-1">
-                Click any node in the transaction lifecycle below to inspect forensic findings and evidence.
+                <span className="italic font-medium text-[#17191C]">Evidence before action.</span> Click any node in the transaction lifecycle below to inspect forensic findings and evidence.
               </p>
             </div>
 
@@ -345,7 +345,7 @@ export default function WebsitePage() {
               METHODOLOGY
             </span>
             <h2 className="text-3xl font-bold tracking-tight text-[#17191C] mt-2">
-              SEE EXACTLY WHERE THE MONEY DIVERGED.
+              SEE EXACTLY <span className="italic font-display font-normal text-[#9E7B35]">WHERE THE MONEY DIVERGED.</span>
             </h2>
             <p className="text-xs text-[#555B61] mt-2 leading-relaxed">
               Every financial discrepancy is tracked through an append-only pipeline from raw feed ingestion to human-authorized resolution.
@@ -602,7 +602,7 @@ export default function WebsitePage() {
             OPERATIONAL ENVIRONMENT
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#17191C] mt-2 mb-4">
-            ENTER THE CONTROL ROOM
+            CONTINUOUS FINANCIAL AUDIT AT SCALE
           </h2>
           <p className="text-sm text-[#555B61] max-w-xl mx-auto mb-8 leading-relaxed">
             Take command of the live reconciliation engine, investigate active exceptions, inspect statutory tax lines, and authorize bounded financial adjustments.
@@ -612,7 +612,7 @@ export default function WebsitePage() {
             href="/app"
             className="btn-gold px-8 py-3.5 text-sm font-bold shadow-xs inline-flex items-center gap-2"
           >
-            <span>Open Control Center</span>
+            <span>Access Control Center</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

@@ -61,20 +61,20 @@ export function Sidebar() {
 
   const navGroups: NavGroup[] = [
     {
-      group: "OPERATIONS",
+      group: "WORK",
       items: [
         {
-          name: "Command Center",
+          name: "Control Center",
           href: "/app",
           icon: LayoutDashboard,
         },
         {
-          name: "Reconciliation",
+          name: "Reconcile",
           href: "/reconciliation",
           icon: GitMerge,
         },
         {
-          name: "Exceptions",
+          name: "Investigate",
           href: "/exceptions",
           icon: AlertOctagon,
           badge: openExceptionsCount > 0 ? openExceptionsCount : undefined,
@@ -100,7 +100,7 @@ export function Sidebar() {
       ],
     },
     {
-      group: "INFRASTRUCTURE",
+      group: "SYSTEM",
       items: [
         {
           name: "Razorpay",
@@ -113,11 +113,6 @@ export function Sidebar() {
           href: "/benchmark",
           icon: BarChart3,
         },
-      ],
-    },
-    {
-      group: "SYSTEM",
-      items: [
         {
           name: "Settings",
           href: "/settings",

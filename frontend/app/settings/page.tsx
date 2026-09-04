@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { integrationsApi } from "@/lib/api/integrationsApi";
@@ -29,6 +30,13 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 pb-12 select-none">
+      {/* Breadcrumb Context */}
+      <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A] pb-1">
+        <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+        <span>/</span>
+        <span className="text-[#17191C] font-semibold">Settings</span>
+      </div>
+
       {/* Header */}
       <div
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"

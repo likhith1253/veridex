@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { controllerApi } from "@/lib/api/controllerApi";
 import { formatINR, cn } from "@/lib/utils/formatters";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ConfidenceBadge } from "@/components/common/ConfidenceBadge";
+import { TechnicalReference } from "@/components/common/TechnicalReference";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -17,13 +19,22 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
-  ShieldAlert,
-  Clock,
+  Filter,
 } from "lucide-react";
 
-export default function ExceptionsPage() {
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+function ExceptionsContent() {
+  const searchParams = useSearchParams();
+
+  // Initialize filters from URL params — supports drill-down from Command Center KPI cards and funnel
+  const [statusFilter, setStatusFilter] = useState<string>(
+    () => searchParams.get("status") || "all"
+  );
+  const [categoryFilter, setCategoryFilter] = useState<string>(
+    () => searchParams.get("category") || "all"
+  );
+  const [runIdFilter] = useState<string | null>(
+    () => searchParams.get("run_id")
+  );
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedExceptionId, setSelectedExceptionId] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
@@ -36,11 +47,12 @@ export default function ExceptionsPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["exceptions-queue", statusFilter, categoryFilter, searchQuery, page],
+    queryKey: ["exceptions-queue", statusFilter, categoryFilter, runIdFilter, searchQuery, page],
     queryFn: () =>
       controllerApi.getExceptions({
         status: statusFilter === "all" ? undefined : statusFilter,
         category: categoryFilter === "all" ? undefined : categoryFilter,
+        run_id: runIdFilter || undefined,
         transaction_id: searchQuery ? searchQuery : undefined,
         page,
         page_size: pageSize,
@@ -66,6 +78,22 @@ export default function ExceptionsPage() {
 
   return (
     <div className="space-y-6 pb-10 select-none">
+      {/* Breadcrumb Context */}
+      <div className="flex items-center gap-2 text-xs font-mono text-[#6F747A] pb-1">
+        <Link href="/app" className="hover:text-[#9E7B35] transition-colors">Control Center</Link>
+        <span>/</span>
+        <span className="text-[#17191C] font-semibold">Investigate</span>
+      </div>
+
+      {/* Run scope indicator — shown when drill-down came from a specific run */}
+      {runIdFilter && (
+        <div className="flex items-center gap-2 text-xs font-mono px-3 py-2 rounded-xs bg-[rgba(201,169,110,0.08)] border border-[rgba(201,169,110,0.25)]">
+          <Filter className="h-3 w-3 text-[#9E7B35]" />
+          <span className="text-[#9E7B35] font-semibold">Scoped to run:</span>
+          <TechnicalReference id={runIdFilter} maxVisible={28} />
+        </div>
+      )}
+
       {/* Header */}
       <div
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4"
@@ -323,8 +351,16 @@ export default function ExceptionsPage() {
                         }}
                       >
                         <td className="py-3 px-3">
-                          <div className="font-mono text-xs font-semibold text-[#eceae6]">{excId}</div>
-                          <div className="text-[10px] font-mono text-[#545e6a]">{ex.transaction_id || "—"}</div>
+                          <div className="font-medium text-xs text-[#eceae6] capitalize">
+                            {cat.replace(/_/g, " ")}
+                          </div>
+                          <TechnicalReference
+                            id={excId}
+                            label="ref"
+                            maxVisible={20}
+                            inline
+                            className="mt-0.5"
+                          />
                         </td>
                         <td className="py-3 px-3">
                           <span className="text-[#8e96a0] capitalize">{cat.replace(/_/g, " ")}</span>
@@ -420,10 +456,11 @@ export default function ExceptionsPage() {
 
             <div className="space-y-4 text-xs">
               <div>
-                <span className="text-[10px] text-[#545e6a] uppercase block">Selected Case ID</span>
-                <span className="font-mono font-bold text-sm text-[#eceae6]">
-                  {selectedException.exception_id || selectedException.id}
-                </span>
+                <span className="text-[10px] text-[#545e6a] uppercase block mb-1">Exception Reference</span>
+                <TechnicalReference
+                  id={selectedException.exception_id || selectedException.id || ""}
+                  maxVisible={28}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3 font-mono">
@@ -481,3 +518,12 @@ export default function ExceptionsPage() {
     </div>
   );
 }
+
+export default function ExceptionsPage() {
+  return (
+    <React.Suspense fallback={<div className="p-8"><LoadingSkeleton variant="table" /></div>}>
+      <ExceptionsContent />
+    </React.Suspense>
+  );
+}
+
