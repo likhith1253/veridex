@@ -303,3 +303,91 @@ pre {
 .border-\[\#2d3542\] {
   border-color: #D7D3CA !important;
 }
+
+/* ─── Entrance / reveal animations — Command Center arrival sequence ─── */
+@keyframes veridex-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes veridex-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes veridex-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes veridex-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.0); }
+  50% { box-shadow: 0 0 24px 2px rgba(201, 169, 110, 0.18); }
+}
+
+@keyframes veridex-count-blur {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.veridex-rise-in {
+  animation: veridex-rise-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.veridex-fade-in {
+  animation: veridex-fade-in 0.6s ease-out both;
+}
+.veridex-scale-in {
+  animation: veridex-scale-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.veridex-count-in {
+  animation: veridex-count-blur 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.veridex-hero-glow {
+  animation: veridex-glow-pulse 3.5s ease-in-out 1.2s infinite;
+}
+
+.veridex-delay-1 { animation-delay: 0.06s; }
+.veridex-delay-2 { animation-delay: 0.12s; }
+.veridex-delay-3 { animation-delay: 0.18s; }
+.veridex-delay-4 { animation-delay: 0.24s; }
+.veridex-delay-5 { animation-delay: 0.30s; }
+.veridex-delay-6 { animation-delay: 0.36s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .veridex-rise-in,
+  .veridex-fade-in,
+  .veridex-scale-in,
+  .veridex-count-in,
+  .veridex-hero-glow {
+    animation: none !important;
+  }
+}
+
+/* Hover lift for interactive cards — subtle, institutional, not bouncy */
+.veridex-card-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+.veridex-card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(23, 25, 28, 0.14);
+}

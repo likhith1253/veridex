@@ -8,6 +8,8 @@ import { formatINR, formatPercent, formatVariance } from "@/lib/utils/formatters
 import { MetricCard } from "@/components/common/MetricCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { FunnelChart } from "@/components/reconciliation/FunnelChart";
+import { MatchDistributionChart } from "@/components/reconciliation/MatchDistributionChart";
+import { ExceptionCategoryChart } from "@/components/exceptions/ExceptionCategoryChart";
 import { TechnicalReference } from "@/components/common/TechnicalReference";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -59,6 +61,17 @@ export default function CommandCenterPage() {
     queryKey: ["controller-exceptions-preview"],
     queryFn: () => controllerApi.getExceptions({ page: 1, page_size: 5 }),
     refetchInterval: 15000,
+  });
+
+  // Wider sample for the category-distribution chart — separate from the
+  // 5-row preview table above, which isn't enough to chart a distribution.
+  const {
+    data: exceptionsForChart,
+    isLoading: exceptionsChartLoading,
+  } = useQuery({
+    queryKey: ["controller-exceptions-chart-sample"],
+    queryFn: () => controllerApi.getExceptions({ page: 1, page_size: 200 }),
+    staleTime: 20000,
   });
 
   const { data: cashPosition } = useQuery({
@@ -126,9 +139,12 @@ export default function CommandCenterPage() {
 
   return (
     <div className="space-y-8 pb-16 select-none">
-      {/* ── HERO: current state, what needs attention, one next step ─── */}
+      {/* ── HERO: current state, what needs attention, one next step ───
+          Entrance sequence: the hero rises in first, glowing gently once
+          settled, so opening the Control Center reads as an arrival rather
+          than a static dashboard dump. */}
       <div
-        className="rounded-sm border overflow-hidden"
+        className="rounded-sm border overflow-hidden veridex-rise-in veridex-hero-glow"
         style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)" }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 pt-5">
@@ -252,7 +268,7 @@ export default function CommandCenterPage() {
 
       {/* ── Control status — secondary/technical, de-emphasized ──────── */}
       <div
-        className="flex flex-wrap items-center gap-x-6 gap-y-1.5 px-4 py-2 rounded-xs text-[10px] border"
+        className="flex flex-wrap items-center gap-x-6 gap-y-1.5 px-4 py-2 rounded-xs text-[10px] border veridex-rise-in veridex-delay-2"
         style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)", color: "#8e96a0" }}
       >
         <span className="uppercase font-bold tracking-wider" style={{ color: "var(--text-tertiary)" }}>
@@ -275,7 +291,7 @@ export default function CommandCenterPage() {
         <LoadingSkeleton variant="card" count={4} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href={reconLink} className="block hover:opacity-90 transition-opacity">
+          <Link href={reconLink} className="block veridex-card-lift veridex-rise-in veridex-delay-1">
             <MetricCard
               title="Total volume processed"
               value={formatINR(volumeVal)}
@@ -285,7 +301,7 @@ export default function CommandCenterPage() {
             />
           </Link>
 
-          <Link href={reconLink} className="block hover:opacity-90 transition-opacity">
+          <Link href={reconLink} className="block veridex-card-lift veridex-rise-in veridex-delay-2">
             <MetricCard
               title="Reconciliation rate"
               value={formatPercent(overview?.match_rate)}
@@ -297,7 +313,7 @@ export default function CommandCenterPage() {
             />
           </Link>
 
-          <Link href={exceptionsLink} className="block hover:opacity-90 transition-opacity">
+          <Link href={exceptionsLink} className="block veridex-card-lift veridex-rise-in veridex-delay-3">
             <MetricCard
               title="Issues needing attention"
               value={exceptionRecs.toString()}
@@ -309,7 +325,7 @@ export default function CommandCenterPage() {
             />
           </Link>
 
-          <Link href={exceptionsLink} className="block hover:opacity-90 transition-opacity">
+          <Link href={exceptionsLink} className="block veridex-card-lift veridex-rise-in veridex-delay-4">
             <MetricCard
               title="Money at risk"
               value={formatINR(exposureVal)}
@@ -329,11 +345,55 @@ export default function CommandCenterPage() {
       </div>
 
       {/* ── RECONCILIATION OVERVIEW ───────────────────────────────────── */}
-      <div>
+      <div className="veridex-rise-in veridex-delay-4">
         <div className="text-[10px] font-bold uppercase tracking-wider text-[#545e6a] mb-3">
           Reconciliation overview
         </div>
         <FunnelChart funnel={funnel} isLoading={funnelLoading} runId={runId ?? undefined} />
+      </div>
+
+      {/* ── VISUAL BREAKDOWN: match composition + issue categories ────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 veridex-rise-in veridex-delay-5">
+        <div
+          className="rounded-sm border p-6 veridex-card-lift"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)" }}
+        >
+          <div className="flex items-center justify-between pb-3.5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+            <span className="text-[10px] font-bold uppercase tracking-wider font-mono" style={{ color: "var(--accent)" }}>
+              Match composition
+            </span>
+            <span className="text-[10px] text-[#545e6a] font-mono">of {totalRecs} records</span>
+          </div>
+          <div className="pt-4">
+            <MatchDistributionChart
+              deterministic={overview?.deterministic_matches ?? 0}
+              mlRecovered={overview?.ml_recovered_matches ?? 0}
+              manualReview={overview?.manual_reviews ?? 0}
+              unresolved={overview?.unresolved_transactions ?? 0}
+              isLoading={overviewLoading}
+            />
+          </div>
+        </div>
+
+        <div
+          className="rounded-sm border p-6 veridex-card-lift"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)" }}
+        >
+          <div className="flex items-center justify-between pb-3.5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+            <span className="text-[10px] font-bold uppercase tracking-wider font-mono" style={{ color: "var(--accent)" }}>
+              Issues by cause
+            </span>
+            <Link href={exceptionsLink} className="text-[10px] text-[#c9a96e] hover:text-[#e4caa0] font-mono font-semibold">
+              Review all →
+            </Link>
+          </div>
+          <div className="pt-4">
+            <ExceptionCategoryChart
+              exceptions={exceptionsForChart?.exceptions ?? []}
+              isLoading={exceptionsChartLoading}
+            />
+          </div>
+        </div>
       </div>
 
       {/* ── DEEPER INFORMATION ────────────────────────────────────────── */}
