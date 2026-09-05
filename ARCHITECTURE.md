@@ -2,10 +2,10 @@
 
 ## Project Purpose
 
-Project Sentinel is an AI-assisted financial reconciliation and investigation system that reconciles:
-1. Payment gateway settlement data
+VERIDEX is an AI-assisted financial reconciliation, investigation, and control system that reconciles three fragmented data sources:
+1. Payment gateway settlement data (Razorpay feeds & signed webhooks)
 2. Internal order/payment ledger
-3. Bank statement
+3. Bank statement feed
 
 **Design Priorities:**
 - Correctness
@@ -18,91 +18,123 @@ Project Sentinel is an AI-assisted financial reconciliation and investigation sy
 - Low inference cost
 
 **What This System Is NOT:**
-- A generic chatbot
-- A conversational AI for general queries
 - A system that relies on LLMs for core financial decisions
+- A system that lets an LLM mutate financial records directly
+- A generic conversational AI with no grounding — the Copilot chat interface computes real answers from the live database first and only uses an LLM to phrase the response
 
 ## System Architecture Diagram
 
 ```mermaid
 graph TB
     subgraph DataSources[Data Sources]
-        GW[Payment Gateway CSV]
-        LD[Internal Ledger CSV]
-        BK[Bank Statement CSV]
+        GW[Payment Gateway Feed]
+        LD[Internal Ledger]
+        BK[Bank Statement Feed]
     end
-    
+
     subgraph Ingestion[Ingestion Layer]
-        DI[Data Ingestion]
+        DI[Batch Ingestion API]
         NM[Normalization]
+        WH[Razorpay Webhooks - HMAC signed]
     end
-    
+
     subgraph Canonical[Canonical Models]
         CT[Canonical Transactions]
     end
-    
+
     subgraph Persistence[Persistence Layer]
         PG[(PostgreSQL)]
-        QD[(Qdrant)]
+        QD[(Qdrant - auxiliary retrieval)]
     end
-    
+
     subgraph Matching[Matching Layer]
         DMG[Deterministic Matching]
         CG[Candidate Generation]
         MLS[ML Scoring]
         DP[Decision Policy]
+        EC[Exception Classifier]
     end
-    
+
     subgraph Investigation[Investigation Layer]
-        IE[Investigation Engine]
-        LLM[LLM Reasoning]
-        RC[Root Cause Classification]
+        IE[Investigation Service]
+        LLM[Groq LLM Reasoning]
+        EG[Evidence Graph Builder]
     end
-    
-    subgraph Risk[Risk Layer]
-        RE[Risk Engine]
+
+    subgraph Controller[Finance Controller]
+        FC[Single Source of Truth - get_summary_kpis]
     end
-    
+
+    subgraph HITL[Human-in-the-Loop Actions]
+        FA[Finance Action Service]
+        POL[Policy Ceilings - server-enforced]
+    end
+
+    subgraph Settle[Settlement Intelligence]
+        SI[Settlement Bank-Match Service]
+    end
+
+    subgraph QAChat[Copilot / Finance QA]
+        QA[Deterministic Fact Lookup]
+        QALLM[LLM Rephrasing - facts only]
+    end
+
     subgraph Audit[Audit Layer]
-        AS[Audit Service]
+        AS[Immutable Audit Service]
     end
-    
+
     subgraph Evaluation[Evaluation Layer]
-        EF[Evaluation Framework]
-        SIM[Simulator Ground Truth]
+        EF[Canonical Benchmark Harness]
+        GT[Private Ground Truth]
     end
-    
+
     subgraph API[API Layer]
-        FA[FastAPI]
+        FAPI[FastAPI]
     end
-    
-    subgraph UI[UI Layer]
-        SL[Streamlit]
+
+    subgraph Frontend[Frontend]
+        NEXT[Next.js App Router]
     end
-    
+
     GW --> DI
     LD --> DI
     BK --> DI
+    GW --> WH
     DI --> NM
+    WH --> NM
     NM --> CT
     CT --> PG
     CT --> DMG
     DMG --> CG
     CG --> MLS
     MLS --> DP
-    DP -->|MATCH| PG
-    DP -->|REVIEW| IE
-    DP -->|UNRESOLVED| IE
+    DP -->|AUTO_MATCH| PG
+    DP -->|MANUAL_REVIEW| EC
+    DP -->|REJECT| EC
+    EC --> IE
     IE --> LLM
-    LLM --> RC
-    RC --> RE
-    RE --> PG
+    IE --> EG
+    EG --> PG
+    LLM --> PG
+    PG --> FC
+    FC --> FA
+    FA --> POL
+    POL --> AS
+    PG --> SI
+    SI --> PG
+    FC --> QA
+    QA --> QALLM
+    PG --> QA
     DP --> AS
     AS --> PG
-    SIM --> EF
+    GT --> EF
     PG --> EF
-    PG --> FA
-    FA --> SL
+    FC --> FAPI
+    FA --> FAPI
+    SI --> FAPI
+    QA --> FAPI
+    EF --> FAPI
+    FAPI --> NEXT
     PG <--> QD
 ```
 
@@ -110,24 +142,24 @@ graph TB
 
 ```mermaid
 graph LR
-    A[Gateway/Ledger/Bank CSV] --> B[Data Ingestion]
-    B --> C[Normalization]
-    C --> D[Canonical Transactions]
-    D --> E[Persistence - PostgreSQL]
-    D --> F[Deterministic Matching]
-    F --> G[Candidate Generation]
-    G --> H[ML Scoring]
-    H --> I[Decision Policy]
-    I -->|MATCH| J[Match Record]
-    I -->|REVIEW| K[Investigation Required]
-    I -->|UNRESOLVED| K
-    K --> L[Investigation Engine]
-    L -->|Ambiguous/High Value| M[LLM Reasoning]
-    M --> N[Root Cause Classification]
-    N --> O[Risk Engine]
-    O --> P[Audit Result]
-    J --> E
-    P --> E
+    A[Gateway/Ledger/Bank feeds] --> B[Ingestion + Normalization]
+    B --> C[Canonical Transactions]
+    C --> D[Persistence - PostgreSQL]
+    C --> E[Deterministic Matching]
+    E --> F[Candidate Generation]
+    F --> G[ML Scoring]
+    G --> H[Decision Policy]
+    H -->|AUTO_MATCH| I[Match Record]
+    H -->|MANUAL_REVIEW / REJECT| J[Exception Classifier]
+    J --> K[Investigation Service]
+    K -->|Ambiguous / High value| L[Groq LLM Reasoning]
+    K --> M[Evidence Graph - real linked legs]
+    L --> N[Root Cause + Recommended Action]
+    M --> N
+    N --> O[Finance Action Service - HITL]
+    O --> P[Immutable Audit Trail]
+    I --> D
+    P --> D
 ```
 
 ## Decision Flow
@@ -135,241 +167,155 @@ graph LR
 ```mermaid
 graph TD
     A[Canonical Transactions] --> B[Deterministic Matching]
-    B -->|Exact Match| C[MATCH]
-    B -->|No Match| D[Candidate Generation]
+    B -->|Exact 3-way match| C[AUTO_MATCH]
+    B -->|No exact match| D[Candidate Generation]
     D --> E[ML Scoring]
     E --> F{Decision Policy}
-    F -->|Score >= Threshold| G{Confidence Check}
-    G -->|High Confidence| C
-    G -->|Medium Confidence| H[REVIEW]
-    F -->|Score < Threshold| I[UNRESOLVED]
-    H --> J[Investigation Engine]
+    F -->|Currency mismatch or financial inconsistency| R[REJECT]
+    F -->|Score >= threshold| G{Confidence Check}
+    G -->|High confidence| C
+    G -->|Medium confidence| H[MANUAL_REVIEW]
+    F -->|Score below threshold| I[Exception - Unresolved]
+    H --> J[Exception Classifier]
     I --> J
-    J --> K{Value/Ambiguity Check}
-    K -->|High Value or Ambiguous| L[LLM Reasoning]
-    K -->|Low Value & Clear| M[Rule-Based Classification]
-    L --> N[Root Cause Classification]
-    M --> N
-    N --> O[Risk Calculation]
-    O --> P[Audit Logging]
+    R --> J
+    J --> K[Investigation Service]
+    K --> L{High value or ambiguous?}
+    L -->|Yes| M[Groq LLM Reasoning]
+    L -->|No| N[Rule-Based Classification]
+    M --> O[Root Cause + Evidence Graph]
+    N --> O
+    O --> P[Finance Controller - risk & exposure]
+    P --> Q[Audit Logging]
 ```
 
 ## Investigation Flow
 
 ```mermaid
 graph TD
-    A[Decision Policy Output] --> B{Requires Investigation?}
-    B -->|No| C[Final Decision]
-    B -->|Yes| D[Investigation Engine]
-    D --> E{LLM Required?}
-    E -->|No| F[Rule-Based Analysis]
-    E -->|Yes| G[LLM Reasoning]
-    F --> H[Root Cause Classification]
-    G --> H
-    H --> I[Risk Engine]
-    I --> J[Audit Service]
-    J --> C
+    A[Exception Classified] --> B{Deterministic explanation found?}
+    B -->|Yes| C[Rule-Based Root Cause]
+    B -->|No| D[Groq LLM Investigation]
+    D --> E[Structured, Validated Root Cause]
+    C --> F[Evidence Graph Builder]
+    E --> F
+    F --> G["Real Gateway -> Ledger -> Bank pipeline<br/>built from linked transaction records,<br/>not illustrative placeholders"]
+    G --> H[Investigation Dossier]
+    H --> I[Finance Action Service - recommend action]
+    I --> J[Human Approval / Rejection]
+    J --> K[Audit Service]
 ```
 
 ## Persistence Architecture
 
 ```mermaid
 graph TB
-    subgraph PostgreSQL[(PostgreSQL - System of Record)]
+    subgraph PostgreSQL[PostgreSQL - System of Record]
         RR[reconciliation_runs]
-        SR[source_records]
-        MT[matches]
+        TX[transactions]
+        MT[matches / match_transactions]
         DC[decisions]
-        EX[exceptions]
+        EX[exceptions / exception_transactions]
+        IR[investigations]
+        FAT[finance_actions]
         AE[audit_events]
-        IR[investigation_records]
     end
-    
-    subgraph Qdrant[(Qdrant - Auxiliary Retrieval)]
+
+    subgraph Qdrant[Qdrant - Auxiliary Retrieval]
         IK[Investigation Knowledge]
         HE[Historical Exceptions]
         SE[Semantic Evidence]
     end
-    
-    CT[Canonical Transactions] --> RR
-    RR --> SR
-    SR --> MT
+
+    TX --> RR
+    RR --> MT
     MT --> DC
     DC --> EX
-    DC --> AE
     EX --> IR
+    IR --> FAT
+    DC --> AE
     IR <--> Qdrant
 ```
 
 ## Component Responsibilities
 
 ### Data Ingestion
-- **Responsibility**: Read CSV files from payment gateway, internal ledger, and bank statement
-- **Inputs**: CSV file paths
-- **Outputs**: Raw data frames
-- **Dependencies**: pandas
-- **Must NOT Do**: Validation, normalization, transformation
+- **Responsibility**: Accept Gateway/Ledger/Bank records via batch ingestion API or signed Razorpay webhooks
+- **Inputs**: Batch payloads, HMAC-signed webhook events
+- **Outputs**: Raw records ready for normalization
+- **Must NOT Do**: Validation logic beyond schema shape, matching, business decisions
 
 ### Normalization
-- **Responsibility**: Transform raw data into canonical format, handle field mapping, currency conversion
-- **Inputs**: Raw data frames
+- **Responsibility**: Transform raw records into canonical transaction format, handle field mapping and currency
+- **Inputs**: Raw ingested records
 - **Outputs**: Canonical transaction objects
-- **Dependencies**: Canonical models, currency conversion utilities
-- **Must NOT Do**: Matching, persistence, business logic
+- **Must NOT Do**: Matching, persistence side effects beyond normalization, business logic
 
 ### Canonical Models
-- **Responsibility**: Define Pydantic models for canonical transactions, matches, decisions
-- **Inputs**: N/A (schema definitions)
-- **Outputs**: Type-safe data structures
-- **Dependencies**: Pydantic
+- **Responsibility**: Pydantic models for canonical transactions, matches, decisions, exceptions
 - **Must NOT Do**: Business logic, persistence, matching logic
 
-### Deterministic Matching
-- **Responsibility**: Apply exact matching rules based on amount, date, identifiers
-- **Inputs**: Canonical transactions
-- **Outputs**: Exact matches
-- **Dependencies**: Canonical models
-- **Must NOT Do**: LLM calls, database queries, ML inference
+### Deterministic Matcher (`app/matching/deterministic.py`)
+- **Responsibility**: Exact 3-way matching by ID, amount, and date across Gateway/Ledger/Bank
+- **Must NOT Do**: LLM calls, ML inference, final routing decisions
 
-### Candidate Generation
-- **Responsibility**: Generate potential match candidates using fuzzy rules
-- **Inputs**: Unmatched canonical transactions
-- **Outputs**: Candidate match pairs
-- **Dependencies**: Canonical models, fuzzy matching utilities
+### ML Scorer (`app/matching/ml_scorer.py`)
+- **Responsibility**: Score ambiguous candidate matches the deterministic matcher couldn't resolve
 - **Must NOT Do**: LLM calls, database queries, final decisions
 
-### ML Scoring
-- **Responsibility**: Score candidate matches using trained ML models
-- **Inputs**: Candidate match pairs
-- **Outputs**: Match probabilities and confidence scores
-- **Dependencies**: ML models, feature engineering
-- **Must NOT Do**: LLM calls, database queries, final decisions
-
-### Decision Policy
-- **Responsibility**: Apply threshold-based rules to determine match/review/unresolved status
-- **Inputs**: ML scores, deterministic matches
-- **Outputs**: Decisions (MATCH/REVIEW/UNRESOLVED)
-- **Dependencies**: ML scoring, configuration
+### Decision Policy (`app/matching/decision.py`)
+- **Responsibility**: Apply financial-consistency and threshold rules to route each pair to AUTO_MATCH, MANUAL_REVIEW, or REJECT
 - **Must NOT Do**: LLM calls, database mutations, investigation logic
 
-### Reconciliation Orchestrator
-- **Responsibility**: Coordinate the end-to-end reconciliation pipeline with persistence
-- **Inputs**: Normalized transactions grouped by source, run ID
-- **Outputs**: ReconciliationSummary with execution results
-- **Dependencies**: TransactionRepository, ReconciliationRepository, MatchRepository, DecisionRepository, ExceptionRepository, AuditRepository, DeterministicMatcher, MLScorer (optional), DecisionPolicy
-- **Must NOT Do**: CSV parsing, ML training, direct database queries (use repositories), API logic
-
-### PostgreSQL
-- **Responsibility**: SYSTEM OF RECORD for all structured financial state
-- **Inputs**: Structured data from pipeline
-- **Outputs**: Query results, transactional guarantees
-- **Dependencies**: Database schema
-- **Must NOT Do**: Business logic, matching, ML inference
-
-### Audit Service
-- **Responsibility**: Log all state changes, decisions, and evidence
-- **Inputs**: Decisions, matches, investigations
-- **Outputs**: Audit trail records
-- **Dependencies**: PostgreSQL
-- **Must NOT Do**: Business logic, decision making
-
-### Investigation Engine
-- **Responsibility**: Coordinate investigation workflows for unresolved cases
-- **Inputs**: Unresolved decisions, review cases
-- **Outputs**: Investigation results
-- **Dependencies**: LLM reasoning, rule-based analysis
-- **Must NOT Do**: Direct financial record mutations
-
-### LLM Reasoning
-- **Responsibility**: Provide structured reasoning for ambiguous or high-value cases
-- **Inputs**: Investigation context, transaction data
-- **Outputs**: Structured analysis (validated)
-- **Dependencies**: LLM API, validation schemas
-- **Must NOT Do**: Direct financial record mutations, unstructured output
-
-### Root Cause Classification
-- **Responsibility**: Classify the root cause of reconciliation exceptions
-- **Inputs**: Investigation results, LLM analysis
-- **Outputs**: Root cause categories
-- **Dependencies**: Classification models or rules
+### Exception Classifier (`app/matching/exception_classifier.py`)
+- **Responsibility**: Categorize every unresolved record by root-cause type (missing bank/ledger leg, timing lag, fee/tax mismatch, duplicate, amount mismatch) instead of a generic "unresolved" bucket
 - **Must NOT Do**: Financial record mutations
 
-### Risk Engine
-- **Responsibility**: Calculate financial risk and expected cost of decisions
-- **Inputs**: Decisions, root causes, transaction amounts
-- **Outputs**: Risk scores, expected cost
-- **Dependencies**: Financial calculations
-- **Must NOT Do**: Decision making, record mutations
+### Reconciliation Service (`app/services/reconciliation.py`)
+- **Responsibility**: Coordinate the end-to-end reconciliation pipeline with persistence, pairing the correct transaction legs (gateway/bank preferred pairing) before invoking the decision policy
+- **Must NOT Do**: CSV/payload parsing, ML training, API logic
 
-### FastAPI
-- **Responsibility**: Expose REST API endpoints for reconciliation operations
-- **Inputs**: HTTP requests
-- **Outputs**: HTTP responses
-- **Dependencies**: Backend services
+### Investigation Service (`app/investigation/service.py`)
+- **Responsibility**: Run LLM-assisted root-cause investigation per exception, and build the real evidence-graph pipeline (Gateway → Ledger → Bank) from the transactions actually linked to that exception via the `exception_transactions` join table — never illustrative placeholder data
+- **Must NOT Do**: Direct financial record mutations, unstructured/unvalidated LLM output
+
+### Finance Controller (`app/services/finance_controller.py`)
+- **Responsibility**: Single source of truth for every KPI shown anywhere in the system (`get_summary_kpis`) — match rate, exceptions, exposure, aging. Every dashboard, the benchmark panel, and Copilot answers all read from this one computation, never from independently-derived per-page numbers
+- **Must NOT Do**: Presentation logic, direct HTTP handling
+
+### Finance Action Service (`app/services/finance_action_service.py`)
+- **Responsibility**: Human-in-the-loop action lifecycle — Pending Approval → Approved → Executed, or → Rejected — with policy ceilings enforced server-side (max single adjustment, max write-off limit)
+- **Must NOT Do**: Execute an action without human approval; bypass policy ceilings
+
+### Settlement Intelligence Service (`app/services/razorpay_settlement_intelligence_service.py`)
+- **Responsibility**: Match what the gateway reports as settled (gross, fee, tax, expected net) against the real bank credit, by UTR/reference-number lookup — the same live lookup powers both the settlement list and detail views
+- **Must NOT Do**: Report a bank match that hasn't been verified against an actual bank transaction record
+
+### Copilot / Finance QA Service (`app/services/copilot_service.py`, `app/services/finance_qa.py`)
+- **Responsibility**: Answer natural-language questions two ways — (1) live-data questions, computed deterministically from the database first, LLM only rephrases the verified fact; (2) "how does this product work" questions, answered from a fixed knowledge base, LLM only rephrases
+- **Must NOT Do**: Invent a number not backed by a deterministic query
+
+### Audit Service
+- **Responsibility**: Log every match, decision, action, and investigation event — immutable, append-only
+- **Must NOT Do**: Business logic, decision making
+
+### FastAPI (API Layer)
+- **Responsibility**: Expose REST endpoints for reconciliation, exceptions, investigations, actions, settlements, webhooks, and copilot
 - **Must NOT Do**: Business logic, direct database access (use services)
 
-### Streamlit
-- **Responsibility**: Provide web UI for reconciliation monitoring and investigation
-- **Inputs**: User interactions
-- **Outputs**: Visualizations, forms
-- **Dependencies**: FastAPI
+### Frontend (Next.js App Router)
+- **Responsibility**: Present the Control Center, Reconciliation dashboard, Exception dossiers, Settlements, Review Actions, Benchmark, and Copilot chat — all reading from the same API layer, none computing its own numbers independently
 - **Must NOT Do**: Business logic, direct database access
 
-### Evaluation Framework
-- **Responsibility**: Evaluate reconciliation quality against ground truth
-- **Inputs**: Reconciliation results, ground truth
-- **Outputs**: Metrics (precision, recall, etc.)
-- **Dependencies**: Simulator, metrics calculation
-- **Must NOT Do**: Production data mutations
+### Evaluation Harness (`eval/`)
+- **Responsibility**: Score reconciliation quality against a private, seed-based ground truth — kept fully separate from live usage so its numbers stay reproducible and untouched by demo data
+- **Must NOT Do**: Read or write production data; be modified to make a demo look better
 
 ## Database Architecture
 
 ### PostgreSQL as System of Record
 
 **PostgreSQL is the authoritative source of truth for all structured financial state.**
-
-**Planned Entities:**
-
-#### reconciliation_runs
-- **Purpose**: Track each reconciliation execution
-- **Fields**: run_id, timestamp, data_sources, status, summary_stats
-- **Relationships**: One-to-many with source_records, matches, decisions
-
-#### source_records
-- **Purpose**: Store individual source transactions
-- **Fields**: record_id, source_type (gateway/ledger/bank), canonical_data, run_id
-- **Relationships**: Many-to-one with reconciliation_runs, many-to-many with matches
-
-#### matches
-- **Purpose**: Store matched transaction groups
-- **Fields**: match_id, match_type (deterministic/ml), confidence, evidence, run_id
-- **Relationships**: Many-to-one with reconciliation_runs, many-to-many with source_records
-
-#### decisions
-- **Purpose**: Store final decisions for each match or exception
-- **Fields**: decision_id, match_id, decision (match/review/unresolved), reason, confidence, run_id
-- **Relationships**: Many-to-one with reconciliation_runs, many-to-one with matches
-
-#### exceptions
-- **Purpose**: Store unresolved or exceptional cases
-- **Fields**: exception_id, type, severity, description, investigation_status, run_id
-- **Relationships**: Many-to-one with reconciliation_runs
-
-#### audit_events
-- **Purpose**: Log all state changes for audit trail
-- **Fields**: event_id, timestamp, entity_type, entity_id, action, actor, previous_state, new_state
-- **Relationships**: References all entities
-
-#### investigation_records
-- **Purpose**: Store investigation workflow results
-- **Fields**: investigation_id, exception_id, method (llm/rule-based), result, root_cause, risk_score, timestamp
-- **Relationships**: Many-to-one with exceptions
-
-**Constraints:**
-- All financial amounts stored as DECIMAL type
-- Foreign key constraints enforced
-- Immutable audit events (append-only)
-- Canonical data stored as JSONB with validation
 
 ### Relational Schema (Implemented)
 
@@ -390,6 +336,8 @@ erDiagram
     matches ||--o{ decisions : "references"
 
     exceptions ||--o{ exception_transactions : "contains"
+    exceptions ||--o{ investigations : "produces"
+    exceptions ||--o{ finance_actions : "recommends"
 
     transactions {
         uuid id PK
@@ -483,6 +431,30 @@ erDiagram
         uuid transaction_id FK, PK "RESTRICT"
     }
 
+    investigations {
+        string investigation_id PK
+        uuid exception_id FK "RESTRICT"
+        string root_cause
+        decimal confidence
+        string method
+        boolean llm_invoked
+        boolean requires_human_review
+        datetime created_at
+    }
+
+    finance_actions {
+        string action_id PK
+        string entity_type
+        string entity_id
+        string action_type
+        decimal amount
+        string status
+        string recommended_by
+        string authorized_by
+        datetime executed_at
+        datetime created_at
+    }
+
     audit_events {
         uuid id PK
         uuid run_id FK "RESTRICT"
@@ -508,7 +480,7 @@ erDiagram
 
 **Qdrant is NOT a source of truth for financial data.**
 
-**Planned Use Cases:**
+**Use Cases:**
 - Investigation knowledge base (historical case retrieval)
 - Semantic retrieval of evidence for investigations
 - Exception pattern similarity search
@@ -531,22 +503,21 @@ Deterministic → ML → Decision → Only unresolved/high-value/ambiguous → I
 **LLM Usage Constraints:**
 - LLM must not directly mutate financial records
 - LLM outputs must be structured and validated against Pydantic schemas
-- LLM calls are gated by decision policy (only for REVIEW/UNRESOLVED cases)
-- LLM is used for explanation and investigation, not for matching
+- LLM calls are gated by decision policy (only for REVIEW/UNRESOLVED cases) and by the Copilot's deterministic-fact-first design
+- LLM is used for explanation, investigation, and rephrasing verified facts — never for matching
 - LLM reasoning is not authoritative financial truth
 
 **When LLM IS Used:**
-- High-value ambiguous cases
-- Complex exception patterns
-- Investigation requiring semantic understanding
-- Root cause classification for novel patterns
+- Per-exception root-cause investigation
+- Copilot answer phrasing (after the real fact is computed)
+- "How does this product work" knowledge answers (phrasing only, over a fixed knowledge base)
 
 **When LLM is NOT Used:**
 - Deterministic matching
 - Candidate generation
 - ML scoring
 - Threshold-based decisions
-- Routine exception classification
+- Evidence-graph construction (built directly from linked transaction records)
 
 ## Financial Safety Principles
 
@@ -558,6 +529,8 @@ Deterministic → ML → Decision → Only unresolved/high-value/ambiguous → I
 6. **Every automated decision must have evidence**: Audit trail required
 7. **Every important state change must be auditable**: No silent mutations
 8. **Uncertain cases must be escalated**: Better to leave unresolved than to incorrectly match
+9. **Every financial action requires human authorization**: No autonomous execution, ever
+10. **Single source of truth**: Every displayed number is derived from one computation layer (`get_summary_kpis`), never independently recomputed per page
 
 **False Positive Prevention:**
 - False positive financial matches are more dangerous than unresolved cases
@@ -566,11 +539,10 @@ Deterministic → ML → Decision → Only unresolved/high-value/ambiguous → I
 
 ## Data Flow
 
-**Complete Intended Flow:**
+**Complete Flow:**
 
 ```
-Gateway/Ledger/Bank CSV
-  → Data Ingestion
+Gateway/Ledger/Bank feeds (batch ingest or signed webhooks)
   → Normalization
   → Canonical Transactions
   → Persistence (PostgreSQL)
@@ -578,21 +550,21 @@ Gateway/Ledger/Bank CSV
   → Candidate Generation
   → ML Scoring
   → Decision Policy
-  → MATCH/REVIEW/UNRESOLVED
-  → Investigation (if REVIEW/UNRESOLVED)
-  → LLM (if high-value/ambiguous)
-  → Root Cause Classification
-  → Risk Engine
-  → Audit Service
-  → Final Result
+  → AUTO_MATCH / MANUAL_REVIEW / REJECT
+  → Exception Classifier (if not AUTO_MATCH)
+  → Investigation Service (LLM-assisted root cause + evidence graph)
+  → Finance Controller (risk, exposure, single-source KPIs)
+  → Finance Action Service (human-authorized corrective action)
+  → Immutable Audit Trail
+  → Final Result, surfaced identically across every frontend page
 ```
 
 ## Evaluation Architecture
 
 **Ground Truth Usage:**
-- Simulator ground truth used ONLY for evaluation/training-data generation
+- Private, seed-based ground truth used ONLY for the canonical benchmark harness under `eval/`
 - Ground truth must NOT be treated as runtime truth
-- Production reconciliation does not depend on simulator
+- Live reconciliation runs do not depend on the evaluation harness, and the harness is never modified to make a demo look better
 
 **Evaluation Dimensions:**
 - Precision (correct matches / total matches)
@@ -618,7 +590,7 @@ Gateway/Ledger/Bank CSV
 1. Do not bypass canonical models
 2. Do not put database code into matching algorithms
 3. Do not put API logic into business logic
-4. Do not put Streamlit logic into backend services
+4. Do not put frontend presentation logic into backend services
 5. Do not make LLM calls from deterministic matching
 6. Do not make LLM calls for every transaction
 7. Do not replace deterministic rules with an LLM
@@ -627,35 +599,27 @@ Gateway/Ledger/Bank CSV
 10. Do not introduce new architecture without updating this document
 11. Do not introduce dependencies without justification
 12. Preserve existing working components unless a real defect requires change
+13. Never let a page compute its own KPI independently of the Finance Controller
+14. Never modify the canonical evaluation harness (`eval/`) to inflate a benchmark score
 
 ## Current Implementation Status
 
-### IMPLEMENTED
+### Implemented
 
-- Repository foundation
-- Canonical Pydantic models
-- Synthetic financial data simulator
-- Ground truth generation
-- Normalization
-- Deterministic candidate generation
-- Deterministic matching
-- ML feature engineering
-- Logistic Regression baseline
-- XGBoost candidate scoring
-- Decision policy
-- Financial consistency utility
-- PostgreSQL persistence layer
+- Canonical Pydantic models and repository layer
+- Synthetic financial data simulator and ground truth generation
+- Normalization, deterministic candidate generation, deterministic 3-way matching
+- ML feature engineering, Logistic Regression baseline, XGBoost candidate scoring
+- Decision policy with financial-consistency checks
+- PostgreSQL persistence layer (async SQLAlchemy + Alembic migrations)
 - Reconciliation orchestrator service
-- Tests for the above
-
-### NOT YET IMPLEMENTED
-
-- Evaluation engine
-- Investigation engine
-- LLM reasoning
-- Root-cause agent
-- Risk engine
-- Audit service integration
-- FastAPI
-- Streamlit
-- Production deployment
+- Exception classification by root-cause category
+- LLM-assisted investigation service with real evidence-graph construction
+- Finance Controller as single source of truth for all KPIs
+- Human-in-the-loop Finance Action Service with policy ceilings and audit trail
+- Razorpay signed-webhook ingestion and Settlement Intelligence Service
+- Copilot / Finance QA service (live-data + product-knowledge modes)
+- FastAPI backend exposing all of the above
+- Next.js frontend (Control Center, Reconciliation, Exceptions, Settlements, Actions, Benchmark, Copilot)
+- Canonical benchmark evaluation harness against private ground truth
+- Full test suite covering the above
