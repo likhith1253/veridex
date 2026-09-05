@@ -14,6 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // If viewing the public product website at root, omit AppShell
+  // Note: All hooks must be called before any early return
   if (pathname === "/") {
     return <>{children}</>;
   }
