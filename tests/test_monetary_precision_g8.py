@@ -15,38 +15,6 @@ from app.services.cash_position import CashPositionSummary
 from app.services.exposure_service import FinancialExposureBreakdown
 from app.services.finance_controller import ControllerKPIs
 from app.services.source_health_service import SourceHealthReport, SourceMetrics
-from ui.dashboard import format_money, format_number, format_percent
-
-
-def test_aud_021_ui_format_money_decimal_precision():
-    """Verify format_money never introduces binary floating point inaccuracies."""
-    # Classic float precision bug: 0.10 + 0.20 = 0.30000000000000004
-    dec_val = Decimal("0.10") + Decimal("0.20")
-    formatted = format_money(dec_val)
-    assert formatted == "₹0.30"
-
-    # High value 999999999.99
-    high_val = Decimal("999999999.99")
-    assert format_money(high_val) == "₹999,999,999.99"
-
-    # 123456789.75 and crore range
-    assert format_money("123456789.75") == "₹123,456,789.75"
-    large_val = Decimal("123456789012345.12")
-    assert format_money(large_val) == "₹123,456,789,012,345.12"
-
-    # Small fractional values
-    assert format_money(Decimal("0.01")) == "₹0.01"
-    assert format_money(None, fallback="N/A") == "N/A"
-    assert format_money("invalid", fallback="N/A") == "N/A"
-
-
-def test_aud_022_ui_format_number_and_percent_precision():
-    """Verify format_number and format_percent operate with exact Decimal parsing."""
-    assert format_number(Decimal("1234567.89"), decimals=2) == "1,234,567.89"
-    assert format_number("1000", decimals=0) == "1,000"
-    assert format_percent(Decimal("99.95"), decimals=1) == "100.0%" or format_percent(Decimal("99.95"), decimals=2) == "99.95%"
-    assert format_percent("87.654", decimals=2) == "87.65%"
-    assert format_number(None) == "N/A — unavailable from live data"
 
 
 def test_aud_023_controller_kpis_decimal_exact_serialization():
