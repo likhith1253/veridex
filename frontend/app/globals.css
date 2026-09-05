@@ -285,12 +285,14 @@ pre {
   background-color: #FFFFFF !important;
 }
 .bg-\[\#181c22\],
-.bg-\[\#1e242c\] {
+.bg-\[\#1e242c\],
+.bg-\[\#111418\] {
   background-color: #F1EFE9 !important;
 }
 .border-\[\#1a1e24\],
 .border-\[\#222831\],
-.border-\[\#2d3542\] {
+.border-\[\#2d3542\],
+.border-\[\#22272e\] {
   border-color: #D7D3CA !important;
 }
 
