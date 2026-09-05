@@ -706,6 +706,14 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
 
   const demoLogicalTxns = batchSize;
   const demoFeedRecords = batchSize * 3;
+  // Rough duration estimate — deterministic matching and ML arbitration are
+  // sub-second regardless of size; the real cost scales with how many
+  // exceptions get a live per-exception LLM investigation call. ~10 of every
+  // 100 logical transactions are seeded exception scenarios, so this scales
+  // that ratio down to whatever batch size is selected, at ~4-8s per call.
+  const estimatedExceptions = Math.max(1, Math.round((demoLogicalTxns / 100) * 10));
+  const estimatedSecLow = Math.round(estimatedExceptions * 4);
+  const estimatedSecHigh = Math.round(estimatedExceptions * 8) + 15;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
@@ -788,7 +796,19 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
                   background: "var(--surface-2)",
                 }}
               >
-                Reconcile a balanced financial dataset of <strong className="text-[#eceae6]">50 logical transactions (150 multi-source feed records)</strong> across Gateway, Ledger, and Bank feeds. Exercises clean matches, fee discrepancies, delayed settlements, duplicate captures, and ambiguous matches.
+                Reconcile a balanced financial dataset of <strong className="text-[#eceae6]">{demoLogicalTxns} logical transactions ({demoFeedRecords} multi-source feed records)</strong> across Gateway, Ledger, and Bank feeds. Exercises clean matches, fee discrepancies, delayed settlements, duplicate captures, and ambiguous matches.
+              </div>
+
+              <div
+                className="flex items-start gap-2 p-3 rounded-sm border text-[11px] leading-relaxed"
+                style={{ borderColor: "var(--accent-border)", background: "var(--accent-dim)", color: "var(--text-secondary)" }}
+              >
+                <Loader2 className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: "var(--accent)" }} />
+                <span>
+                  <strong className="text-[#eceae6]">Estimated time: ~{estimatedSecLow}–{estimatedSecHigh}s.</strong>{" "}
+                  Matching itself is fast — most of that time is a real, live AI investigation call made for
+                  every exception this batch raises, not a fixed delay.
+                </span>
               </div>
 
               {/* Advanced Options Toggle */}
