@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   X,
   Play,
@@ -490,8 +490,22 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
     stats?: ParsedFileStats;
   }>({ gw: [], ld: [], bk: [] });
   const [importError, setImportError] = useState<string | null>(null);
+  const [elapsedSec, setElapsedSec] = useState(0);
 
   const isSubmitting = runState.phase === "submitting";
+
+  // Honest elapsed-time ticker for the long-running submit — the backend call
+  // is a single blocking request with no real progress stream, so rather than
+  // fake a progress bar, this just tells the operator how long it's actually
+  // been running and why (per-exception LLM investigation is the slow part).
+  useEffect(() => {
+    if (!isSubmitting) {
+      setElapsedSec(0);
+      return;
+    }
+    const interval = setInterval(() => setElapsedSec((s) => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, [isSubmitting]);
 
   // Parse CSV file content
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1001,15 +1015,29 @@ export function RunBatchModal({ isOpen, onClose }: RunBatchModalProps) {
           {/* Submitting State */}
           {runState.phase === "submitting" && (
             <div
-              className="p-3.5 rounded-sm border text-xs flex items-center gap-2"
+              className="p-3.5 rounded-sm border text-xs space-y-2"
               style={{
                 borderColor: "var(--border-standard)",
                 background: "var(--surface-2)",
                 color: "var(--text-secondary)",
               }}
             >
-              <Loader2 className="h-4 w-4 animate-spin text-[#c9a96e] flex-shrink-0" />
-              <span>{runState.stage}</span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#c9a96e] flex-shrink-0" />
+                  <span>{runState.stage}</span>
+                </div>
+                <span className="font-mono text-[11px] tabular-nums" style={{ color: "var(--text-tertiary)" }}>
+                  {Math.floor(elapsedSec / 60)}:{(elapsedSec % 60).toString().padStart(2, "0")} elapsed
+                </span>
+              </div>
+              {elapsedSec >= 5 && (
+                <p className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>
+                  Deterministic matching and ML arbitration finish in seconds — most of this time is a
+                  real per-exception LLM investigation call, not a fixed delay. A 100-record batch
+                  typically takes 60–120s depending on how many exceptions it raises.
+                </p>
+              )}
             </div>
           )}
         </div>
