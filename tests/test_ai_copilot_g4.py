@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.database.session import create_app_engine
 from app.database.models import (
+    Decision as DecisionORM,
+    DecisionAction,
     Exception as ExceptionORM,
     Match as MatchORM,
     MatchTransaction as MatchTransactionORM,
@@ -175,6 +177,16 @@ async def test_aud_059_natural_exception_and_match_rate_questions(db_session: As
     mt1 = MatchTransactionORM(match_id="m1", transaction_id="tx1")
     mt2 = MatchTransactionORM(match_id="m1", transaction_id="tx2")
     db_session.add_all([mt1, mt2])
+
+    # A Decision row confirming the match as AUTO_MATCH is what actually makes
+    # a transaction count as "matched" system-wide (FinanceController.get_summary_kpis) —
+    # a bare match_transactions row alone is not sufficient.
+    decision = DecisionORM(
+        id="d1", run_id="run_g4_02", match_id="m1",
+        decision_action=DecisionAction.AUTO_MATCH.value,
+        deterministic_confidence=Decimal("1.0"), evidence={}, reason="exact_match", created_at=_now(),
+    )
+    db_session.add(decision)
 
     # 1 open exception, 1 resolved exception
     exc_open = ExceptionORM(id="e_open", run_id="run_g4_02", transaction_id="tx3", exception_category="missing_record", status="open", confidence=Decimal("0.5"), financial_exposure=Decimal("50000.00"), expected_cost=Decimal("50000.00"), explanation="Missing", resolved=False, created_at=_now())
