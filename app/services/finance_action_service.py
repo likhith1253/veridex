@@ -57,8 +57,7 @@ class FinanceActionService:
         happened to be first in an unordered SELECT.
         """
         if preferred_run_id:
-            await ensure_run_exists(self.session, preferred_run_id)
-            return preferred_run_id
+            return await ensure_run_exists(self.session, preferred_run_id)
 
         if entity_type == "exception" and entity_id:
             exc_stmt = select(ExceptionORM.run_id).where(ExceptionORM.id == entity_id)
