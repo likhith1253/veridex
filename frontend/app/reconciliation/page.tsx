@@ -215,6 +215,40 @@ export default function ReconciliationPage() {
             Payment Gateway, Ledger, and Bank feeds.
           </p>
 
+          <div className="flex items-center gap-6 mt-4 pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>
+                Throughput
+              </div>
+              <div className="text-xl font-bold font-mono font-tabular mt-0.5" style={{ color: "var(--text-primary, #eceae6)" }}>
+                {overviewLoading ? (
+                  <div className="h-6 w-20 skeleton rounded-xs" />
+                ) : overview?.processing_throughput_tps ? (
+                  <CountUp
+                    value={overview.processing_throughput_tps}
+                    format={(n) => `${n.toFixed(1)} rec/s`}
+                  />
+                ) : (
+                  "—"
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>
+                Avg. latency
+              </div>
+              <div className="text-xl font-bold font-mono font-tabular mt-0.5" style={{ color: "var(--text-primary, #eceae6)" }}>
+                {overviewLoading ? (
+                  <div className="h-6 w-16 skeleton rounded-xs" />
+                ) : overview?.average_processing_latency_ms ? (
+                  `${overview.average_processing_latency_ms.toFixed(0)} ms`
+                ) : (
+                  "—"
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="mt-4">
             <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-tertiary)" }}>
               Breakdown by issue cause
