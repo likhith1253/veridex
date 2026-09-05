@@ -139,13 +139,16 @@ class RazorpayWebhookHandler:
         await ensure_run_exists(session, run_id)
 
         # 6. Reconcile Entity
+        # get_orm_by_source_and_domain_id already returns the transaction's id
+        # string (or None) — not the ORM row itself, despite its name — so a
+        # hit here IS the resolved id, not something to call .id on again.
+        # A second webhook for an already-seen settlement (a genuine, real
+        # scenario when Razorpay resends with a new event_id) used to crash
+        # with AttributeError: 'str' object has no attribute 'id'.
         from app.database.repositories.transaction_repository import TransactionRepository
         txn_repo = TransactionRepository(session)
-        existing_txn = await txn_repo.get_orm_by_source_and_domain_id(txn.source.value, txn.txn_id)
-        if existing_txn:
-            orm_txn_id = existing_txn.id
-        else:
-            orm_txn_id = await txn_repo.create(txn)
+        existing_txn_id = await txn_repo.get_orm_by_source_and_domain_id(txn.source.value, txn.txn_id)
+        orm_txn_id = existing_txn_id if existing_txn_id else await txn_repo.create(txn)
 
         if is_settlement_event:
             # Reconcile settlement payout against bank statement
