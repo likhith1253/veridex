@@ -1,6 +1,0 @@
-logical_transactions,total_feed_records,runtime_seconds,throughput_records_per_sec,deterministic_matches,ml_matches,manual_reviews,unresolved_exceptions,precision,recall,f1_score,accuracy,unresolved_exposure_inr
-50,150,0.0447,3354.2,82,18,7,9,90.0,100.0,94.74,90.48,3186772.0
-200,600,0.2696,2225.5,318,82,30,40,90.0,100.0,94.74,90.48,10379880.0
-500,1500,0.957,1567.3,797,203,75,100,90.0,100.0,94.74,90.48,30288280.0
-1000,3000,3.9743,754.9,1591,409,150,200,90.0,100.0,94.74,90.48,44492336.0
-2000,6000,16.7353,358.5,3182,818,297,402,89.9,100.0,94.68,90.38,96181006.0
