@@ -1,5 +1,9 @@
+import asyncio
 import logging
 import os
+from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +24,38 @@ from app.api.routes.webhooks import router as webhooks_router
 logger = logging.getLogger(__name__)
 
 
+def _run_alembic_upgrade() -> None:
+    """Blocking call — runs in a worker thread via asyncio.to_thread so its
+    internal asyncio.run() (in alembic/env.py) doesn't collide with the
+    event loop already running the FastAPI lifespan."""
+    from alembic import command
+    from alembic.config import Config
+
+    repo_root = Path(__file__).resolve().parents[2]
+    cfg = Config(str(repo_root / "alembic.ini"))
+    cfg.set_main_option("script_location", str(repo_root / "alembic"))
+    command.upgrade(cfg, "head")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Auto-apply any pending Alembic migrations on boot. This exists because
+    # the webhook_events table shipped as an ORM model with no migration ever
+    # authored for it — it only existed in environments where someone had
+    # manually run Base.metadata.create_all(), which silently masked the gap
+    # in local development while a freshly-migrated production database
+    # (Neon, provisioned purely via `alembic upgrade head`) was missing it
+    # entirely, crashing every real webhook. Running the upgrade here too
+    # means a schema change can never again ship to migrations/ without also
+    # reaching every deployed environment on its next restart, regardless of
+    # whether the hosting platform's start command happens to run migrations.
+    try:
+        await asyncio.to_thread(_run_alembic_upgrade)
+        logger.info("Database schema is up to date (alembic upgrade head).")
+    except Exception as e:
+        logger.error("Startup migration check failed: %s", e, exc_info=True)
+    yield
+
 
 def create_app() -> FastAPI:
     """Factory function for FastAPI application."""
@@ -27,6 +63,7 @@ def create_app() -> FastAPI:
         title="Veridex API",
         description="Veridex — AI Financial Control & Reconciliation Engine API. Find the discrepancy. Prove the cause. Control the action.",
         version="0.2.0",
+        lifespan=lifespan,
     )
 
     # 1. Configure CORS middleware (AUD-059)
