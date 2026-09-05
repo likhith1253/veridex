@@ -47,7 +47,7 @@
   <g filter="url(#softshadow)">
     <rect x="1000" y="96" width="520" height="150" rx="12" fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
   </g>
-  <text x="1260" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">FRONTEND — Next.js 16 (App Router, :3000)</text>
+  <text x="1260" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">FRONTEND — Next.js 16 (App Router)</text>
   <g font-size="10.5" fill="#c9d1d9">
     <rect x="1015" y="130" width="95" height="26" rx="6" fill="#30363d"/><text x="1062" y="147" text-anchor="middle">Landing</text>
     <rect x="1118" y="130" width="95" height="26" rx="6" fill="#30363d"/><text x="1165" y="147" text-anchor="middle">Control Center</text>
@@ -73,7 +73,7 @@
   <g filter="url(#softshadow)">
     <rect x="120" y="252" width="900" height="70" rx="12" fill="#2d333b" stroke="#3fb950" stroke-width="1.5"/>
   </g>
-  <text x="570" y="274" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">API LAYER — FastAPI (:8000)</text>
+  <text x="570" y="274" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">API LAYER — FastAPI</text>
   <g font-size="10" fill="#c9d1d9">
     <text x="180" y="298">/controller/ingest</text>
     <text x="330" y="298">/controller/exceptions</text>
