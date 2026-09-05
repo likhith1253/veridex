@@ -32,6 +32,10 @@ class InvestigationDossier(BaseModel):
     variance_type: str = Field(..., description="Classification of variance")
     related_ids: RelatedIDs = Field(default_factory=RelatedIDs, description="Related transaction, order, settlement IDs")
     reconciliation_evidence: dict[str, Any] = Field(default_factory=dict, description="Grounded reconciliation facts and records")
+    evidence_graph: Optional[dict[str, Any]] = Field(
+        default=None,
+        description="Real Gateway/Ledger/Bank pipeline nodes and edges showing exactly which leg broke, derived from actual linked transaction records",
+    )
     root_cause_candidates: list[RootCauseCandidate] = Field(default_factory=list, description="Ranked root-cause candidates with confidence")
     recommended_action: str = Field(..., description="Action recommended for resolution")
     requires_human_review: bool = Field(..., description="HITL review requirement")

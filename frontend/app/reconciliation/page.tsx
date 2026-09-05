@@ -12,17 +12,39 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { RunBatchModal } from "@/components/reconciliation/RunBatchModal";
 import { TechnicalReference } from "@/components/common/TechnicalReference";
+import { RadialGauge } from "@/components/common/RadialGauge";
+import { BreakdownBar } from "@/components/common/BreakdownBar";
+import { TrendArrow } from "@/components/common/TrendArrow";
+import { CountUp } from "@/components/common/CountUp";
+import { usePreviousValue } from "@/lib/hooks/usePreviousValue";
 import {
   Play,
   CreditCard,
   Building2,
   Receipt,
   Layers,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+
+// Exception-category color legend — restrained institutional palette, no
+// new charting library, matches the semantic status colors used elsewhere.
+const CATEGORY_COLORS = [
+  "var(--variance)",
+  "var(--pending)",
+  "var(--ml)",
+  "var(--accent-deep)",
+  "var(--matched)",
+  "var(--gateway)",
+  "var(--bank)",
+];
+
+const FEED_PAGE_SIZE = 25;
 
 export default function ReconciliationPage() {
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [feedPage, setFeedPage] = useState(1);
 
   // Raw feed transactions query
   const {
@@ -46,11 +68,62 @@ export default function ReconciliationPage() {
     refetchInterval: 20000,
   });
 
+  // Authoritative match-rate overview — same summary endpoint the Command
+  // Center reads from — powers the hero radial gauge below.
+  const { data: overview, isLoading: overviewLoading } = useQuery({
+    queryKey: ["controller-overview"],
+    queryFn: () => controllerApi.getOverview(),
+    refetchInterval: 10000,
+  });
+
+  // Wider exception sample to drive the exception-type breakdown bar —
+  // same pattern already used on the Command Center for its category chart.
+  const { data: exceptionsForBreakdown, isLoading: breakdownLoading } = useQuery({
+    queryKey: ["controller-exceptions-chart-sample"],
+    queryFn: () => controllerApi.getExceptions({ page: 1, page_size: 200 }),
+    staleTime: 20000,
+  });
+
+  const matchRatePct = (overview?.match_rate ?? 0) * 100;
+  const prevMatchRatePct = usePreviousValue(overview?.match_rate !== undefined ? matchRatePct : undefined);
+  const matchRateTrend = prevMatchRatePct !== undefined ? matchRatePct - prevMatchRatePct : null;
+
+  const categoryBreakdown = React.useMemo(() => {
+    const exceptions = exceptionsForBreakdown?.exceptions ?? [];
+    const counts = new Map<string, number>();
+    for (const ex of exceptions) {
+      const cat = (ex.category || ex.exception_category || "unexplained").toString();
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, value], idx) => ({
+        label,
+        value,
+        color: CATEGORY_COLORS[idx % CATEGORY_COLORS.length],
+      }));
+  }, [exceptionsForBreakdown]);
+
   const transactions = txnsData?.transactions || [];
   const filteredTxns =
     sourceFilter === "all"
       ? transactions
       : transactions.filter((t) => (t.source || "").toLowerCase() === (sourceFilter || "").toLowerCase());
+
+  // Previously this table was hardcoded to `.slice(0, 30)` with no way to
+  // see anything past the first 30 rows, regardless of how many records
+  // actually matched the filter (up to 500) — real pagination instead.
+  const feedTotalPages = Math.max(1, Math.ceil(filteredTxns.length / FEED_PAGE_SIZE));
+  const currentFeedPage = Math.min(feedPage, feedTotalPages);
+  const pagedTxns = filteredTxns.slice(
+    (currentFeedPage - 1) * FEED_PAGE_SIZE,
+    currentFeedPage * FEED_PAGE_SIZE
+  );
+
+  const handleSourceFilterChange = (src: string) => {
+    setSourceFilter(src);
+    setFeedPage(1);
+  };
 
   const getSourceIcon = (source?: string | null) => {
     switch ((source || "").toLowerCase()) {
@@ -111,11 +184,55 @@ export default function ReconciliationPage() {
         </button>
       </div>
 
+      {/* Hero metric: reconciliation match rate as a radial gauge, animating
+          in from 0 on mount — the single most important number on this page. */}
+      <div
+        className="rounded-sm border p-6 veridex-card-lift veridex-rise-in grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-6 items-center"
+        style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)" }}
+      >
+        <div className="flex justify-center sm:justify-start">
+          {overviewLoading ? (
+            <div className="h-[168px] w-[168px] rounded-full skeleton" />
+          ) : (
+            <RadialGauge
+              value={matchRatePct}
+              label="Match rate"
+              sublabel={`${overview?.total_matched_records ?? 0} of ${overview?.total_records_processed ?? 0} matched`}
+            />
+          )}
+        </div>
+        <div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--accent)" }}>
+              Reconciliation rate
+            </span>
+            {!overviewLoading && matchRateTrend !== null && (
+              <TrendArrow delta={matchRateTrend} goodDirection="up" />
+            )}
+          </div>
+          <p className="text-xs mt-1.5" style={{ color: "var(--text-secondary)" }}>
+            Share of ingested records automatically or ML-recovered into a confirmed match across
+            Payment Gateway, Ledger, and Bank feeds.
+          </p>
+
+          <div className="mt-4">
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-tertiary)" }}>
+              Breakdown by issue cause
+            </div>
+            {breakdownLoading ? (
+              <div className="h-[10px] w-full rounded-full skeleton" />
+            ) : (
+              <BreakdownBar segments={categoryBreakdown} />
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Data Provenance & Scope Distinction: Available vs Latest Run */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Available Records in System */}
         <div
-          className="rounded-sm border p-4 text-[#eceae6]"
+          className="rounded-sm border p-4 text-[#eceae6] veridex-card-lift"
           style={{
             borderColor: "var(--border-subtle)",
             background: "var(--surface-1)",
@@ -131,7 +248,7 @@ export default function ReconciliationPage() {
               </p>
             </div>
             <span className="text-base font-bold font-mono text-[#eceae6]">
-              {txnsData?.total_count ?? transactions.length}{" "}
+              <CountUp value={txnsData?.total_count ?? transactions.length} format={(n) => Math.round(n).toString()} />{" "}
               <span className="text-xs text-[#8e96a0] font-normal">total</span>
             </span>
           </div>
@@ -166,7 +283,7 @@ export default function ReconciliationPage() {
 
         {/* Latest Reconciliation Run */}
         <div
-          className="rounded-sm border p-4 text-[#eceae6]"
+          className="rounded-sm border p-4 text-[#eceae6] veridex-card-lift"
           style={{
             borderColor: "var(--border-subtle)",
             background: "var(--surface-1)",
@@ -225,7 +342,7 @@ export default function ReconciliationPage() {
 
       {/* Historical Runs Summary Table */}
       <div
-        className="rounded-sm border p-6 text-[#eceae6]"
+        className="rounded-sm border p-6 text-[#eceae6] veridex-card-lift"
         style={{
           borderColor: "var(--border-subtle)",
           background: "var(--surface-1)",
@@ -318,7 +435,7 @@ export default function ReconciliationPage() {
 
       {/* Multi-Source Raw Transactions Feed Table */}
       <div
-        className="rounded-sm border p-6 text-[#eceae6]"
+        className="rounded-sm border p-6 text-[#eceae6] veridex-card-lift"
         style={{
           borderColor: "var(--border-subtle)",
           background: "var(--surface-1)",
@@ -333,7 +450,10 @@ export default function ReconciliationPage() {
               Feed records in system
             </h2>
             <p className="text-xs text-[#545e6a] mt-0.5">
-              Available records across all feeds ({filteredTxns.length} records shown)
+              Available records across all feeds ({filteredTxns.length} total
+              {filteredTxns.length > 0 &&
+                ` · showing ${(currentFeedPage - 1) * FEED_PAGE_SIZE + 1}–${Math.min(currentFeedPage * FEED_PAGE_SIZE, filteredTxns.length)}`}
+              )
             </p>
           </div>
 
@@ -348,7 +468,7 @@ export default function ReconciliationPage() {
             {["all", "gateway", "ledger", "bank"].map((src) => (
               <button
                 key={src}
-                onClick={() => setSourceFilter(src)}
+                onClick={() => handleSourceFilterChange(src)}
                 className={cn(
                   "px-2.5 py-1 rounded-xs text-xs font-medium transition-micro uppercase",
                   sourceFilter === src
@@ -402,7 +522,7 @@ export default function ReconciliationPage() {
                 </tr>
               </thead>
               <tbody className="divide-y" style={{ borderColor: "var(--border-subtle)" }}>
-                {filteredTxns.slice(0, 30).map((t, idx) => {
+                {pagedTxns.map((t, idx) => {
                   const txnId = t.domain_transaction_id || t.id || `raw-txn-${idx}`;
                   return (
                     <tr
@@ -432,6 +552,40 @@ export default function ReconciliationPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination — the table previously hardcoded `.slice(0, 30)` with
+            no way to reach anything past the first page regardless of how
+            many records matched the active filter. */}
+        {!txnsLoading && !txnsError && filteredTxns.length > FEED_PAGE_SIZE && (
+          <div
+            className="flex items-center justify-between pt-4 mt-2"
+            style={{ borderTop: "1px solid var(--border-subtle)" }}
+          >
+            <span className="text-[11px] text-[#545e6a] font-mono">
+              Page {currentFeedPage} of {feedTotalPages}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setFeedPage((p) => Math.max(1, p - 1))}
+                disabled={currentFeedPage <= 1}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xs text-xs font-medium border transition-micro disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ borderColor: "var(--border-standard)", background: "var(--surface-2)", color: "#eceae6" }}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Prev
+              </button>
+              <button
+                onClick={() => setFeedPage((p) => Math.min(feedTotalPages, p + 1))}
+                disabled={currentFeedPage >= feedTotalPages}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xs text-xs font-medium border transition-micro disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ borderColor: "var(--border-standard)", background: "var(--surface-2)", color: "#eceae6" }}
+              >
+                Next
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         )}
       </div>

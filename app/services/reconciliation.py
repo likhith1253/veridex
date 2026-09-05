@@ -428,9 +428,33 @@ class ReconciliationService:
         
         for match in matches:
             if len(match.transaction_ids) >= 2:
-                txn1 = txn_by_id.get(match.transaction_ids[0])
-                txn2 = txn_by_id.get(match.transaction_ids[1])
-                
+                group = [txn_by_id.get(tid) for tid in match.transaction_ids]
+                group = [t for t in group if t is not None]
+
+                # check_financial_consistency() only knows how to validate a
+                # GATEWAY↔BANK pair (net = gross - fee - tax) or an exact
+                # amount match; a LEDGER↔BANK pair legitimately differs by
+                # the same fee+tax (ledger records the gross amount, bank
+                # records the net credit) but the function has no rule for
+                # that combination, so it fell through to "amounts don't
+                # match => reject". Since `transaction_ids[0]`/`[1]` are not
+                # guaranteed to be gateway-first after DB round-trip, a
+                # genuinely valid 3-way match was rejected whenever the
+                # sampled pair happened to be ledger+bank instead of
+                # gateway+bank — the root cause of a much lower match rate
+                # than the data actually supports. Always prefer an actual
+                # GATEWAY leg paired with the BANK leg when both exist in
+                # this match's transaction group, regardless of storage
+                # order, so the fee/tax-aware comparison is used correctly.
+                gateway_txn = next((t for t in group if t.source == TransactionSource.GATEWAY), None)
+                bank_txn = next((t for t in group if t.source == TransactionSource.BANK), None)
+                if gateway_txn and bank_txn:
+                    txn1, txn2 = gateway_txn, bank_txn
+                elif len(group) >= 2:
+                    txn1, txn2 = group[0], group[1]
+                else:
+                    txn1 = txn2 = None
+
                 if txn1 and txn2:
                     # Use make_decision for all matches to apply financial consistency checks
                     # This prevents false matches where amounts differ despite having same identifiers

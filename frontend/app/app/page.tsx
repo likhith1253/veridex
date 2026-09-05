@@ -7,6 +7,7 @@ import { controllerApi } from "@/lib/api/controllerApi";
 import { formatINR, formatPercent, formatVariance } from "@/lib/utils/formatters";
 import { MetricCard } from "@/components/common/MetricCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { usePreviousValue } from "@/lib/hooks/usePreviousValue";
 import { FunnelChart } from "@/components/reconciliation/FunnelChart";
 import { MatchDistributionChart } from "@/components/reconciliation/MatchDistributionChart";
 import { ExceptionCategoryChart } from "@/components/exceptions/ExceptionCategoryChart";
@@ -14,7 +15,7 @@ import { TechnicalReference } from "@/components/common/TechnicalReference";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import {
-  DollarSign,
+  IndianRupee,
   GitMerge,
   AlertOctagon,
   ShieldAlert,
@@ -99,8 +100,8 @@ export default function CommandCenterPage() {
   // the authoritative "open issues" figure. Keeping this consistent everywhere
   // avoids the number disagreeing across screens.
   const exceptionRecs = overview?.open_exceptions ?? overview?.unresolved_transactions ?? 0;
-  const exposureVal = overview?.unresolved_monetary_exposure_inr ?? overview?.financial_exposure ?? 0;
-  const volumeVal = overview?.total_transaction_value_inr ?? overview?.total_financial_volume ?? 0;
+  const exposureVal = Number(overview?.unresolved_monetary_exposure_inr ?? overview?.financial_exposure ?? 0) || 0;
+  const volumeVal = Number(overview?.total_transaction_value_inr ?? overview?.total_financial_volume ?? 0) || 0;
   const runId = overview?.run_id;
 
   // Run provenance: has a reconciliation ever run, and what state is the most
@@ -129,6 +130,26 @@ export default function CommandCenterPage() {
     : latestRunStatus === "failed"
     ? "Reconciliation failed"
     : "Reconciliation complete";
+
+  // Real previous-fetch values (from polling), used only to compute genuine
+  // deltas for the trend arrows below — never fabricated.
+  const prevVolumeVal = usePreviousValue(volumeVal || undefined);
+  const prevMatchRate = usePreviousValue(overview?.match_rate ?? undefined);
+  const prevExceptionRecs = usePreviousValue(exceptionRecs);
+  const prevExposureVal = usePreviousValue(exposureVal || undefined);
+
+  const volumeTrend = prevVolumeVal !== undefined && prevVolumeVal > 0
+    ? ((volumeVal - prevVolumeVal) / prevVolumeVal) * 100
+    : null;
+  const matchRateTrend = prevMatchRate !== undefined
+    ? (overview?.match_rate ?? 0) * 100 - prevMatchRate * 100
+    : null;
+  const exceptionTrend = prevExceptionRecs !== undefined
+    ? exceptionRecs - prevExceptionRecs
+    : null;
+  const exposureTrend = prevExposureVal !== undefined && prevExposureVal > 0
+    ? ((exposureVal - prevExposureVal) / prevExposureVal) * 100
+    : null;
 
   const reconLink = runId ? `/reconciliation?run_id=${encodeURIComponent(runId)}` : "/reconciliation";
   const exceptionsLink = runId
@@ -295,9 +316,13 @@ export default function CommandCenterPage() {
             <MetricCard
               title="Total volume processed"
               value={formatINR(volumeVal)}
+              countUpValue={volumeVal}
+              countUpFormat={formatINR}
               subtitle={`${totalRecs} feed records in scope`}
-              icon={<DollarSign className="h-4 w-4 text-[#c9a96e]" />}
+              icon={<IndianRupee className="h-4 w-4 text-[#c9a96e]" />}
               statusBorder="indigo"
+              trendDelta={volumeTrend}
+              trendGoodDirection="up"
             />
           </Link>
 
@@ -305,11 +330,15 @@ export default function CommandCenterPage() {
             <MetricCard
               title="Reconciliation rate"
               value={formatPercent(overview?.match_rate)}
+              countUpValue={(overview?.match_rate ?? 0) * 100}
+              countUpFormat={(n) => `${n.toFixed(2)}%`}
               subtitle={`${matchedRecs} of ${totalRecs} matched`}
               delta={overview?.match_rate && overview.match_rate >= 0.9 ? "Optimal" : "Review"}
               deltaType={overview?.match_rate && overview.match_rate >= 0.9 ? "positive" : "neutral"}
               icon={<GitMerge className="h-4 w-4 text-[#6ecba0]" />}
               statusBorder="emerald"
+              trendDelta={matchRateTrend}
+              trendGoodDirection="up"
             />
           </Link>
 
@@ -317,11 +346,15 @@ export default function CommandCenterPage() {
             <MetricCard
               title="Issues needing attention"
               value={exceptionRecs.toString()}
+              countUpValue={exceptionRecs}
+              countUpFormat={(n) => Math.round(n).toString()}
               subtitle={`${exceptionRecs} open issues`}
               delta={exceptionRecs > 0 ? "Review needed" : "Zero variance"}
               deltaType={exceptionRecs > 0 ? "negative" : "positive"}
               icon={<AlertOctagon className="h-4 w-4 text-[#e07070]" />}
               statusBorder="rose"
+              trendDelta={exceptionTrend}
+              trendGoodDirection="down"
             />
           </Link>
 
@@ -329,6 +362,8 @@ export default function CommandCenterPage() {
             <MetricCard
               title="Money at risk"
               value={formatINR(exposureVal)}
+              countUpValue={exposureVal}
+              countUpFormat={formatINR}
               subtitle={`Expected Cost: ${formatINR(overview?.manual_review_exposure_inr ?? overview?.expected_cost)}`}
               delta={`${formatPercent(overview?.unreconciled_exposure_pct)} of volume`}
               deltaType={
@@ -338,6 +373,8 @@ export default function CommandCenterPage() {
               }
               icon={<ShieldAlert className="h-4 w-4 text-[#d4a84e]" />}
               statusBorder="amber"
+              trendDelta={exposureTrend}
+              trendGoodDirection="down"
             />
           </Link>
         </div>

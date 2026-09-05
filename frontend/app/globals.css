@@ -236,15 +236,15 @@ pre {
   border-radius: 3px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: all 120ms ease-out;
+  transition: background-color 250ms ease-out, transform 250ms ease-out, box-shadow 250ms ease-out;
 }
 .btn-gold:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px -4px rgba(201, 169, 110, 0.45);
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: 0 8px 20px -4px rgba(201, 169, 110, 0.5);
 }
 .btn-gold:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.99);
   box-shadow: none;
 }
 
@@ -260,11 +260,12 @@ pre {
   border-radius: 3px;
   border: 1px solid var(--border-standard);
   cursor: pointer;
-  transition: all 120ms ease-out;
+  transition: background-color 250ms ease-out, border-color 250ms ease-out, transform 250ms ease-out;
 }
 .btn-secondary:hover {
   background: #F1EFE9;
   border-color: var(--border-prominent);
+  transform: translateY(-1px);
 }
 
 /* ─── Contrast Bridge: Map dark-mode text classes to razor-sharp ink ─ */
@@ -291,6 +292,30 @@ pre {
 .border-\[\#222831\],
 .border-\[\#2d3542\] {
   border-color: #D7D3CA !important;
+}
+
+/* Hover-state variants of the same dark-mode-era background classes were
+   missing from this bridge — the base `.bg-[#13161a]` etc. above got
+   remapped to a light surface, but `.hover:bg-[#13161a]` is a distinct
+   generated class name that this selector list never matched. On hover,
+   rows fell back to their original near-black background while their text
+   was still force-mapped to dark ink by the rule above, producing
+   unreadable dark-on-dark ("black hover") rows across every table that
+   used this pattern (feed tables, exception queues, settlement lists,
+   secondary buttons). Same fix, hover pseudo-class included. */
+.hover\:bg-\[\#13161a\]:hover,
+.hover\:bg-\[\#0e1012\]:hover,
+.hover\:bg-\[\#080a0c\]:hover,
+.hover\:bg-\[\#090a0f\]:hover {
+  background-color: #F7F5F0 !important;
+}
+.hover\:bg-\[\#181c22\]:hover,
+.hover\:bg-\[\#1e242c\]:hover,
+.hover\:bg-\[\#161a20\]:hover {
+  background-color: #F1EFE9 !important;
+}
+.bg-\[\#161a20\] {
+  background-color: #F1EFE9 !important;
 }
 
 /* ─── Entrance / reveal animations — Command Center arrival sequence ─── */

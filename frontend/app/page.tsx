@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { motion, type Variants } from "framer-motion";
 import { controllerApi } from "@/lib/api/controllerApi";
 import {
   ArrowRight,
@@ -10,6 +11,35 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { VeridexLogo } from "@/components/common/VeridexLogo";
+
+// Scroll-triggered fade/stagger-in — reveal each section only once, on the
+// way in, 400-600ms ease-out to match the rest of the entrance system.
+const easeOutSignature = [0.16, 1, 0.3, 1] as const;
+
+const sectionReveal: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: easeOutSignature },
+  },
+};
+
+const staggerContainer: Variants = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+  },
+};
+
+const staggerItem: Variants = {
+  hidden: { opacity: 0, y: 18 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: easeOutSignature },
+  },
+};
 
 export default function WebsitePage() {
   // Fetch real authoritative benchmark proof
@@ -139,47 +169,72 @@ export default function WebsitePage() {
       </header>
 
       {/* ── HERO SECTION ──────────────────────────────────────────── */}
+      {/* Entrance sequence uses the same CSS keyframe system as the rest of
+          the app (globals.css `.veridex-rise-in` + staggered delay classes)
+          rather than framer-motion mount animations — that keeps behavior
+          under prefers-reduced-motion consistent with every other page,
+          since a native CSS animation with a forced near-zero duration
+          still completes cleanly, while JS-driven opacity/transform
+          animations can freeze mid-flight for reduced-motion users. */}
       <section className="pt-20 pb-16 border-b border-[#D7D3CA]">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#FFFFFF] border border-[#D7D3CA] text-[11px] font-bold uppercase tracking-[0.14em] text-[#9E7B35] mb-6 shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xs bg-[#FFFFFF] border border-[#D7D3CA] text-[11px] font-bold uppercase tracking-[0.14em] text-[#9E7B35] mb-6 shadow-xs veridex-rise-in">
             <span>AI FINANCIAL CONTROL &amp; RECONCILIATION ENGINE</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-[#17191C] leading-[1.1] mb-6">
-            KNOW WHERE
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 veridex-rise-in veridex-delay-1">
+            <span className="text-[#17191C]">KNOW WHERE</span>
             <br />
-            <span className="font-display font-normal italic text-[#9E7B35]">
+            <span
+              className="font-display font-normal italic bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(100deg, #9E7B35 0%, #C9A96E 45%, #D8BC8A 65%, #9E7B35 100%)",
+              }}
+            >
               THE MONEY DIVERGED.
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-[#555B61] max-w-2xl mx-auto leading-relaxed mb-8">
+          <p className="text-base sm:text-lg text-[#555B61] max-w-2xl mx-auto leading-relaxed mb-8 veridex-rise-in veridex-delay-2">
             VERIDEX reconciles multi-source financial records, investigates discrepancies,
             grounds conclusions in evidence, and keeps financial actions under human control.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/app"
-              className="btn-gold px-6 py-3 text-sm shadow-xs"
+          <div className="flex flex-wrap items-center justify-center gap-4 veridex-rise-in veridex-delay-3">
+            <motion.div
+              whileHover={{ scale: 1.035 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <span>Open Control Center</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              <Link
+                href="/app"
+                className="btn-gold px-6 py-3 text-sm shadow-xs"
+              >
+                <span>Open Control Center</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
 
-            <a
-              href="#proof"
-              className="btn-secondary px-6 py-3 text-sm"
+            <motion.div
+              whileHover={{ scale: 1.035 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <span>See the Proof</span>
-              <ArrowDown className="h-4 w-4 text-[#6F747A]" />
-            </a>
+              <a
+                href="#proof"
+                className="btn-secondary px-6 py-3 text-sm"
+              >
+                <span>See the Proof</span>
+                <ArrowDown className="h-4 w-4 text-[#6F747A]" />
+              </a>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* ── HERO FINANCIAL PROOF (Interactive Provenance Demonstration) ── */}
-      <section id="proof" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF]">
+      <section id="proof" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF] veridex-rise-in">
         <div className="max-w-5xl mx-auto px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 mb-8 border-b border-[#D7D3CA]">
             <div>
@@ -340,7 +395,7 @@ export default function WebsitePage() {
       </section>
 
       {/* ── THE VERIDEX LOOP (HOW IT WORKS) ───────────────────────── */}
-      <section id="how-it-works" className="py-20 border-b border-[#D7D3CA]">
+      <section id="how-it-works" className="py-20 border-b border-[#D7D3CA] veridex-rise-in">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
@@ -366,7 +421,7 @@ export default function WebsitePage() {
             ].map((item) => (
               <div
                 key={item.step}
-                className="bg-[#FFFFFF] border border-[#D7D3CA] rounded-xs p-4 flex flex-col justify-between shadow-xs"
+                className="bg-[#FFFFFF] border border-[#D7D3CA] rounded-xs p-4 flex flex-col justify-between shadow-xs veridex-card-lift"
               >
                 <div>
                   <div className="font-mono text-xs font-bold text-[#9E7B35] mb-2">
@@ -386,7 +441,7 @@ export default function WebsitePage() {
       </section>
 
       {/* ── THREE CORE PRODUCT PILLARS ────────────────────────────── */}
-      <section id="pillars" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF]">
+      <section id="pillars" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF] veridex-rise-in">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
@@ -432,7 +487,7 @@ export default function WebsitePage() {
       </section>
 
       {/* ── UNKNOWN IS A VALID FINANCIAL STATE ─────────────────────── */}
-      <section id="evidence" className="py-20 border-b border-[#D7D3CA]">
+      <section id="evidence" className="py-20 border-b border-[#D7D3CA] veridex-rise-in">
         <div className="max-w-4xl mx-auto px-6">
           <div className="bg-[#FFFFFF] border-2 border-[#D7D3CA] rounded-xs p-8 shadow-xs">
             <div className="text-center max-w-xl mx-auto mb-8">
@@ -448,7 +503,7 @@ export default function WebsitePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-[#E2DDD3]">
-              <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] veridex-card-lift">
                 <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
                   State Classification
                 </div>
@@ -460,7 +515,7 @@ export default function WebsitePage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+              <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] veridex-card-lift">
                 <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
                   Available Evidence
                 </div>
@@ -501,7 +556,7 @@ export default function WebsitePage() {
       </section>
 
       {/* ── MEASURED, NOT CLAIMED (Benchmark Proof) ────────────────── */}
-      <section id="measured" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF]">
+      <section id="measured" className="py-20 border-b border-[#D7D3CA] bg-[#FFFFFF] veridex-rise-in">
         <div className="max-w-5xl mx-auto px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 mb-8 border-b border-[#D7D3CA]">
             <div>
@@ -523,7 +578,7 @@ export default function WebsitePage() {
 
           {/* Benchmark Metric Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] veridex-card-lift">
               <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
                 Logical Txns
               </div>
@@ -533,7 +588,7 @@ export default function WebsitePage() {
               <div className="text-[10px] text-[#555B61] mt-1">150 feed records</div>
             </div>
 
-            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] veridex-card-lift">
               <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
                 Precision
               </div>
@@ -547,7 +602,7 @@ export default function WebsitePage() {
               <div className="text-[10px] text-[#555B61] mt-1">False match resistance</div>
             </div>
 
-            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] veridex-card-lift">
               <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
                 Recall
               </div>
@@ -561,7 +616,7 @@ export default function WebsitePage() {
               <div className="text-[10px] text-[#555B61] mt-1">Ground truth match coverage</div>
             </div>
 
-            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] veridex-card-lift">
               <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
                 F1 Score
               </div>
@@ -575,7 +630,7 @@ export default function WebsitePage() {
               <div className="text-[10px] text-[#555B61] mt-1">Harmonic accuracy</div>
             </div>
 
-            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA]">
+            <div className="p-4 rounded-xs bg-[#F7F5F0] border border-[#D7D3CA] veridex-card-lift">
               <div className="text-[10px] font-bold uppercase text-[#6F747A] tracking-wider">
                 Throughput
               </div>
@@ -620,7 +675,7 @@ export default function WebsitePage() {
       </section>
 
       {/* ── ENTER THE CONTROL ROOM (CTA SECTION) ─────────────────── */}
-      <section className="py-24 border-b border-[#D7D3CA] text-center">
+      <section className="py-24 border-b border-[#D7D3CA] text-center veridex-rise-in">
         <div className="max-w-3xl mx-auto px-6">
           <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9E7B35]">
             OPERATIONAL ENVIRONMENT
@@ -632,13 +687,20 @@ export default function WebsitePage() {
             Take command of the live reconciliation engine, investigate active exceptions, inspect statutory tax lines, and authorize bounded financial adjustments.
           </p>
 
-          <Link
-            href="/app"
-            className="btn-gold px-8 py-3.5 text-sm font-bold shadow-xs inline-flex items-center gap-2"
+          <motion.div
+            whileHover={{ scale: 1.035 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="inline-block"
           >
-            <span>Open Control Center</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+            <Link
+              href="/app"
+              className="btn-gold px-8 py-3.5 text-sm font-bold shadow-xs inline-flex items-center gap-2"
+            >
+              <span>Open Control Center</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
         </div>
       </section>
 

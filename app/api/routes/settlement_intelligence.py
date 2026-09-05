@@ -350,31 +350,42 @@ async def list_settlements(
         result = await session.execute(stmt)
         settlements = result.scalars().all()
         
-        # Build response items
+        # Build response items using the same live bank-matching logic as the
+        # per-settlement financial-breakdown endpoint, so list and detail views
+        # never disagree about whether a bank credit has actually been matched.
+        service = RazorpaySettlementIntelligenceService(session)
         items = []
         for settlement in settlements:
-            # Calculate financial values
             gross = settlement.amount or Decimal("0")
             fee = settlement.fee or Decimal("0")
             tax = settlement.tax or Decimal("0")
             expected_net = gross - fee - tax
-            
-            # Determine status
-            lifecycle_state = settlement.meta_data.get("lifecycle_state", "RAZORPAY_PROCESSED") if settlement.meta_data else "RAZORPAY_PROCESSED"
-            
-            # Determine variance type (simplified)
-            if lifecycle_state == "BANK_CREDIT_CONFIRMED":
-                variance_type = SettlementVarianceType.NO_VARIANCE
-                bank_received = str(expected_net)
-                variance = "0.00"
-            else:
+
+            try:
+                breakdown = await service.get_settlement_financial_breakdown(
+                    settlement.domain_transaction_id
+                )
+                variance_type = SettlementVarianceType(breakdown.variance_type.value)
+                bank_received = (
+                    str(breakdown.bank_received_amount) if breakdown.bank_matched else None
+                )
+                variance = str(breakdown.variance)
+                lifecycle_state = (
+                    "BANK_CREDIT_CONFIRMED" if breakdown.bank_matched else "BANK_CREDIT_PENDING"
+                )
+            except Exception:
+                # Fall back to the static webhook-time snapshot if live lookup fails.
+                lifecycle_state = (
+                    settlement.meta_data.get("lifecycle_state", "RAZORPAY_PROCESSED")
+                    if settlement.meta_data else "RAZORPAY_PROCESSED"
+                )
                 variance_type = SettlementVarianceType.MISSING_BANK_CREDIT
                 bank_received = None
                 variance = str(expected_net)
-            
+
             # Transaction count (simplified - would need actual linkage query)
             transaction_count = 0  # Placeholder
-            
+
             items.append(SettlementListItem(
                 settlement_id=settlement.domain_transaction_id,
                 settlement_date=settlement.timestamp.isoformat(),

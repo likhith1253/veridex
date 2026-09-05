@@ -35,6 +35,21 @@ export default function BenchmarkPage() {
     staleTime: 60000,
   });
 
+  // Latest LIVE reconciliation run — same authoritative summary endpoint
+  // every other page reads from (Command Center, Reconciliation, Issues).
+  // This is a distinct concept from the canonical evaluation harness above:
+  // that harness scores the engine against known synthetic ground truth
+  // with a fixed methodology (never touched here); this panel shows what
+  // actually happened the last time a real batch was reconciled. Previously
+  // this page only ever showed the static harness, so running a real batch
+  // never visibly "updated the benchmark" — this closes that gap honestly,
+  // without redefining or manipulating the canonical evaluation itself.
+  const { data: liveRun, isLoading: liveRunLoading } = useQuery({
+    queryKey: ["benchmark-live-run"],
+    queryFn: () => controllerApi.getOverview(),
+    refetchInterval: 10000,
+  });
+
   return (
     <div className="space-y-6 pb-12 select-none">
       {/* Breadcrumb Context */}
@@ -94,6 +109,59 @@ export default function BenchmarkPage() {
             <span>Run benchmark</span>
           </button>
         </div>
+      </div>
+
+      {/* ── LATEST LIVE RUN — real numbers from the actual reconciliation
+          engine's last batch, not the synthetic evaluation harness below.
+          Same /controller/summary source as Command Center/Reconciliation,
+          so this can never disagree with what those pages show. ────────── */}
+      <div
+        className="rounded-sm border p-5 veridex-card-lift"
+        style={{ borderColor: "var(--accent-border)", background: "var(--accent-dim)" }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold uppercase tracking-wider font-mono" style={{ color: "var(--accent)" }}>
+            Latest live reconciliation run
+          </span>
+          {liveRun?.run_id && (
+            <Link href="/reconciliation" className="text-[10px] text-[#c9a96e] hover:text-[#e4caa0] font-mono font-semibold">
+              View run →
+            </Link>
+          )}
+        </div>
+        {liveRunLoading ? (
+          <div className="h-10 skeleton rounded-xs" />
+        ) : !liveRun?.has_any_run ? (
+          <p className="text-xs text-[#8e96a0]">No reconciliation has run yet — run one from the Reconciliation page to populate this.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Processed</div>
+              <div className="text-lg font-bold font-mono text-[#eceae6] font-tabular">{liveRun.total_records_processed ?? 0}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Matched</div>
+              <div className="text-lg font-bold font-mono text-[#6ecba0] font-tabular">{liveRun.total_matched_records ?? 0}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Exceptions</div>
+              <div className="text-lg font-bold font-mono text-[#e07070] font-tabular">{liveRun.open_exceptions ?? 0}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Reconciliation rate</div>
+              <div className="text-lg font-bold font-mono text-[#eceae6] font-tabular">{formatPercent(liveRun.match_rate)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Throughput</div>
+              <div className="text-lg font-bold font-mono text-[#eceae6] font-tabular">
+                {liveRun.processing_throughput_tps ? `${liveRun.processing_throughput_tps.toFixed(1)} rec/s` : "—"}
+              </div>
+            </div>
+          </div>
+        )}
+        <p className="text-[10px] text-[#8e96a0] mt-3">
+          This is the actual last-run outcome — separate from the reproducible seeded evaluation harness below, which scores the engine against known synthetic ground truth for accuracy benchmarking.
+        </p>
       </div>
 
       {isLoading ? (
@@ -215,7 +283,7 @@ export default function BenchmarkPage() {
           {/* ── ZONE 2: ARBITRATION PARTITION MATRIX ─────────────────── */}
           {benchmark && (
             <div
-              className="rounded-sm border p-6 text-xs text-[#eceae6] space-y-4"
+              className="rounded-sm border p-6 text-xs text-[#eceae6] space-y-4 veridex-card-lift"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--surface-1)",
@@ -281,7 +349,7 @@ export default function BenchmarkPage() {
 
           {/* ── ZONE 3: COMPLIANCE MATRIX ────────────────────────────── */}
           <div
-            className="rounded-sm border p-6 text-xs text-[#eceae6] space-y-4"
+            className="rounded-sm border p-6 text-xs text-[#eceae6] space-y-4 veridex-card-lift"
             style={{
               borderColor: "var(--border-subtle)",
               background: "var(--surface-1)",
