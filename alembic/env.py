@@ -42,22 +42,34 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 
-async def run_async_migrations() -> None:
-    """Run migrations in 'online' mode."""
-    connectable = create_app_engine(DATABASE_URL)
-
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
-
-    await connectable.dispose()
-
-
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    asyncio.run(run_async_migrations())
+    # Convert postgresql+asyncpg:// or postgresql:// to standard postgresql:// for Alembic migrations
+    sync_url = DATABASE_URL
+    if sync_url.startswith("postgresql+asyncpg://"):
+        sync_url = sync_url.replace("postgresql+asyncpg://", "postgresql://", 1)
+    
+    # Strip parameters not supported by sync psycopg2 if present
+    from sqlalchemy.engine import make_url
+    url_obj = make_url(sync_url)
+    query = dict(url_obj.query)
+    query.pop("channel_binding", None)
+    clean_sync_url = url_obj.set(query=query)
+
+    from sqlalchemy import create_engine
+    connectable = create_engine(clean_sync_url, poolclass=pool.NullPool)
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection, target_metadata=target_metadata
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
 
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
