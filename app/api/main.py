@@ -49,6 +49,16 @@ def create_app() -> FastAPI:
         return response
 
     # 3. Register routers with global API Key auth dependency (AUD-063)
+    @app.get("/", tags=["System"])
+    async def root():
+        return {
+            "name": "Veridex API",
+            "status": "online",
+            "version": "0.2.0",
+            "documentation": "/docs",
+            "health": "/health",
+        }
+
     app.include_router(health_router)
     app.include_router(webhooks_router)
     app.include_router(controller_router, dependencies=[Depends(verify_api_key)])
