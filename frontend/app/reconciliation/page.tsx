@@ -169,19 +169,29 @@ export default function ReconciliationPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsBatchModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xs font-semibold text-xs transition-micro"
-          style={{
-            color: "#080a0c",
-            background: "var(--accent)",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
-        >
-          <Play className="h-3.5 w-3.5 fill-current" />
-          <span>Run reconciliation</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="#run-history"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xs text-xs font-semibold transition-micro border"
+            style={{ borderColor: "var(--border-standard)", color: "var(--text-secondary)" }}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            <span>View run history</span>
+          </a>
+          <button
+            onClick={() => setIsBatchModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xs font-semibold text-xs transition-micro"
+            style={{
+              color: "#080a0c",
+              background: "var(--accent)",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent)")}
+          >
+            <Play className="h-3.5 w-3.5 fill-current" />
+            <span>Run reconciliation</span>
+          </button>
+        </div>
       </div>
 
       {/* Hero metric: reconciliation match rate as a radial gauge, animating
@@ -376,10 +386,12 @@ export default function ReconciliationPage() {
 
       {/* Historical Runs Summary Table */}
       <div
-        className="rounded-sm border p-6 text-[#eceae6] veridex-card-lift"
+        id="run-history"
+        className="rounded-sm border p-6 text-[#eceae6] veridex-card-lift scroll-mt-6"
         style={{
-          borderColor: "var(--border-subtle)",
+          borderColor: "var(--accent-border)",
           background: "var(--surface-1)",
+          borderTop: "2px solid var(--accent)",
         }}
       >
         <div
