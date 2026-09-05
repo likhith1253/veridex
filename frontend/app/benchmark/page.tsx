@@ -18,10 +18,13 @@ import {
   Loader2,
   Layers,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 export default function BenchmarkPage() {
   const [numTransactions, setNumTransactions] = useState<number>(50);
+  const [showReferenceHarness, setShowReferenceHarness] = useState(false);
 
   const {
     data: benchmark,
@@ -33,6 +36,11 @@ export default function BenchmarkPage() {
     queryKey: ["canonical-benchmark", numTransactions],
     queryFn: () => controllerApi.getBenchmark(numTransactions, 42),
     staleTime: 60000,
+    // Only fetched once the operator explicitly opens the reference harness —
+    // it's a fixed-seed synthetic evaluation, not tied to any live run, and
+    // showing it by default alongside real numbers was reading as confusing
+    // "stale run data" to anyone glancing at the page.
+    enabled: showReferenceHarness,
   });
 
   // Latest LIVE reconciliation run — same authoritative summary endpoint
@@ -136,35 +144,54 @@ export default function BenchmarkPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
             <div>
-              <div className="text-[10px] uppercase text-[#8e96a0]">Processed</div>
-              <div className="text-lg font-bold font-mono text-[#eceae6] font-tabular">{liveRun.total_records_processed ?? 0}</div>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase text-[#8e96a0]">Matched</div>
-              <div className="text-lg font-bold font-mono text-[#6ecba0] font-tabular">{liveRun.total_matched_records ?? 0}</div>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase text-[#8e96a0]">Exceptions</div>
-              <div className="text-lg font-bold font-mono text-[#e07070] font-tabular">{liveRun.open_exceptions ?? 0}</div>
-            </div>
-            <div>
               <div className="text-[10px] uppercase text-[#8e96a0]">Reconciliation rate</div>
-              <div className="text-lg font-bold font-mono text-[#eceae6] font-tabular">{formatPercent(liveRun.match_rate)}</div>
+              <div className="text-2xl font-bold font-mono text-[#eceae6] font-tabular">{formatPercent(liveRun.match_rate)}</div>
             </div>
             <div>
               <div className="text-[10px] uppercase text-[#8e96a0]">Throughput</div>
-              <div className="text-lg font-bold font-mono text-[#eceae6] font-tabular">
+              <div className="text-2xl font-bold font-mono text-[#eceae6] font-tabular">
                 {liveRun.processing_throughput_tps ? `${liveRun.processing_throughput_tps.toFixed(1)} rec/s` : "—"}
               </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Processed</div>
+              <div className="text-lg font-bold font-mono text-[#eceae6] font-tabular mt-1.5">{liveRun.total_records_processed ?? 0}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Matched</div>
+              <div className="text-lg font-bold font-mono text-[#6ecba0] font-tabular mt-1.5">{liveRun.total_matched_records ?? 0}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[#8e96a0]">Exceptions</div>
+              <div className="text-lg font-bold font-mono text-[#e07070] font-tabular mt-1.5">{liveRun.open_exceptions ?? 0}</div>
             </div>
           </div>
         )}
         <p className="text-[10px] text-[#8e96a0] mt-3">
-          This is the actual last-run outcome — separate from the reproducible seeded evaluation harness below, which scores the engine against known synthetic ground truth for accuracy benchmarking.
+          This is the actual outcome of the most recent reconciliation run — the authoritative
+          number for this session. It's distinct from the fixed-seed reference harness below,
+          which doesn't change when you run a new batch.
         </p>
       </div>
 
-      {isLoading ? (
+      {/* ── REFERENCE EVALUATION HARNESS — collapsed by default. This is a
+          fixed-seed synthetic benchmark used for methodology rigor; it never
+          changes in response to a live run, so showing it expanded by default
+          next to the live panel above was reading as confusing "another run's
+          numbers" rather than a clearly separate, static reference. ────────── */}
+      <button
+        onClick={() => setShowReferenceHarness((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 rounded-sm border text-xs font-semibold transition-micro"
+        style={{ borderColor: "var(--border-subtle)", background: "var(--surface-1)", color: "#8e96a0" }}
+      >
+        <span className="flex items-center gap-2">
+          <ShieldCheck className="h-3.5 w-3.5 text-[#8e96a0]" />
+          Reference evaluation harness (fixed seed — not affected by your live runs)
+        </span>
+        {showReferenceHarness ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+
+      {!showReferenceHarness ? null : isLoading ? (
         <LoadingSkeleton variant="card" count={4} />
       ) : error ? (
         <ErrorState
@@ -264,7 +291,7 @@ export default function BenchmarkPage() {
                   <div className="p-3 rounded-xs border" style={{ borderColor: "var(--border-subtle)", background: "var(--surface-2)" }}>
                     <div className="text-[10px] uppercase font-semibold text-[#8e96a0]">Throughput</div>
                     <div className="text-xl sm:text-2xl font-bold font-mono font-tabular text-[#9aa5b2] mt-1">
-                      {typeof benchmark?.throughput_records_per_sec === "number" && Number.isFinite(benchmark.throughput_records_per_sec) ? benchmark.throughput_records_per_sec.toFixed(0) : "3,378"}
+                      {typeof benchmark?.throughput_records_per_sec === "number" && Number.isFinite(benchmark.throughput_records_per_sec) ? benchmark.throughput_records_per_sec.toFixed(0) : "—"}
                     </div>
                     <div className="text-[10px] text-[#545e6a] mt-1 font-mono">rec / sec</div>
                   </div>
