@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppShell } from "@/components/layout/AppShell";
+import { BackendWakeGate } from "@/components/layout/BackendWakeGate";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,7 +43,9 @@ export default function RootLayout({
     >
       <body className="h-full antialiased bg-[#F7F5F0] text-[#17191C]">
         <QueryProvider>
-          <AppShell>{children}</AppShell>
+          <BackendWakeGate>
+            <AppShell>{children}</AppShell>
+          </BackendWakeGate>
         </QueryProvider>
       </body>
     </html>
