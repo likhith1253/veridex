@@ -38,7 +38,7 @@ export function ActionCard({ action }: ActionCardProps) {
   return (
     <>
       <div
-        className="rounded-sm border p-6 text-[#eceae6] transition-micro select-none"
+        className="rounded-sm border p-6 text-[#eceae6] veridex-card-lift select-none"
         style={{
           borderColor: isPending ? "var(--pending-border)" : "var(--border-subtle)",
           background: "var(--surface-1)",

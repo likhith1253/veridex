@@ -158,6 +158,82 @@ class InvestigationService:
         """Retrieve all investigation conclusions for a reconciliation run."""
         return await self.investigation_repo.get_by_run_id(run_id)
 
+    @staticmethod
+    def _build_evidence_graph(txns: list) -> dict[str, Any]:
+        """Build a real Gateway -> Ledger -> Bank pipeline graph from actually-linked
+        transaction records, so the evidence trail shows exactly which leg of the
+        3-way reconciliation broke instead of illustrative placeholder data."""
+        PIPELINE = [
+            ("ledger", "order", "Internal Order"),
+            ("gateway", "payment", "Gateway Payment"),
+            ("bank", "bank_credit", "Bank Statement Credit"),
+        ]
+
+        by_source: dict[str, Any] = {}
+        for t in txns:
+            src = t.source.value if hasattr(t.source, "value") else str(t.source)
+            if src not in by_source:
+                by_source[src] = t
+
+        present_amounts = [t.amount for t in by_source.values() if t.amount is not None]
+        reference_amount = None
+        if present_amounts:
+            counts: dict[Decimal, int] = {}
+            for amt in present_amounts:
+                counts[amt] = counts.get(amt, 0) + 1
+            reference_amount = max(counts.items(), key=lambda kv: kv[1])[0]
+
+        nodes = []
+        for source_key, node_type, label in PIPELINE:
+            txn = by_source.get(source_key)
+            if txn is None:
+                nodes.append({
+                    "id": f"missing_{source_key}",
+                    "label": label,
+                    "type": node_type,
+                    "amount": None,
+                    "status": "NOT_FOUND",
+                    "source": source_key,
+                    "reference": "N/A",
+                    "timestamp": None,
+                })
+                continue
+
+            is_discrepant = (
+                reference_amount is not None
+                and txn.amount is not None
+                and txn.amount != reference_amount
+            )
+            nodes.append({
+                "id": txn.domain_transaction_id,
+                "label": label,
+                "type": node_type,
+                "amount": str(txn.amount) if txn.amount is not None else None,
+                "status": "DISCREPANT" if is_discrepant else "CONFIRMED",
+                "source": source_key.upper() + " feed",
+                "reference": txn.reference_number or txn.order_id or txn.domain_transaction_id,
+                "timestamp": txn.timestamp.isoformat() if txn.timestamp else None,
+            })
+
+        edges = []
+        relations = ["Order Authorization", "NEFT / RTGS Statement Parity"]
+        for i in range(len(nodes) - 1):
+            left, right = nodes[i], nodes[i + 1]
+            if left["status"] == "NOT_FOUND" or right["status"] == "NOT_FOUND":
+                edge_status = "missing"
+            elif left["status"] == "DISCREPANT" or right["status"] == "DISCREPANT":
+                edge_status = "discrepant"
+            else:
+                edge_status = "confirmed"
+            edges.append({
+                "source": left["id"],
+                "target": right["id"],
+                "relation": relations[i] if i < len(relations) else "Reconciliation link",
+                "status": edge_status,
+            })
+
+        return {"nodes": nodes, "edges": edges}
+
     async def build_investigation_dossier(self, entity_id: str) -> InvestigationDossierResponse:
         """Build a comprehensive AI investigation and evidence dossier for an exception, settlement, or transaction."""
         entity_id = entity_id.strip()
@@ -227,6 +303,7 @@ class InvestigationService:
                 variance_type="INVESTIGATION_CONCLUSION",
                 related_ids=rel_ids,
                 reconciliation_evidence=recon_evidence,
+                evidence_graph=self._build_evidence_graph(txns),
                 root_cause_candidates=root_candidates,
                 recommended_action=inv.recommended_action,
                 requires_human_review=inv.requires_human_review,
@@ -296,6 +373,7 @@ class InvestigationService:
                     variance=Decimal("0.00"),
                     variance_type="RESOLVED",
                     related_ids=rel_ids,
+                    evidence_graph=self._build_evidence_graph(txns),
                     reconciliation_evidence={
                         "exception_id": exc.id,
                         "resolved": True,
@@ -334,6 +412,7 @@ class InvestigationService:
                     variance=Decimal(str(exc.financial_exposure or "0.00")),
                     variance_type="UNKNOWN",
                     related_ids=rel_ids,
+                    evidence_graph=self._build_evidence_graph(txns),
                     reconciliation_evidence={
                         "exception_id": exc.id,
                         "exception_category": str(exc.exception_category),
@@ -428,6 +507,7 @@ class InvestigationService:
                 variance_type=var_type,
                 related_ids=rel_ids,
                 reconciliation_evidence=recon_evidence,
+                evidence_graph=self._build_evidence_graph(txns),
                 root_cause_candidates=candidates,
                 recommended_action=conclusion_action or exc.recommended_action or "Review exception and verify feed settlement",
                 requires_human_review=conclusion_hitl,

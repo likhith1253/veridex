@@ -140,7 +140,7 @@ export default function SettlementsPage() {
 
       {/* Settlements Table */}
       <div
-        className="rounded-sm border p-6 text-[#eceae6]"
+        className="rounded-sm border p-6 text-[#eceae6] veridex-card-lift"
         style={{
           borderColor: "var(--border-subtle)",
           background: "var(--surface-1)",

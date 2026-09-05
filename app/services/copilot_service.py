@@ -311,11 +311,16 @@ class FinanceCopilotService:
 
         # Delegate general financial queries to the enhanced FinanceQAService
         qa_resp = await self.qa_service.answer_query(q, run_id)
+        is_about_product = isinstance(qa_resp.key_metrics, dict) and "topic" in qa_resp.key_metrics
         return {
             "question": q,
             "answer": qa_resp.direct_answer,
             "interpretation": qa_resp.direct_answer,
-            "recommendation": "Validate the live exception list and confirm working capital impact before closing this issue.",
+            "recommendation": (
+                "Ask a follow-up about your live reconciliation data for specific numbers and evidence."
+                if is_about_product
+                else "Validate the live exception list and confirm working capital impact before closing this issue."
+            ),
             "fact_summary": qa_resp.key_metrics,
             "evidence": qa_resp.evidence_records if isinstance(qa_resp.evidence_records, list) else [qa_resp.evidence_records] if qa_resp.evidence_records else [],
             "source": "groq_ai" if qa_resp.confidence > 0 else "deterministic",

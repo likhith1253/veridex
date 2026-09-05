@@ -197,6 +197,37 @@ class FinanceController:
         )
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
 
+        # Use the same authoritative, post-decision counts that every other
+        # surface (summary endpoint, Command Center, reconciliation page)
+        # derives from — not the matcher's raw pre-decision candidate counts.
+        # `run_res.deterministic_matches`/`ml_proposals` count MATCH OBJECTS
+        # the matcher proposed before the decision policy reviewed them; a
+        # candidate pairing with a genuine fee/tax/amount inconsistency is
+        # correctly REJECTED by the decision policy and becomes an exception
+        # instead of an accepted match. Reporting the pre-decision number
+        # here as "auto_matched_count" previously disagreed with the
+        # decision-based `deterministic_matches` on every other page for the
+        # exact same run — the same "574 vs 500" class of contradiction.
+        await self.session.flush()
+        kpis = await self.get_summary_kpis(run_id=run_res.run_id)
+
+        # The reconciliation_runs.match_count/exception_count columns are set
+        # once at run-finalization time in reconciliation.py using the same
+        # raw pre-decision candidate counts as the old ingest response bug
+        # above — a THIRD, separate source of truth that the Runs list (and
+        # therefore the Reconciliation page's "Matched"/"Exceptions" stats)
+        # reads from, independently of both the ingest response and the
+        # summary endpoint. Overwrite it with the same authoritative,
+        # decision-based counts so all three surfaces agree for this run.
+        run_stmt = select(ReconciliationRunORM).where(
+            (ReconciliationRunORM.run_id == run_res.run_id) | (ReconciliationRunORM.id == run_res.run_id)
+        )
+        run_row = (await self.session.execute(run_stmt)).scalar_one_or_none()
+        if run_row:
+            run_row.match_count = kpis.total_matched_records
+            run_row.exception_count = kpis.total_exceptions
+            await self.session.flush()
+
         return {
             "batch_id": bid,
             "run_id": run_res.run_id,
@@ -205,10 +236,10 @@ class FinanceController:
             "processing_status": "COMPLETED",
             "processing_duration_ms": round(elapsed_ms, 2),
             "reconciliation_status": "COMPLETED" if run_res.completed_successfully else "FAILED",
-            "auto_matched_count": run_res.deterministic_matches,
-            "ml_recovered_count": run_res.ml_proposals,
-            "manual_review_count": run_res.manual_reviews,
-            "unresolved_count": run_res.unresolved,
+            "auto_matched_count": kpis.deterministic_matches,
+            "ml_recovered_count": kpis.ml_recovered_matches,
+            "manual_review_count": kpis.manual_reviews,
+            "unresolved_count": kpis.unresolved_transactions,
         }
 
     # 2. Executive KPIs

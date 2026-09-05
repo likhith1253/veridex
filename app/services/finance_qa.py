@@ -109,6 +109,130 @@ class FinanceQAService:
             logger.warning("LLM synthesis failed or timed out: %s. Using verified deterministic answer.", e)
             return fallback_text
 
+    # Static, accurate description of what this codebase actually does —
+    # written once here rather than scattered across UI copy, so the
+    # Copilot's "about the product" answers can never drift from reality.
+    # Keyed by topic; matched via the keyword sets in _match_about_product.
+    _ABOUT_TOPICS: dict[str, str] = {
+        "overview": (
+            "VERIDEX is an AI finance controller that reconciles financial records across three "
+            "independent sources — the Payment Gateway, the Internal Ledger, and the Core Bank — to "
+            "determine whether they represent the same underlying transaction and whether the money "
+            "movement is consistent. It combines deterministic rule-based matching with an ML "
+            "arbitration layer for harder cases, routes anything it cannot safely resolve into a "
+            "human review queue with full evidence, and requires explicit human authorization before "
+            "any financial action is executed. Every step — match, exception, investigation, decision, "
+            "action — is recorded in an immutable audit trail."
+        ),
+        "how_it_works": (
+            "Reconciliation works in stages: (1) records are ingested from Gateway, Ledger, and Bank "
+            "feeds and normalized into a common schema; (2) a deterministic matcher looks for exact "
+            "identifier and amount agreement across all three sources; (3) whatever it can't resolve "
+            "deterministically goes to an ML scorer, which proposes likely matches with a confidence "
+            "score; (4) anything still unresolved — or where the evidence contradicts itself — becomes "
+            "an exception with a specific, evidence-grounded reason (never a generic 'unexplained' "
+            "unless the evidence genuinely doesn't support a more specific cause); (5) a human reviews "
+            "the exception, sees the evidence trail, and decides; (6) if a financial action is needed, "
+            "the AI can only recommend it — a human must explicitly authorize execution, and the action "
+            "is bounded by policy limits; (7) every step is written to the audit log."
+        ),
+        "matching": (
+            "Deterministic matching looks for records across Gateway, Ledger, and Bank that share the "
+            "same order ID or UTR/reference number and whose amounts are financially consistent (the "
+            "bank amount should equal the gateway amount minus fee minus tax). If that succeeds with "
+            "high confidence, it's an exact match. If deterministic rules can't establish a match "
+            "confidently, an ML scorer evaluates candidate pairs using features like amount similarity, "
+            "date proximity, and reference similarity, and proposes a 'smart match' with a probability "
+            "score — this is what the product calls ML recovery. Human resolution of an exception is a "
+            "completely separate process from ML recovery and never retroactively counts as one."
+        ),
+        "exceptions": (
+            "An exception is any transaction the system could not safely and confidently reconcile. "
+            "Common causes include: a record present in one feed but missing from another, an amount "
+            "that differs from what was expected, a gateway fee or tax that doesn't match the "
+            "configured rate, a bank settlement arriving outside the expected timing window, or a "
+            "duplicate-looking record. Each exception is meant to carry a specific, evidence-based "
+            "explanation drawn from the actual data — 'unexplained' is reserved for cases where the "
+            "evidence genuinely isn't sufficient to say more."
+        ),
+        "hitl": (
+            "VERIDEX enforces human-in-the-loop control over money movement. The AI can detect issues, "
+            "investigate them, and recommend an action — but it can never execute a financial action on "
+            "its own. A human must explicitly review the evidence and authorize the action before it "
+            "runs, and every action is bounded by policy limits (for example, a maximum adjustment or "
+            "write-off amount) and fully audited with who approved it, when, and why."
+        ),
+        "howto": (
+            "Typical flow: open the Reconciliation page and run reconciliation over the available "
+            "records; review the result on the Command Center — current state, what needs attention, "
+            "and one primary next action; open Review Issues to see open exceptions; click into one to "
+            "investigate — see what happened, how much money is involved, why it happened, and the "
+            "evidence that supports that conclusion; review VERIDEX's recommended action; as a human, "
+            "approve, reject, or escalate it; and check Activity & Decisions afterward to see the "
+            "recorded audit trail."
+        ),
+        "benchmark": (
+            "The Benchmark page measures the reconciliation engine's actual accuracy against a known, "
+            "seeded synthetic dataset with verified ground truth — reporting precision (of everything "
+            "flagged as a match, how much was actually correct), recall (of everything that should have "
+            "matched, how much was actually found), F1 (the balance of the two), and throughput "
+            "(processing speed). This is a different concept from 'reconciliation rate', which is "
+            "simply the percentage of the current live batch that successfully reconciled — a live run "
+            "doesn't have externally-known ground truth the way the seeded benchmark does."
+        ),
+        "settlement_tax": (
+            "The Settlements page tracks the lifecycle of gateway payouts against actual bank credit: "
+            "processed by the gateway, then bank credit pending, then bank credit confirmed (or an "
+            "exception if it never arrives or doesn't match). Gateway-processed is never treated as the "
+            "same thing as bank-confirmed. The Tax page audits whether the tax the gateway deducted "
+            "matches the statutory calculation, reporting matched, variance, or insufficient evidence — "
+            "never a fabricated tax basis when the underlying data doesn't support one."
+        ),
+    }
+
+    def _match_about_product(self, q_lower: str) -> Optional[tuple[str, str]]:
+        """Return (topic, answer) for a general 'about the product' question, or None."""
+        topic_keywords: list[tuple[str, list[str]]] = [
+            ("hitl", ["human in the loop", "hitl", "human authoriz", "human control", "who approves", "who authorizes", "can ai execute", "can the ai act"]),
+            ("matching", ["how does matching work", "ml recovery", "smart match", "how does ml", "deterministic match", "how are transactions matched"]),
+            ("exceptions", ["what is an exception", "what are exceptions", "why do exceptions happen", "what causes an exception"]),
+            ("benchmark", ["what is the benchmark", "what is precision", "what is recall", "what is f1", "how is accuracy measured"]),
+            ("settlement_tax", ["how does settlement work", "settlement lifecycle", "how does tax", "tax audit work"]),
+            ("howto", ["how do i use", "how to use", "getting started", "how do i start", "what should i do first", "how do i run", "walk me through"]),
+            ("how_it_works", ["how does veridex work", "how does this work", "how does reconciliation work", "explain reconciliation", "how does the system work"]),
+            ("overview", ["what is veridex", "what does veridex do", "what is this project", "what is this product", "what problem does this solve", "tell me about veridex", "what does this app do"]),
+        ]
+        for topic, keywords in topic_keywords:
+            if any(k in q_lower for k in keywords):
+                return topic, self._ABOUT_TOPICS[topic]
+        return None
+
+    async def _synthesize_about_with_llm(self, question: str, deterministic_ans: str) -> str:
+        """Rephrase a fixed, accurate product-knowledge answer more naturally via the LLM.
+
+        Unlike _synthesize_with_llm, there are no verified numeric facts to
+        stay strictly bounded to here — only a fixed description of the
+        product — so the prompt instructs the LLM to rephrase, not invent.
+        """
+        if not self.llm_client:
+            return deterministic_ans
+        system_prompt = (
+            "You are the VERIDEX product assistant. Rephrase the provided factual description to "
+            "answer the user's question naturally and conversationally, in 2-4 sentences. Do not add "
+            "any claim, feature, or number that is not in the provided description."
+        )
+        user_prompt = f"PRODUCT FACTS:\n{deterministic_ans}\n\nQUESTION: {question}\n\nANSWER:"
+        try:
+            return await asyncio.wait_for(
+                self.llm_client.generate_text(
+                    system_prompt=system_prompt, user_prompt=user_prompt, max_tokens=250, temperature=0.2,
+                ),
+                timeout=8.0,
+            )
+        except Exception as e:
+            logger.warning("LLM about-product synthesis failed or timed out: %s. Using fixed answer.", e)
+            return deterministic_ans
+
     async def answer_query(self, question: str, run_id: Optional[str] = None) -> QAResponse:
         """Analyze query, extract database ground truth, and compose a verifiable response."""
         q_raw = (question or "").strip()
@@ -439,13 +563,33 @@ class FinanceQAService:
                 confidence=1.0,
             )
 
+        # 10.5 About-the-product / how-to questions. These carry no financial
+        # numbers to verify, so they're answered from a fixed, accurate
+        # knowledge base of what this codebase actually does — never
+        # fabricated, and the LLM (when available) only rephrases it more
+        # naturally, exactly like the data-grounded branches above.
+        about_answer = self._match_about_product(q_lower)
+        if about_answer:
+            topic, deterministic_ans = about_answer
+            ai_ans = await self._synthesize_about_with_llm(q_raw, deterministic_ans)
+            return QAResponse(
+                question=q_raw,
+                direct_answer=ai_ans,
+                key_metrics={"topic": topic},
+                evidence_records=[],
+                sql_facts_used=[],
+                confidence=1.0,
+            )
+
         # 11. Honest Handling for Unsupported / Out-of-Scope Questions (AUD-026, AUD-059)
         return QAResponse(
             question=q_raw,
             direct_answer=(
                 "I am unable to answer this question from the available financial reconciliation data. "
                 "Supported topics include: unreconciled exposure, exception counts by status, reconciliation match rate, "
-                "transaction counts, ML match recovery, root-cause breakdown, delayed settlements, and cash positions."
+                "transaction counts, ML match recovery, root-cause breakdown, delayed settlements, and cash positions — "
+                "or ask me what VERIDEX is, how reconciliation works, how matching/ML recovery works, what an exception "
+                "is, how human authorization works, or how to use the product."
             ),
             key_metrics={},
             evidence_records=[],

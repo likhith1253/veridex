@@ -1,5 +1,7 @@
 import React, { type ReactNode } from "react";
 import { cn } from "@/lib/utils/formatters";
+import { TrendArrow } from "@/components/common/TrendArrow";
+import { CountUp } from "@/components/common/CountUp";
 
 interface MetricCardProps {
   title: string;
@@ -11,6 +13,22 @@ interface MetricCardProps {
   badge?: ReactNode;
   statusBorder?: "emerald" | "rose" | "amber" | "indigo" | "none";
   className?: string;
+  /**
+   * Real change vs. the previous fetch (percentage points or absolute), shown
+   * as a small up/down arrow next to the delta pill. Omit if no prior value
+   * is available yet — never fabricated.
+   */
+  trendDelta?: number | null;
+  /** Whether an increase in this metric is the desirable direction. */
+  trendGoodDirection?: "up" | "down";
+  /**
+   * When provided, the displayed `value` is replaced by a count-up animation
+   * from the previous real fetched number to this real number, run through
+   * `countUpFormat` on every frame (e.g. formatINR). The raw `value` prop is
+   * still used as a static fallback/accessible text when this is omitted.
+   */
+  countUpValue?: number;
+  countUpFormat?: (n: number) => string;
 }
 
 export function MetricCard({
@@ -23,6 +41,10 @@ export function MetricCard({
   badge,
   statusBorder = "none",
   className,
+  trendDelta,
+  trendGoodDirection = "up",
+  countUpValue,
+  countUpFormat,
 }: MetricCardProps) {
   const borderStyles: Record<string, React.CSSProperties> = {
     none: {
@@ -72,7 +94,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "rounded-xs border p-4 text-[#17191C] transition-micro hover:border-[#BDB8AE] shadow-xs",
+        "rounded-xs border p-4 text-[#17191C] veridex-card-lift hover:border-[#BDB8AE] shadow-xs",
         className
       )}
       style={borderStyles[statusBorder] || borderStyles.none}
@@ -89,7 +111,11 @@ export function MetricCard({
 
       <div className="flex items-baseline justify-between gap-2 pt-1">
         <div className="font-mono text-2xl font-bold tracking-tight text-[#17191C] font-tabular">
-          {value}
+          {countUpValue !== undefined ? (
+            <CountUp value={countUpValue} format={countUpFormat} />
+          ) : (
+            value
+          )}
         </div>
         {delta && (
           <span
@@ -100,6 +126,12 @@ export function MetricCard({
           </span>
         )}
       </div>
+
+      {trendDelta !== undefined && trendDelta !== null && (
+        <div className="mt-1">
+          <TrendArrow delta={trendDelta} goodDirection={trendGoodDirection} />
+        </div>
+      )}
 
       {subtitle && (
         <p
