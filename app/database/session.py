@@ -84,6 +84,16 @@ def get_engine_args(url_str: str) -> Tuple[URL, Dict[str, Any]]:
         else:
             connect_args["ssl"] = ssl_val
 
+    # Disable asyncpg's server-side prepared statement cache. PgBouncer-style
+    # connection poolers (Neon's "-pooler" endpoint, Supabase's pooler, etc.)
+    # run in transaction-pooling mode, which does not support server-side
+    # prepared statements shared across connections — asyncpg's default
+    # statement cache trips a "prepared statement already exists" /
+    # connection error against those poolers. This is safe against a direct
+    # (non-pooled) connection too, so it's applied unconditionally rather
+    # than sniffed from the hostname.
+    connect_args["statement_cache_size"] = 0
+
     clean_url = url.set(drivername=drivername, query=query)
     return clean_url, connect_args
 
