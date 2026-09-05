@@ -556,19 +556,39 @@ export default function CommandCenterPage() {
                 <div className="text-[11px] font-bold text-[#8e96a0] uppercase tracking-wider">
                   Recommended action:
                 </div>
-                <div
-                  className="text-[#eceae6] text-xs p-3 rounded-xs border flex items-start gap-2.5"
-                  style={{
-                    borderColor: "var(--accent-border)",
-                    background: "var(--accent-dim)",
-                  }}
-                >
-                  <span className="text-[#c9a96e] font-bold">▶</span>
-                  <span className="font-sans font-medium">
-                    {brief.recommended_action ||
-                      "Continue monitoring ingestion pipelines and process pending issues."}
-                  </span>
-                </div>
+                {brief.highest_risk_exception ? (
+                  <Link
+                    href={`/exceptions/${encodeURIComponent(brief.highest_risk_exception)}`}
+                    className="text-[#eceae6] text-xs p-3 rounded-xs border flex items-start gap-2.5 transition-micro hover:opacity-80"
+                    style={{
+                      borderColor: "var(--accent-border)",
+                      background: "var(--accent-dim)",
+                    }}
+                  >
+                    <span className="text-[#c9a96e] font-bold">▶</span>
+                    <span className="font-sans font-medium flex-1">
+                      {brief.recommended_action ||
+                        "Continue monitoring ingestion pipelines and process pending issues."}
+                    </span>
+                    <span className="text-[10px] text-[#c9a96e] whitespace-nowrap font-semibold">
+                      Open exception →
+                    </span>
+                  </Link>
+                ) : (
+                  <div
+                    className="text-[#eceae6] text-xs p-3 rounded-xs border flex items-start gap-2.5"
+                    style={{
+                      borderColor: "var(--accent-border)",
+                      background: "var(--accent-dim)",
+                    }}
+                  >
+                    <span className="text-[#c9a96e] font-bold">▶</span>
+                    <span className="font-sans font-medium">
+                      {brief.recommended_action ||
+                        "Continue monitoring ingestion pipelines and process pending issues."}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
