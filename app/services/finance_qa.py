@@ -375,17 +375,17 @@ class FinanceQAService:
 
         # 4. Reconciliation Rate & Match Performance (AUD-059)
         if any(w in q_lower for w in ["match rate", "reconciliation rate", "reconciliation performance", "accuracy"]):
-            total_txns_stmt = select(func.count(TransactionORM.id))
-            tot_txns_res = await self.session.execute(total_txns_stmt)
-            total_txns = tot_txns_res.scalar_one() or 1
+            # Single source of truth: reuse FinanceController's get_summary_kpis()
+            # rather than an independent query, so this answer can never disagree
+            # with what Command Center / Reconciliation / Benchmark show for the
+            # same numbers.
+            from app.services.finance_controller import FinanceController
+            controller = FinanceController(self.session)
+            kpis = await controller.get_summary_kpis()
 
-            # Get matched transactions from match_transactions
-            from app.database.models import MatchTransaction as MatchTransactionORM
-            matched_txns_stmt = select(func.count(func.distinct(MatchTransactionORM.transaction_id)))
-            matched_res = await self.session.execute(matched_txns_stmt)
-            matched_txns = matched_res.scalar_one() or 0
-
-            match_rate_pct = round((matched_txns / total_txns) * 100, 2)
+            match_rate_pct = kpis.match_rate
+            matched_txns = kpis.total_matched_records
+            total_txns = kpis.total_records_processed or 1
             deterministic_ans = (
                 f"The overall reconciliation rate is {match_rate_pct:.2f}%, with {matched_txns} out of {total_txns} incoming transactions matched."
             )
@@ -402,8 +402,7 @@ class FinanceQAService:
                 },
                 evidence_records=[],
                 sql_facts_used=[
-                    "SELECT COUNT(DISTINCT transaction_id) FROM match_transactions",
-                    "SELECT COUNT(id) FROM transactions",
+                    "FinanceController.get_summary_kpis() — same source as Command Center / Reconciliation / Benchmark",
                 ],
                 confidence=1.0,
             )
