@@ -11,6 +11,17 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 
+// A reconciliation batch can take 60-180s+ (real per-exception LLM
+// investigation calls), and this proxy holds the connection open for the
+// full duration of the upstream request. Vercel's default serverless
+// function timeout (10s on Hobby without Fluid Compute) kills the proxy's
+// connection well before that completes — the Render backend keeps working
+// and the batch genuinely finishes, but the browser never gets a response,
+// so the UI is stuck showing "Reconciling..." forever even though the data
+// already landed. This raises the ceiling so long-running requests can
+// actually complete end-to-end.
+export const maxDuration = 300;
+
 const BACKEND_URL = process.env.VERIDEX_BACKEND_URL || "http://127.0.0.1:8000";
 const BACKEND_API_KEY =
   process.env.VERIDEX_API_KEY || process.env.SENTINEL_API_KEY || "";
