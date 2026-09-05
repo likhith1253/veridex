@@ -1,0 +1,242 @@
+<svg viewBox="0 0 1600 1150" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8b98a8"/>
+    </marker>
+    <marker id="arrowGold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e3b23c"/>
+    </marker>
+    <filter id="softshadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="1150" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="800" y="46" text-anchor="middle" font-size="30" font-weight="700" fill="#f4f1ea">VERIDEX — AI Financial Control &amp; Reconciliation Engine</text>
+  <text x="800" y="72" text-anchor="middle" font-size="14" fill="#8b98a8">System Architecture — Data Flow from Source Feeds to Human-in-the-Loop Actions</text>
+
+  <!-- ============ LAYER LABELS (left rail) ============ -->
+  <g font-size="11" font-weight="700" fill="#5b6572" text-anchor="start">
+    <text x="24" y="150" transform="rotate(-90 24 150)">CLIENT</text>
+    <text x="24" y="330" transform="rotate(-90 24 330)">API LAYER</text>
+    <text x="24" y="640" transform="rotate(-90 24 640)">CORE SERVICES</text>
+    <text x="24" y="930" transform="rotate(-90 24 930)">DATA</text>
+    <text x="24" y="1080" transform="rotate(-90 24 1080)">EXTERNAL</text>
+  </g>
+
+  <!-- ============ 1. EXTERNAL SOURCE FEEDS (top) ============ -->
+  <g filter="url(#softshadow)">
+    <rect x="120" y="100" width="200" height="64" rx="10" fill="#1f6feb" opacity="0.9"/>
+    <rect x="360" y="100" width="200" height="64" rx="10" fill="#1f6feb" opacity="0.9"/>
+    <rect x="600" y="100" width="200" height="64" rx="10" fill="#1f6feb" opacity="0.9"/>
+  </g>
+  <text x="220" y="127" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Payment Gateway</text>
+  <text x="220" y="145" text-anchor="middle" font-size="10" fill="#dbe7ff">Razorpay settlement feed</text>
+  <text x="460" y="127" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Internal Ledger</text>
+  <text x="460" y="145" text-anchor="middle" font-size="10" fill="#dbe7ff">Merchant order records</text>
+  <text x="700" y="127" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Core Bank Feed</text>
+  <text x="700" y="145" text-anchor="middle" font-size="10" fill="#dbe7ff">Bank statement credits</text>
+
+  <!-- ============ 2. FRONTEND (Next.js) — moved to right side as client apps ============ -->
+  <g filter="url(#softshadow)">
+    <rect x="1000" y="96" width="520" height="150" rx="12" fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+  </g>
+  <text x="1260" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">FRONTEND — Next.js 16 (App Router, :3000)</text>
+  <g font-size="10.5" fill="#c9d1d9">
+    <rect x="1015" y="130" width="95" height="26" rx="6" fill="#30363d"/><text x="1062" y="147" text-anchor="middle">Landing</text>
+    <rect x="1118" y="130" width="95" height="26" rx="6" fill="#30363d"/><text x="1165" y="147" text-anchor="middle">Control Center</text>
+    <rect x="1221" y="130" width="95" height="26" rx="6" fill="#30363d"/><text x="1268" y="147" text-anchor="middle">Reconciliation</text>
+    <rect x="1324" y="130" width="95" height="26" rx="6" fill="#30363d"/><text x="1371" y="147" text-anchor="middle">Exceptions</text>
+    <rect x="1427" y="130" width="80" height="26" rx="6" fill="#30363d"/><text x="1467" y="147" text-anchor="middle">Settlements</text>
+
+    <rect x="1015" y="162" width="95" height="26" rx="6" fill="#30363d"/><text x="1062" y="179" text-anchor="middle">Actions</text>
+    <rect x="1118" y="162" width="95" height="26" rx="6" fill="#30363d"/><text x="1165" y="179" text-anchor="middle">Benchmark</text>
+    <rect x="1221" y="162" width="95" height="26" rx="6" fill="#30363d"/><text x="1268" y="179" text-anchor="middle">Audit trail</text>
+    <rect x="1324" y="162" width="95" height="26" rx="6" fill="#e3b23c" opacity="0.9"/><text x="1371" y="179" text-anchor="middle" fill="#1a1500" font-weight="700">Copilot chat</text>
+    <rect x="1427" y="162" width="80" height="26" rx="6" fill="#30363d"/><text x="1467" y="179" text-anchor="middle">Settings</text>
+  </g>
+  <text x="1260" y="204" text-anchor="middle" font-size="10" fill="#8b98a8">React Query · Framer Motion · Radial Gauges · Live Count-up KPIs</text>
+  <text x="1260" y="222" text-anchor="middle" font-size="10" fill="#8b98a8">One data layer — every page reads the same computed truth, nothing page-local</text>
+
+  <!-- Arrows: feeds -> ingest -->
+  <path d="M220 164 L220 250" stroke="#8b98a8" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+  <path d="M460 164 L460 250" stroke="#8b98a8" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+  <path d="M700 164 L700 250" stroke="#8b98a8" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- ============ 3. API LAYER ============ -->
+  <g filter="url(#softshadow)">
+    <rect x="120" y="252" width="900" height="70" rx="12" fill="#2d333b" stroke="#3fb950" stroke-width="1.5"/>
+  </g>
+  <text x="570" y="274" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">API LAYER — FastAPI (:8000)</text>
+  <g font-size="10" fill="#c9d1d9">
+    <text x="180" y="298">/controller/ingest</text>
+    <text x="330" y="298">/controller/exceptions</text>
+    <text x="500" y="298">/investigations/{id}</text>
+    <text x="650" y="298">/actions/*</text>
+    <text x="740" y="298">/settlements/*</text>
+    <text x="860" y="298">/webhooks/razorpay</text>
+    <text x="180" y="314">/controller/benchmark</text>
+    <text x="360" y="314">/controller/audit-timeline</text>
+    <text x="560" y="314">/copilot/ask</text>
+    <text x="680" y="314">/runs</text>
+  </g>
+
+  <!-- Frontend <-> API bidirectional -->
+  <path d="M1000 190 C 850 220, 700 220, 620 252" stroke="#58a6ff" stroke-width="2.2" marker-end="url(#arrow)" fill="none"/>
+  <text x="760" y="230" font-size="10" fill="#58a6ff">REST / JSON (React Query)</text>
+
+  <!-- API -> Core services -->
+  <path d="M570 322 L570 360" stroke="#8b98a8" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- ============ 4. CORE SERVICES ============ -->
+  <g filter="url(#softshadow)">
+    <rect x="80" y="362" width="1000" height="440" rx="14" fill="#161b22" stroke="#3a3f45" stroke-width="1.5"/>
+  </g>
+  <text x="580" y="390" text-anchor="middle" font-size="13" font-weight="700" fill="#f4f1ea">CORE SERVICES</text>
+
+  <!-- Reconciliation Engine block -->
+  <g filter="url(#softshadow)">
+    <rect x="110" y="406" width="430" height="150" rx="10" fill="#3d2f0a" stroke="#e3b23c" stroke-width="1.5"/>
+  </g>
+  <text x="325" y="428" text-anchor="middle" font-size="12.5" font-weight="700" fill="#e3b23c">Reconciliation Engine</text>
+  <rect x="128" y="440" width="185" height="46" rx="8" fill="#4a3a10"/>
+  <text x="220" y="459" text-anchor="middle" font-size="10.5" fill="#f4e2b0">Deterministic Matcher</text>
+  <text x="220" y="474" text-anchor="middle" font-size="9" fill="#c9b487">exact ID · amount · date</text>
+  <rect x="330" y="440" width="185" height="46" rx="8" fill="#4a3a10"/>
+  <text x="422" y="459" text-anchor="middle" font-size="10.5" fill="#f4e2b0">ML Arbitration Scorer</text>
+  <text x="422" y="474" text-anchor="middle" font-size="9" fill="#c9b487">candidate ranking model</text>
+  <rect x="128" y="494" width="387" height="46" rx="8" fill="#4a3a10"/>
+  <text x="321" y="513" text-anchor="middle" font-size="10.5" fill="#f4e2b0">Decision Policy + Exception Classifier</text>
+  <text x="321" y="528" text-anchor="middle" font-size="9" fill="#c9b487">gateway↔ledger↔bank pairing · categorizes every unmatched record</text>
+
+  <!-- Investigation Service block -->
+  <g filter="url(#softshadow)">
+    <rect x="560" y="406" width="220" height="150" rx="10" fill="#2c1440" stroke="#a970ff" stroke-width="1.5"/>
+  </g>
+  <text x="670" y="428" text-anchor="middle" font-size="12.5" font-weight="700" fill="#a970ff">Investigation Service</text>
+  <text x="670" y="450" text-anchor="middle" font-size="10" fill="#dcc7f5">Per-exception LLM root-</text>
+  <text x="670" y="464" text-anchor="middle" font-size="10" fill="#dcc7f5">cause analysis</text>
+  <text x="670" y="484" text-anchor="middle" font-size="9.5" fill="#b898d6">Builds real evidence-graph</text>
+  <text x="670" y="497" text-anchor="middle" font-size="9.5" fill="#b898d6">pipeline (Gateway→Ledger→</text>
+  <text x="670" y="510" text-anchor="middle" font-size="9.5" fill="#b898d6">Bank) from linked txns</text>
+  <text x="670" y="532" text-anchor="middle" font-size="9" fill="#9068b0">→ Groq LLM (fallback-safe)</text>
+
+  <!-- Finance Controller block -->
+  <g filter="url(#softshadow)">
+    <rect x="800" y="406" width="250" height="150" rx="10" fill="#0d3a2e" stroke="#3fb950" stroke-width="1.5"/>
+  </g>
+  <text x="925" y="428" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3fb950">Finance Controller</text>
+  <text x="925" y="452" text-anchor="middle" font-size="10" fill="#bdf0d5">Single source of truth</text>
+  <text x="925" y="470" text-anchor="middle" font-size="9.5" fill="#8fd8ac">get_summary_kpis() —</text>
+  <text x="925" y="483" text-anchor="middle" font-size="9.5" fill="#8fd8ac">every dashboard, benchmark</text>
+  <text x="925" y="496" text-anchor="middle" font-size="9.5" fill="#8fd8ac">panel &amp; copilot answer reads</text>
+  <text x="925" y="509" text-anchor="middle" font-size="9.5" fill="#8fd8ac">from this one computation</text>
+  <text x="925" y="532" text-anchor="middle" font-size="9" fill="#6bb98a">match rate · exposure · aging</text>
+
+  <!-- Finance Action Service (HITL) -->
+  <g filter="url(#softshadow)">
+    <rect x="110" y="574" width="300" height="150" rx="10" fill="#3a1010" stroke="#f85149" stroke-width="1.5"/>
+  </g>
+  <text x="260" y="596" text-anchor="middle" font-size="12.5" font-weight="700" fill="#f85149">Finance Action Service (HITL)</text>
+  <text x="260" y="618" text-anchor="middle" font-size="10" fill="#f2b8b5">Pending → Approved → Executed</text>
+  <text x="260" y="632" text-anchor="middle" font-size="10" fill="#f2b8b5">or → Rejected</text>
+  <rect x="128" y="644" width="264" height="60" rx="8" fill="#4a1414"/>
+  <text x="260" y="661" text-anchor="middle" font-size="9.5" fill="#f2b8b5">Policy ceilings enforced server-side:</text>
+  <text x="260" y="675" text-anchor="middle" font-size="9" fill="#e39a97">max adjustment ₹5,000 · max write-off ₹100</text>
+  <text x="260" y="689" text-anchor="middle" font-size="9" fill="#e39a97">no cap on FLAG_INVESTIGATION</text>
+
+  <!-- Settlement Intelligence Service -->
+  <g filter="url(#softshadow)">
+    <rect x="430" y="574" width="290" height="150" rx="10" fill="#0d2a3a" stroke="#58a6ff" stroke-width="1.5"/>
+  </g>
+  <text x="575" y="596" text-anchor="middle" font-size="12.5" font-weight="700" fill="#58a6ff">Settlement Intelligence</text>
+  <text x="575" y="618" text-anchor="middle" font-size="10" fill="#b7d8f5">Gross → Fee → Tax → Expected Net</text>
+  <text x="575" y="632" text-anchor="middle" font-size="10" fill="#b7d8f5">vs. Actual Bank Credit</text>
+  <rect x="448" y="644" width="254" height="60" rx="8" fill="#123a52"/>
+  <text x="575" y="661" text-anchor="middle" font-size="9.5" fill="#b7d8f5">Live bank-match lookup by UTR /</text>
+  <text x="575" y="675" text-anchor="middle" font-size="9" fill="#8fc0e8">reference_number — same live logic</text>
+  <text x="575" y="689" text-anchor="middle" font-size="9" fill="#8fc0e8">powers both list &amp; detail views</text>
+
+  <!-- Copilot / QA Service -->
+  <g filter="url(#softshadow)">
+    <rect x="740" y="574" width="310" height="150" rx="10" fill="#4a3a10" stroke="#e3b23c" stroke-width="1.5"/>
+  </g>
+  <text x="895" y="596" text-anchor="middle" font-size="12.5" font-weight="700" fill="#e3b23c">Copilot / Finance QA Service</text>
+  <text x="895" y="618" text-anchor="middle" font-size="10" fill="#f4e2b0">Deterministic fact lookup first,</text>
+  <text x="895" y="632" text-anchor="middle" font-size="10" fill="#f4e2b0">LLM only rephrases verified truth</text>
+  <rect x="758" y="644" width="274" height="60" rx="8" fill="#5a4712"/>
+  <text x="895" y="661" text-anchor="middle" font-size="9.5" fill="#f4e2b0">Two modes: live-data Q&amp;A +</text>
+  <text x="895" y="675" text-anchor="middle" font-size="9" fill="#d6bd80">"about the product" knowledge —</text>
+  <text x="895" y="689" text-anchor="middle" font-size="9" fill="#d6bd80">never fabricates a number</text>
+
+  <!-- Audit trail -->
+  <g filter="url(#softshadow)">
+    <rect x="1060" y="574" width="270" height="150" rx="10" fill="#21262d" stroke="#8b98a8" stroke-width="1.5"/>
+  </g>
+  <text x="1195" y="596" text-anchor="middle" font-size="12.5" font-weight="700" fill="#c9d1d9">Immutable Audit Log</text>
+  <text x="1195" y="620" text-anchor="middle" font-size="10" fill="#a9b4bf">Every match, decision, action &amp;</text>
+  <text x="1195" y="634" text-anchor="middle" font-size="10" fill="#a9b4bf">investigation event recorded</text>
+  <text x="1195" y="656" text-anchor="middle" font-size="9.5" fill="#8b98a8">who · what · when · why</text>
+  <text x="1195" y="672" text-anchor="middle" font-size="9.5" fill="#8b98a8">— queryable per-transaction</text>
+  <text x="1195" y="688" text-anchor="middle" font-size="9.5" fill="#8b98a8">and per-run</text>
+
+  <!-- internal service connections -->
+  <path d="M540 480 L560 480" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+  <path d="M780 480 L800 480" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+  <path d="M260 556 L260 574" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+  <path d="M925 556 L925 574" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+  <path d="M925 556 C 925 566, 575 566, 575 574" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+  <path d="M925 556 C 925 566, 895 566, 895 574" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+  <path d="M1050 480 C 1080 480, 1080 560, 1195 574" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+  <path d="M410 660 C 425 660, 425 660, 430 660" stroke="#8b98a8" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- ============ 5. DATA LAYER ============ -->
+  <g filter="url(#softshadow)">
+    <rect x="120" y="826" width="960" height="120" rx="12" fill="#0d2818" stroke="#3fb950" stroke-width="1.5"/>
+  </g>
+  <text x="600" y="850" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">DATA LAYER — PostgreSQL (single database, async SQLAlchemy)</text>
+  <g font-size="10" fill="#bdf0d5">
+    <rect x="145" y="864" width="140" height="60" rx="8" fill="#123822"/><text x="215" y="888" text-anchor="middle">transactions</text><text x="215" y="902" text-anchor="middle" font-size="8.5" fill="#7dbf99">gateway/ledger/bank</text>
+    <rect x="300" y="864" width="140" height="60" rx="8" fill="#123822"/><text x="370" y="888" text-anchor="middle">exceptions</text><text x="370" y="902" text-anchor="middle" font-size="8.5" fill="#7dbf99">+ exception_transactions</text>
+    <rect x="455" y="864" width="140" height="60" rx="8" fill="#123822"/><text x="525" y="888" text-anchor="middle">investigations</text><text x="525" y="902" text-anchor="middle" font-size="8.5" fill="#7dbf99">root cause, confidence</text>
+    <rect x="610" y="864" width="140" height="60" rx="8" fill="#123822"/><text x="680" y="888" text-anchor="middle">finance_actions</text><text x="680" y="902" text-anchor="middle" font-size="8.5" fill="#7dbf99">HITL lifecycle state</text>
+    <rect x="765" y="864" width="140" height="60" rx="8" fill="#123822"/><text x="835" y="888" text-anchor="middle">reconciliation_runs</text><text x="835" y="902" text-anchor="middle" font-size="8.5" fill="#7dbf99">match_count, exception_count</text>
+    <rect x="920" y="864" width="140" height="60" rx="8" fill="#123822"/><text x="990" y="888" text-anchor="middle">audit_events</text><text x="990" y="902" text-anchor="middle" font-size="8.5" fill="#7dbf99">immutable append-only</text>
+  </g>
+  <path d="M580 802 L580 826" stroke="#8b98a8" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- ============ 6. EXTERNAL INTEGRATIONS ============ -->
+  <g filter="url(#softshadow)">
+    <rect x="1120" y="826" width="400" height="120" rx="12" fill="#3a1010" stroke="#f85149" stroke-width="1.5"/>
+  </g>
+  <text x="1320" y="850" text-anchor="middle" font-size="13" font-weight="700" fill="#f85149">EXTERNAL INTEGRATIONS</text>
+  <rect x="1140" y="864" width="170" height="60" rx="8" fill="#4a1414"/>
+  <text x="1225" y="886" text-anchor="middle" font-size="10.5" fill="#f2b8b5">Razorpay Webhooks</text>
+  <text x="1225" y="901" text-anchor="middle" font-size="9" fill="#e39a97">HMAC-SHA256 signed</text>
+  <text x="1225" y="914" text-anchor="middle" font-size="9" fill="#e39a97">settlement.processed</text>
+  <rect x="1330" y="864" width="170" height="60" rx="8" fill="#4a1414"/>
+  <text x="1415" y="886" text-anchor="middle" font-size="10.5" fill="#f2b8b5">Groq LLM API</text>
+  <text x="1415" y="901" text-anchor="middle" font-size="9" fill="#e39a97">investigation reasoning +</text>
+  <text x="1415" y="914" text-anchor="middle" font-size="9" fill="#e39a97">copilot response synthesis</text>
+
+  <path d="M1080 480 C 1150 500, 1250 700, 1225 864" stroke="#f85149" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arrow)" fill="none" opacity="0.7"/>
+  <path d="M780 480 C 1000 550, 1300 650, 1415 864" stroke="#a970ff" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arrow)" fill="none" opacity="0.7"/>
+  <path d="M895 724 C 1100 780, 1300 800, 1415 864" stroke="#e3b23c" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arrow)" fill="none" opacity="0.7"/>
+
+  <!-- Legend -->
+  <g font-size="10" fill="#c9d1d9">
+    <text x="140" y="1000" font-weight="700" fill="#f4f1ea">Key principle: single source of truth</text>
+    <text x="140" y="1020">Every KPI shown in the frontend — Command Center, Reconciliation, Benchmark, Copilot answers —</text>
+    <text x="140" y="1036">is derived from Finance Controller's get_summary_kpis(), never computed independently per page.</text>
+
+    <text x="140" y="1068" font-weight="700" fill="#f4f1ea">Deployment</text>
+    <text x="140" y="1088">Frontend: Next.js 16 (Turbopack) · Backend: FastAPI (async) · DB: PostgreSQL · LLM: Groq</text>
+    <text x="140" y="1104">Repo: github.com/likhith1253/sentinel</text>
+  </g>
+</svg>
