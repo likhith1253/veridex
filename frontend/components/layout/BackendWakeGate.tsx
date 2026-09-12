@@ -32,11 +32,15 @@ export function BackendWakeGate({ children }: { children: ReactNode }) {
     }, 250);
 
     async function poll() {
+      // Keep polling indefinitely — this must never give up on its own,
+      // or the gate gets permanently stuck showing "timed out" until the
+      // user manually reloads the page (a real bug that shipped here once
+      // already). MAX_WAIT_MS only changes what message is shown, never
+      // stops the retry loop.
       while (!cancelledRef.current) {
         const elapsed = Date.now() - startRef.current;
         if (elapsed > MAX_WAIT_MS) {
           setStatus("timedOut");
-          return;
         }
         try {
           const controller = new AbortController();
