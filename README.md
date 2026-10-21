@@ -7,15 +7,14 @@
 
 [![Live App](https://img.shields.io/badge/🚀_Live_App-veridex--three.vercel.app-c9a96e?style=for-the-badge)](https://veridex-three.vercel.app)
 [![API](https://img.shields.io/badge/⚙️_API-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://veridex-378i.onrender.com/health)
-[![Demo Video](https://img.shields.io/badge/🎬_Demo-Watch_Video-red?style=for-the-badge&logo=youtube&logoColor=white)](#-demo-video)
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-async-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-465_passing-brightgreen?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
+[![CI](https://github.com/likhith1253/veridex/actions/workflows/ci.yml/badge.svg)](https://github.com/likhith1253/veridex/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
 
 </div>
 
@@ -34,7 +33,6 @@ a guess — and never moves money without a human saying yes.
 |---|---|
 | 🚀 **Live app** | [veridex-three.vercel.app](https://veridex-three.vercel.app) |
 | ⚙️ **API** | [veridex-378i.onrender.com](https://veridex-378i.onrender.com/health) &middot; [docs](https://veridex-378i.onrender.com/docs) |
-| 🎬 **Demo video** | see [Demo Video](#-demo-video) below |
 | 🏗️ **Architecture** | [ARCHITECTURE.md](ARCHITECTURE.md) &middot; [diagram](docs/architecture-diagram.svg) |
 | 🔍 **Real bugs found & fixed while deploying** | [docs/ENGINEERING_JOURNAL.md](docs/ENGINEERING_JOURNAL.md) |
 
@@ -42,12 +40,6 @@ a guess — and never moves money without a human saying yes.
 > tiers. Render's free tier sleeps after inactivity and can take 30-60s to
 > wake up on the first request — that's hosting, not the app. Give it a
 > moment on first load.
-
-## 🎬 Demo video
-
-> _Link goes here — a 5-minute walkthrough covering the full reconciliation
-> flow, exception evidence pipeline, human-in-the-loop actions, settlement
-> intelligence, and the Copilot assistant._
 
 ## 📸 Screenshots
 
@@ -182,11 +174,11 @@ VERIDEX deploys as three independent pieces — a Postgres database, a FastAPI b
 ```bash
 pytest tests/ -q
 ```
-465 tests, run against an isolated database — never against dev or production data.
+The suite (50+ test modules) runs against an isolated, disposable database — never against dev or production data — and runs on every push via GitHub Actions (badge above). It needs a local PostgreSQL; set `DATABASE_URL` and the tests derive a separate `*_test` database.
 
 ## 📏 Evaluation
 
-The canonical benchmark (seed-based, reproducible) lives under `eval/` and is scored against `private_ground_truth.json` — completely separate from live usage numbers, and never modified to make a demo look better. Run it via:
+The canonical benchmark (seed-based, reproducible) lives under `eval/` and is scored against `eval/canonical_ground_truth.json`. That file is the simulator's fixed-seed output, so it is a reproducible regression benchmark, not a held-out secret test set: anyone can read it, so judge the model on how it holds up when the seed or corruption mix changes, not on this single file. Live usage numbers are tracked separately. Run it via:
 
 ```bash
 python -m eval.run_evaluation
