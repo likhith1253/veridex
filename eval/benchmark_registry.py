@@ -44,7 +44,7 @@ def validate_ground_truth_namespace(ground_truth: dict[str, Any]) -> dict[str, A
     )
 
 
-def load_canonical_ground_truth(path: str = "private_ground_truth.json") -> dict[str, Any]:
+def load_canonical_ground_truth(path: str = "eval/canonical_ground_truth.json") -> dict[str, Any]:
     import json
 
     with open(path, "r", encoding="utf-8") as handle:

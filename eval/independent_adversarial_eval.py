@@ -1723,6 +1723,6 @@ if __name__ == "__main__":
         print("\nSaved evaluation results to eval/adversarial_evaluation_output.json")
 
         canonical_gt = validate_ground_truth_namespace(res["dataset"]["ground_truth"])
-        with open("private_ground_truth.json", "w") as f:
+        with open("eval/canonical_ground_truth.json", "w") as f:
             json.dump(canonical_gt, f, indent=2, default=str)
-        print("Saved canonical ground truth to private_ground_truth.json")
+        print("Saved canonical ground truth to eval/canonical_ground_truth.json")
