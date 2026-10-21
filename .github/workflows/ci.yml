@@ -33,7 +33,15 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt pytest
-      - run: pytest tests/ -q
+      - name: Run tests
+        run: |
+          set -o pipefail
+          pytest tests/ -q --tb=short 2>&1 | tee pytest.log
+      - name: Surface failure summary
+        if: failure()
+        run: |
+          msg=$(tail -n 60 pytest.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=pytest failed::$msg"
 
   frontend:
     name: Frontend type-check
