@@ -172,7 +172,8 @@ VERIDEX deploys as three independent pieces — a Postgres database, a FastAPI b
 ## 🧪 Testing
 
 ```bash
-pytest tests/ -q
+pip install -r requirements-dev.txt
+python -m pytest tests/ -q
 ```
 The suite (50+ test modules) runs against an isolated, disposable database — never against dev or production data — and runs on every push via GitHub Actions (badge above). It needs a local PostgreSQL; set `DATABASE_URL` and the tests derive a separate `*_test` database.
 
