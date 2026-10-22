@@ -68,9 +68,9 @@ a guess — and never moves money without a human saying yes.
 2. 🏷️ **Classifies every exception** by real root cause (missing source, timing lag, fee mismatch, tax mismatch, duplicate, amount mismatch) instead of a generic "unresolved" bucket.
 3. 🕵️ **Investigates automatically** — a per-exception LLM-assisted investigation reads the actual linked transaction evidence and writes a grounded root-cause explanation, visualized as a real Gateway → Ledger → Bank evidence pipeline showing exactly which leg broke.
 4. 💰 **Tracks settlement intelligence** — matches what the gateway says it settled against what actually landed in the bank account, accounting for fees and taxes.
-5. 🔐 **Keeps humans in control** — every corrective action (post an adjustment, write off a discrepancy, flag for investigation) goes through a policy-gated human approval workflow with hard ceilings enforced server-side, and a full immutable audit trail.
+5. 🔐 **Keeps humans in control** — every corrective action (post an adjustment, write off a discrepancy, flag for investigation) goes through a policy-gated approval workflow with ceilings enforced server-side, and an append-only audit trail.
 6. 💬 **Answers questions directly** — a Copilot assistant that computes real answers from the live database first and only uses an LLM to phrase the response, plus a separate "how does this product work" knowledge mode.
-7. 📊 **Evaluates itself honestly** — a protected, seed-based benchmark harness scores the reconciliation engine against ground truth, kept fully separate from live usage numbers, and clearly labeled as such in the UI.
+7. 📊 **Evaluates itself** — a seed-based benchmark harness scores the reconciliation engine against simulator ground truth, kept separate from live usage numbers and labeled as such in the UI. Real results, including the weak spots, are in [Evaluation](#-evaluation) below.
 
 ## 🧠 Why this is built the way it is
 
@@ -81,8 +81,10 @@ a guess — and never moves money without a human saying yes.
 - **Deterministic → ML → LLM, in that order.** The expensive, harder-to-verify
   step (LLM investigation) only runs for exceptions that survive the two
   cheaper, fully-explainable stages first.
-- **Humans authorize, machines never execute.** Policy ceilings are enforced
-  in the database layer, not just displayed as a UI suggestion.
+- **Humans authorize, machines never execute.** Policy ceilings (max adjustment,
+  max write-off, bounded transaction size) are enforced server-side in the
+  finance-action service (`app/services/finance_action_service.py`), not just
+  displayed as a UI suggestion.
 - **Tested against real infrastructure, not just localhost.** Every bug in
   [ENGINEERING_JOURNAL.md](docs/ENGINEERING_JOURNAL.md) was found by
   exercising the actual deployed Neon + Render + Vercel stack — cold starts,
@@ -99,7 +101,7 @@ a guess — and never moves money without a human saying yes.
 - Financial risk / expected-cost calculation
 - Human-in-the-loop finance actions with policy ceilings
 - Immutable audit trail
-- Canonical evaluation harness against private ground truth
+- Canonical evaluation harness against a fixed-seed ground truth (reproducible, not a held-out set)
 
 <p align="center"><img src="docs/architecture-diagram.svg" alt="Architecture diagram" width="900"/></p>
 
@@ -119,21 +121,25 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full detailed system design.
 
 ## 🚀 Running locally
 
+Requires Python 3.11+, Node 20+, and PostgreSQL 14+.
+
 **Backend:**
 ```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+cp .env.example .env          # set DATABASE_URL at minimum
 alembic upgrade head
 uvicorn app.api.main:app --reload --port 8000
 ```
+Without `GROQ_API_KEY` the investigation step uses a deterministic fake LLM client, so everything runs offline. Set `RAZORPAY_WEBHOOK_SECRET` to receive webhooks (with no secret configured, all webhook deliveries are rejected). Set `SENTINEL_API_KEY` to require an `X-API-Key` header on all non-public routes; with `ENVIRONMENT=production` and no key set, protected routes return 503 instead of being open.
 
 **Frontend:**
 ```bash
 cd frontend
-npm install
+cp .env.example .env.local    # VERIDEX_BACKEND_URL, optional VERIDEX_API_KEY
+npm ci
 npm run dev
 ```
-
-Copy `.env.example` to `.env` and fill in your database URL, Razorpay webhook secret, and Groq API key before starting the backend.
 
 ## ☁️ Deploying it yourself
 
@@ -158,7 +164,7 @@ VERIDEX deploys as three independent pieces — a Postgres database, a FastAPI b
 1. New Web Service → connect this repo → root directory blank (repo root).
 2. Build command: `pip install -r requirements.txt`
 3. Start command: `uvicorn app.api.main:app --host 0.0.0.0 --port $PORT`
-4. Environment variables: `DATABASE_URL` (from Neon), `ENVIRONMENT=production`, `PYTHON_VERSION=3.11.9`, `GROQ_API_KEY`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_MODE=test`.
+4. Environment variables: `DATABASE_URL` (from Neon), `ENVIRONMENT=production`, `PYTHON_VERSION=3.11.9`, `GROQ_API_KEY`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_MODE=test`, and `SENTINEL_API_KEY` (required when `ENVIRONMENT=production`; use the same value as `VERIDEX_API_KEY` on Vercel).
 </details>
 
 <details>
@@ -166,24 +172,62 @@ VERIDEX deploys as three independent pieces — a Postgres database, a FastAPI b
 
 1. Import this repo → set **Root Directory** to `frontend`.
 2. Environment variables: `VERIDEX_BACKEND_URL` = your Render URL (no trailing slash). Optionally `VERIDEX_API_KEY` if you set `SENTINEL_API_KEY` on Render.
-3. **Do not** set `NEXT_PUBLIC_API_BASE_URL` — the frontend proxies through a server-side route (`/api/proxy`) specifically so the backend URL and API key never reach the browser bundle.
+3. Set `ALLOWED_ORIGINS` on Render only if something other than the Vercel proxy calls the API directly from a browser.
+4. **Do not** set `NEXT_PUBLIC_API_BASE_URL` — the frontend proxies through a server-side route (`/api/proxy`) specifically so the backend URL and API key never reach the browser bundle.
 </details>
 
 ## 🧪 Testing
 
 ```bash
 pip install -r requirements-dev.txt
+export DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/sentinel
 python -m pytest tests/ -q
 ```
-The suite (50+ test modules) runs against an isolated, disposable database — never against dev or production data — and runs on every push via GitHub Actions (badge above). It needs a local PostgreSQL; set `DATABASE_URL` and the tests derive a separate `*_test` database.
+482 tests across 54 modules, run on every push via GitHub Actions (badge above, with a PostgreSQL 16 service container). The suite never runs against the configured database: it derives and creates a separate `*_test` database (or uses `TEST_DATABASE_URL`). `tests/test_security_audit_overhaul.py` covers webhook signature verification, API-key enforcement, CORS and input bounds. The frontend job runs `tsc --noEmit` and `next build`.
 
 ## 📏 Evaluation
 
-The canonical benchmark (seed-based, reproducible) lives under `eval/` and is scored against `eval/canonical_ground_truth.json`. That file is the simulator's fixed-seed output, so it is a reproducible regression benchmark, not a held-out secret test set: anyone can read it, so judge the model on how it holds up when the seed or corruption mix changes, not on this single file. Live usage numbers are tracked separately. Run it via:
+The benchmark harness is `eval/` (simulator-generated three-way feeds with injected corruptions, scored against known ground truth). Run it with:
 
 ```bash
-python -m eval.run_evaluation
+python -m eval.run_evaluation --num-transactions 500 --seed 42
 ```
+
+Result of that exact command (500 logical transactions = 1,500 feed records, seed 42), reproduced locally when this README was written:
+
+| Metric | Value |
+|---|---|
+| Precision | 85.32% |
+| Recall | 95.56% |
+| F1 | 90.15% |
+| Matches via exact-UTR rule / via ML scoring | 63 / 441 |
+
+Per-scenario highlights from the same run: `fee_mismatch`, `wrong_reference` and `unexplained` scenarios 100% F1; `normal` 97.5%; `delayed_settlement` 50.0%; **`duplicate` 0.0%**. Duplicates are not handled by the matcher itself (there is a separate duplicate audit endpoint, `/api/v1/controller/duplicates/audit`).
+
+Additional committed artifacts from earlier red-team scripts (`eval/independent_redteam_eval.py`, results in `eval/independent_redteam_results.json`):
+
+- Canonical 100-scenario run: 54/54 clean matches passed, 46/46 injected exceptions detected, financial parity check passed.
+- **Fresh-data generalization (75 scenarios, different data): 40/40 clean matches passed but 0/35 exceptions detected (0% recall).** The canonical result does not generalize to unseen exception data; treat it as a regression benchmark, not evidence of general accuracy.
+- Copilot Q&A check: 10/20 prompts factually correct and aligned, 20/20 grounded in retrieved evidence.
+- Throughput measured end to end: about 104-160 feed records/s (30 to 3,000 records) on the author's machine.
+
+`eval/canonical_ground_truth.json` is the simulator's fixed-seed output and is public, so it is a reproducible regression benchmark, not a held-out test set. Live usage numbers are tracked separately from these.
+
+## 🔒 Security notes
+
+- All routes except `/`, `/health` and the HMAC-verified `POST /api/v1/webhooks/razorpay` require the shared API key when one is configured; production fails closed as described above.
+- Webhooks are verified with HMAC-SHA256 over the raw body using only `RAZORPAY_WEBHOOK_SECRET`, deduplicated by event id, and rejected outright when no secret is configured.
+- The browser only talks to the Next.js `/api/proxy` route, which attaches the API key server-side. The public demo UI can therefore reach the backend with the key; that is a demo convenience, not user-level authentication.
+- See [docs/SECURITY.md](docs/SECURITY.md) for the audit findings and what remains open.
+
+## ⚠️ Limitations
+
+- Single-tenant: one shared API key, no user accounts or per-user authorization. The `actor` on an approval is a client-supplied string, not an authenticated identity.
+- Evaluation data is synthetic. Duplicate transactions are not matched, delayed settlements are weak (50% F1), and unseen exception types were not detected in the committed red-team run (see Evaluation).
+- No rate limiting in the app; rely on the hosting platform.
+- Free-tier hosting cold starts take 30-60 s on first request.
+- `langgraph` 0.2.x and `langchain-core` have known advisories that need a major upgrade not verified here (see docs/SECURITY.md).
+- ESLint reports 29 errors (mostly `no-explicit-any` and React hooks purity rules); `tsc` and `next build` pass.
 
 ---
 

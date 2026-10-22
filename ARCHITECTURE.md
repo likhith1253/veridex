@@ -308,7 +308,7 @@ graph TB
 - **Must NOT Do**: Business logic, direct database access
 
 ### Evaluation Harness (`eval/`)
-- **Responsibility**: Score reconciliation quality against a private, seed-based ground truth — kept fully separate from live usage so its numbers stay reproducible and untouched by demo data
+- **Responsibility**: Score reconciliation quality against a fixed-seed ground truth — kept fully separate from live usage so its numbers stay reproducible and untouched by demo data
 - **Must NOT Do**: Read or write production data; be modified to make a demo look better
 
 ## Database Architecture
@@ -621,5 +621,5 @@ Gateway/Ledger/Bank feeds (batch ingest or signed webhooks)
 - Copilot / Finance QA service (live-data + product-knowledge modes)
 - FastAPI backend exposing all of the above
 - Next.js frontend (Control Center, Reconciliation, Exceptions, Settlements, Actions, Benchmark, Copilot)
-- Canonical benchmark evaluation harness against private ground truth
+- Canonical benchmark evaluation harness against fixed-seed ground truth
 - Full test suite covering the above

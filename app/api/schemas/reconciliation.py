@@ -15,14 +15,17 @@ class ReconciliationRunRequest(BaseModel):
     )
     gateway: list[Transaction] = Field(
         default_factory=list,
+        max_length=10000,
         description="List of transactions from the payment gateway feed",
     )
     ledger: list[Transaction] = Field(
         default_factory=list,
+        max_length=10000,
         description="List of transactions from the internal ledger feed",
     )
     bank: list[Transaction] = Field(
         default_factory=list,
+        max_length=10000,
         description="List of transactions from the bank statement feed",
     )
 

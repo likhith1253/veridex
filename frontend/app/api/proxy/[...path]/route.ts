@@ -26,7 +26,22 @@ const BACKEND_URL = process.env.VERIDEX_BACKEND_URL || "http://127.0.0.1:8000";
 const BACKEND_API_KEY =
   process.env.VERIDEX_API_KEY || process.env.SENTINEL_API_KEY || "";
 
+// Paths that must never be reachable through the public proxy: the Razorpay
+// webhook receivers authenticate with their own HMAC (the proxy would only
+// ever add noise there), and the interactive API docs / schema are not part
+// of the UI.
+const BLOCKED_PREFIXES = ["api/v1/webhooks", "docs", "redoc", "openapi.json"];
+
+function isForwardable(path: string[]): boolean {
+  if (path.some((seg) => seg === ".." || seg === "." || seg.includes("\\"))) return false;
+  const joined = path.join("/").toLowerCase();
+  return !BLOCKED_PREFIXES.some((p) => joined === p || joined.startsWith(p + "/"));
+}
+
 async function forward(req: NextRequest, path: string[]): Promise<NextResponse> {
+  if (!isForwardable(path)) {
+    return NextResponse.json({ detail: "Not found.", status_code: 404 }, { status: 404 });
+  }
   const targetUrl = `${BACKEND_URL}/${path.join("/")}${req.nextUrl.search}`;
 
   const headers = new Headers();
@@ -46,11 +61,12 @@ async function forward(req: NextRequest, path: string[]): Promise<NextResponse> 
       cache: "no-store",
     });
   } catch (err) {
+    // Do not echo the error text back: it can contain the internal backend URL.
+    console.error("Proxy upstream error:", err);
     return NextResponse.json(
       {
         detail: "Backend unreachable through proxy.",
         status_code: 502,
-        error: err instanceof Error ? err.message : String(err),
       },
       { status: 502 }
     );

@@ -33,5 +33,5 @@ async def trigger_reconciliation_run(
         logger.error("Reconciliation run failed for run_id %s: %s", run_id, e, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Reconciliation run failed: {str(e)}",
+            detail="Reconciliation run failed.",
         )

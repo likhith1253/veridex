@@ -37,6 +37,20 @@ def _run_alembic_upgrade() -> None:
     command.upgrade(cfg, "head")
 
 
+_DEFAULT_DEV_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8501",  # Streamlit dashboard (ui/)
+    "http://127.0.0.1:8501",
+]
+
+
+def _allowed_origins() -> list[str]:
+    raw = os.environ.get("ALLOWED_ORIGINS", "")
+    origins = [o.strip().rstrip("/") for o in raw.split(",") if o.strip() and o.strip() != "*"]
+    return origins or list(_DEFAULT_DEV_ORIGINS)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Auto-apply any pending Alembic migrations on boot. This exists because
@@ -67,12 +81,17 @@ def create_app() -> FastAPI:
     )
 
     # 1. Configure CORS middleware (AUD-059)
+    # Origins come from ALLOWED_ORIGINS (comma-separated). Auth is header based
+    # (X-API-Key), so cookies/credentials are never needed; wildcard + credentials
+    # is deliberately avoided. The browser UI talks to the same-origin Next.js
+    # proxy, so cross-origin access is only needed for local development.
+    allowed_origins = _allowed_origins()
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=allowed_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "X-API-Key", "Authorization"],
     )
 
     # 2. Add Security Headers Middleware (AUD-058)
@@ -136,9 +155,8 @@ def create_app() -> FastAPI:
         # misleading "blocked by CORS policy" error instead of the real 500.
         origin = request.headers.get("origin")
         headers = {"Vary": "Origin"}
-        if origin:
+        if origin and origin in _allowed_origins():
             headers["Access-Control-Allow-Origin"] = origin
-            headers["Access-Control-Allow-Credentials"] = "true"
         return JSONResponse(
             status_code=500,
             content={"detail": "Internal server error occurred.", "status_code": 500},

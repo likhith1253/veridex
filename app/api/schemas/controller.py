@@ -32,9 +32,9 @@ class BatchRecordItem(BaseModel):
 
 class BatchIngestRequest(BaseModel):
     batch_id: Optional[str] = Field(None, description="Optional batch tracking ID")
-    gateway_records: list[BatchRecordItem] = Field(default_factory=list, description="Gateway settlement records")
-    ledger_records: list[BatchRecordItem] = Field(default_factory=list, description="Internal ledger records")
-    bank_records: list[BatchRecordItem] = Field(default_factory=list, description="Bank statement records")
+    gateway_records: list[BatchRecordItem] = Field(default_factory=list, max_length=10000, description="Gateway settlement records")
+    ledger_records: list[BatchRecordItem] = Field(default_factory=list, max_length=10000, description="Internal ledger records")
+    bank_records: list[BatchRecordItem] = Field(default_factory=list, max_length=10000, description="Bank statement records")
 
 
 class BatchIngestResponse(BaseModel):

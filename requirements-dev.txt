@@ -1,3 +1,8 @@
 -r requirements.txt
-# pytest-asyncio 0.23 breaks on pytest >= 8.4 (FixtureDef.unittest was removed)
 pytest==8.3.5
+# pytest-asyncio 0.23.0 reads FixtureDef.unittest, an attribute that pytest
+# no longer provides, so every async fixture errored at setup with
+# "AttributeError: 'FixtureDef' object has no attribute 'unittest'".
+# Pinning pytest alone does not fix it (8.3.5 is affected too); 0.24.0 does.
+pytest-asyncio==0.24.0
+aiosqlite==0.20.0  # tests/test_settlement_intelligence.py uses in-memory SQLite

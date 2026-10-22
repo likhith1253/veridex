@@ -47,6 +47,13 @@ os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 # fallback DSN (different credentials entirely) instead of DATABASE_URL — set
 # it explicitly so every test module ends up pointed at the same database.
 os.environ["TEST_DATABASE_URL"] = TEST_DATABASE_URL
+# Webhook signature verification fails closed when no secret is configured, so
+# tests get an explicit, test-only secret (never a built-in default in app code).
+os.environ["RAZORPAY_WEBHOOK_SECRET"] = "rzp_test_secret_sentinel"
+# Tests exercise the API without credentials unless they set a key themselves.
+for _k in ("VERIDEX_API_KEY", "SENTINEL_API_KEY", "API_KEY"):
+    os.environ.pop(_k, None)
+os.environ.setdefault("ENVIRONMENT", "test")
 if "app.database.session" in sys.modules:
     raise RuntimeError(
         "app.database.session was imported before tests/conftest.py could redirect "

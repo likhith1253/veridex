@@ -52,7 +52,7 @@ async def recommend_finance_action(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(pve))
     except Exception as e:
         logger.error("Failed to recommend finance action: %s", e, exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error occurred.")
 
 
 @router.post(
@@ -81,7 +81,7 @@ async def approve_finance_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
     except Exception as e:
         logger.error("Failed to approve finance action %s: %s", id, e, exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error occurred.")
 
 
 @router.post(
@@ -110,7 +110,7 @@ async def reject_finance_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
     except Exception as e:
         logger.error("Failed to reject finance action %s: %s", id, e, exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error occurred.")
 
 
 @router.post(
@@ -143,7 +143,7 @@ async def execute_finance_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
     except Exception as e:
         logger.error("Failed to execute finance action %s: %s", id, e, exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error occurred.")
 
 
 @router.get(
@@ -184,4 +184,4 @@ async def list_finance_actions(
         return [FinanceActionResponse.model_validate(a) for a in actions]
     except Exception as e:
         logger.error("Failed to list finance actions: %s", e, exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error occurred.")

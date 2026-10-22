@@ -70,7 +70,7 @@ async def get_settlement_financial_breakdown(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get financial breakdown: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get financial breakdown (see server logs).")
 
 
 @router.get("/{settlement_id}/tax-audit", response_model=SettlementTaxAuditResponse)
@@ -96,7 +96,7 @@ async def audit_settlement_tax(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to audit settlement tax: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to audit settlement tax (see server logs).")
 
 
 @router.get("/{settlement_id}/transaction-linkage", response_model=SettlementTransactionLinkageResponse)
@@ -120,7 +120,7 @@ async def get_settlement_transaction_linkage(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get transaction linkage: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get transaction linkage (see server logs).")
 
 
 @router.get("/{settlement_id}/bank-reconciliation")
@@ -136,7 +136,7 @@ async def get_settlement_bank_reconciliation(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get bank reconciliation: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get bank reconciliation (see server logs).")
 
 
 @router.get("/{settlement_id}/exception-dossier", response_model=SettlementExceptionDossierResponse)
@@ -177,7 +177,7 @@ async def get_settlement_exception_dossier(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create exception dossier: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create exception dossier (see server logs).")
 
 
 @router.get("/{settlement_id}/explain", response_model=SettlementExplanationResponse)
@@ -216,7 +216,7 @@ async def explain_settlement(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to explain settlement: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to explain settlement (see server logs).")
 
 
 @router.get("/dashboard/summary", response_model=SettlementDashboardSummary)
@@ -304,7 +304,7 @@ async def get_settlement_dashboard_summary(
             currency="INR",
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get dashboard summary: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get dashboard summary (see server logs).")
 
 
 @router.get("/list", response_model=SettlementListResponse)
@@ -412,4 +412,4 @@ async def list_settlements(
             filter_applied=filter_applied,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list settlements: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to list settlements (see server logs).")

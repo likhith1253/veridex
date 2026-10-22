@@ -223,7 +223,8 @@ async def test_post_reconciliation_runs_service_failure_returns_500():
             assert response.status_code == 500
             data = response.json()
             assert "detail" in data
-            assert "Database deadlock simulated" in data["detail"]
+            # Internal error text must not leak to clients (it is logged server-side).
+            assert "Database deadlock simulated" not in data["detail"]
     finally:
         app.dependency_overrides.clear()
 

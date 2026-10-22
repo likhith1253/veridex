@@ -124,7 +124,7 @@ async def ingest_batch_records(
     except Exception as e:
         import logging
         logging.error(f"Batch ingestion error: {str(e)}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Batch ingestion failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Batch ingestion failed (see server logs).")
 
 
 @router.post("/ingest")
@@ -285,7 +285,7 @@ async def list_exceptions(
     except Exception as e:
         import logging
         logging.error(f"Exception list error: {str(e)}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Failed to list exceptions: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to list exceptions (see server logs).")
 
 
 @router.get("/exceptions/open")

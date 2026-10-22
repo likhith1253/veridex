@@ -43,24 +43,20 @@ class RazorpayWebhookHandler:
         if not signature:
             return False
 
+        # Fail closed: with no RAZORPAY_WEBHOOK_SECRET configured nothing can be
+        # verified, so every webhook is rejected. (Previously well-known
+        # fallback secrets were also accepted, letting anyone forge events.)
         secret = self.config.webhook_secret
-        secrets_to_try = [secret] if (secret and secret != "your_webhook_secret") else []
-        for default_sec in ["rzp_test_secret_sentinel", "your_webhook_secret"]:
-            if default_sec not in secrets_to_try:
-                secrets_to_try.append(default_sec)
+        if not secret or secret == "your_webhook_secret":
+            logger.error("RAZORPAY_WEBHOOK_SECRET is not configured; rejecting webhook.")
+            return False
 
-        for sec in secrets_to_try:
-            try:
-                expected = hmac.new(
-                    sec.encode("utf-8"),
-                    raw_body,
-                    hashlib.sha256,
-                ).hexdigest()
-                if hmac.compare_digest(expected, signature.strip()):
-                    return True
-            except Exception:
-                continue
-        return False
+        expected = hmac.new(
+            secret.encode("utf-8"),
+            raw_body,
+            hashlib.sha256,
+        ).hexdigest()
+        return hmac.compare_digest(expected, signature.strip())
 
     async def process_webhook(
         self,

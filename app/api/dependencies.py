@@ -1,3 +1,4 @@
+import hmac
 import logging
 from typing import AsyncGenerator
 
@@ -111,6 +112,14 @@ def verify_api_key(
         or ""
     ).strip()
     if not configured_key:
+        # Fail closed in production: an unset key must never mean "open to the
+        # internet". In local/dev/test it stays open for convenience.
+        if (os.environ.get("ENVIRONMENT") or os.environ.get("SENTINEL_ENV") or "").strip().lower() in (
+            "production",
+            "prod",
+        ):
+            logger.error("No API key configured while ENVIRONMENT=production; rejecting request.")
+            raise HTTPException(status_code=503, detail="API authentication is not configured.")
         return None
 
     provided_key = None
@@ -119,7 +128,9 @@ def verify_api_key(
     elif authorization and authorization.lower().startswith("bearer "):
         provided_key = authorization[7:].strip()
 
-    if not provided_key or provided_key != configured_key:
+    if not provided_key or not hmac.compare_digest(
+        provided_key.encode("utf-8"), configured_key.encode("utf-8")
+    ):
         raise HTTPException(
             status_code=401,
             detail="Invalid or missing API key.",

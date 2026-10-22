@@ -62,7 +62,7 @@ async def sync_razorpay_all(
         )
     except Exception as e:
         logger.error("Error during unified Razorpay sync: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed unified Razorpay sync: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed unified Razorpay sync (see server logs).")
 
 
 @router.post("/razorpay/sync/payments", response_model=RazorpaySyncResponse)
@@ -80,7 +80,7 @@ async def sync_razorpay_payments(
         )
     except Exception as e:
         logger.error("Error syncing Razorpay payments: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to sync payments: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to sync payments (see server logs).")
 
 
 @router.post("/razorpay/sync/orders", response_model=RazorpaySyncResponse)
@@ -98,7 +98,7 @@ async def sync_razorpay_orders(
         )
     except Exception as e:
         logger.error("Error syncing Razorpay orders: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to sync orders: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to sync orders (see server logs).")
 
 
 @router.post("/razorpay/sync/settlements", response_model=RazorpaySyncResponse)
@@ -116,7 +116,7 @@ async def sync_razorpay_settlements(
         )
     except Exception as e:
         logger.error("Error syncing Razorpay settlements: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to sync settlements: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to sync settlements (see server logs).")
 
 
 @router.post("/razorpay/webhook")
@@ -130,16 +130,16 @@ async def handle_razorpay_webhook(
     raw_body = await request.body()
 
     # 1. Signature Verification
-    if x_razorpay_signature:
-        if not webhook_handler.verify_signature(raw_body, x_razorpay_signature):
-            logger.warning("Invalid Razorpay webhook signature received")
-            raise HTTPException(status_code=400, detail="Invalid HMAC-SHA256 webhook signature")
+    # A signature is mandatory: a missing header must not bypass verification.
+    if not webhook_handler.verify_signature(raw_body, x_razorpay_signature):
+        logger.warning("Invalid or missing Razorpay webhook signature received")
+        raise HTTPException(status_code=400, detail="Invalid HMAC-SHA256 webhook signature")
 
     # 2. Parse payload
     try:
         payload = json.loads(raw_body.decode("utf-8"))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid JSON payload: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
     # 3. Translate to canonical Transaction
     payment_data = payload.get("payload", {}).get("payment", {}).get("entity", payload)

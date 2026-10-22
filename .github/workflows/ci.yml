@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'overhaul/**']
   pull_request:
 
 jobs:
@@ -58,3 +58,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          VERIDEX_BACKEND_URL: http://127.0.0.1:8000
+          NEXT_TELEMETRY_DISABLED: "1"
